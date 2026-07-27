@@ -1,0 +1,253 @@
+{
+  "_meta": {
+    "description": "Machine-readable action spec for the my_env chat environment. Consumed by the task generator to build valid scenarios (seed state satisfying preconditions) and to verify goal-state effects.",
+    "source_of_truth": "my_env/servers/tool.py (local chat tools) and my_env/servers/web.py (remote DeepWiki tools). Keep this file in sync when tools change.",
+    "actor": {
+      "ref": "state.me",
+      "description": "The acting user's id. Every write is attributed to this user; reads are scoped to it where noted."
+    },
+    "precondition_semantics": {
+      "enforced": "The tool itself checks it and returns an {\"error\": ...} object if violated (the action does not take effect).",
+      "soft": "Not checked by the tool, but required for the action to be meaningful/verifiable; the generator must satisfy it when seeding."
+    }
+  },
+
+  "entities": {
+    "user": {
+      "collection": "state.users (dict keyed by id)",
+      "key": "id",
+      "fields": {"id": "string", "name": "string", "handle": "string"}
+    },
+    "chat": {
+      "collection": "state.chats (dict keyed by id)",
+      "key": "id",
+      "fields": {
+        "id": "string",
+        "kind": "\"dm\" | \"group\"",
+        "name": "string | null",
+        "member_ids": "string[] (user ids)"
+      }
+    },
+    "message": {
+      "collection": "state.messages (ordered list, chronological by ts)",
+      "key": "id",
+      "fields": {
+        "id": "string",
+        "chat_id": "string (chat id)",
+        "sender_id": "string (user id)",
+        "text": "string",
+        "ts": "int (logical clock, not wall time)",
+        "reply_to": "string | null (parent message id)",
+        "reactions": "object (emoji -> user_id[])",
+        "read_by": "string[] (user ids)"
+      }
+    }
+  },
+
+  "servers": {
+    "chat": {
+      "transport": "local",
+      "url": "assigned per rollout (http://127.0.0.1:<port>/mcp)",
+      "state": "per-rollout ChatState, synced through the rollout state channel",
+      "description": "Local mock chat app. Read and write tools operate on the rollout's ChatState."
+    },
+    "deepwiki": {
+      "transport": "remote",
+      "url": "https://mcp.deepwiki.com/mcp",
+      "state": "none (external, read-only)",
+      "description": "Public DeepWiki MCP server: read-only GitHub-repo Q&A. Answers can be nondeterministic; requires the repo to be indexed by DeepWiki."
+    }
+  },
+
+  "actions": [
+    {
+      "id": "list_chats",
+      "tool": "chat_list_chats",
+      "address": {"server": "chat", "url": "assigned per rollout (http://127.0.0.1:<port>/mcp)"},
+      "kind": "read",
+      "description": "List the chats the acting user is a member of.",
+      "params": [],
+      "preconditions": [],
+      "returns": "array of {id, kind, name, members} for chats where actor is in member_ids"
+    },
+    {
+      "id": "read_messages",
+      "tool": "chat_read_messages",
+      "address": {"server": "chat", "url": "assigned per rollout (http://127.0.0.1:<port>/mcp)"},
+      "kind": "read",
+      "description": "Read the most recent messages in a chat, oldest to newest.",
+      "params": [
+        {"name": "chat_id", "type": "string", "required": true, "description": "chat to read"},
+        {"name": "limit", "type": "int", "required": false, "default": 20, "description": "max messages, most recent"}
+      ],
+      "preconditions": [
+        {"requires": "entity_exists", "entity": "chat", "ref": "chat_id", "enforced": false, "description": "If the chat does not exist the tool returns an empty list (no error); a valid read targets an existing chat."}
+      ],
+      "returns": "array of message views {id, from, text, ts, reply_to, reactions, read_by}"
+    },
+    {
+      "id": "get_user",
+      "tool": "chat_get_user",
+      "address": {"server": "chat", "url": "assigned per rollout (http://127.0.0.1:<port>/mcp)"},
+      "kind": "read",
+      "description": "Look up a user by id.",
+      "params": [
+        {"name": "user_id", "type": "string", "required": true, "description": "user to look up"}
+      ],
+      "preconditions": [
+        {"requires": "entity_exists", "entity": "user", "ref": "user_id", "enforced": true, "description": "If the user does not exist the tool returns {\"error\": \"no such user\"}."}
+      ],
+      "returns": "{id, name, handle} or {\"error\": \"no such user\"}"
+    },
+    {
+      "id": "send_message",
+      "tool": "chat_send_message",
+      "address": {"server": "chat", "url": "assigned per rollout (http://127.0.0.1:<port>/mcp)"},
+      "kind": "write",
+      "description": "Send a message from the acting user to a chat.",
+      "params": [
+        {"name": "chat_id", "type": "string", "required": true, "description": "destination chat"},
+        {"name": "text", "type": "string", "required": true, "description": "message body"}
+      ],
+      "preconditions": [
+        {"requires": "entity_exists", "entity": "chat", "ref": "chat_id", "enforced": true, "description": "The destination chat must exist; otherwise the tool returns {\"error\": \"no such chat\"} and nothing is written."}
+      ],
+      "effect": {
+        "summary": "appends a new message from the actor to the chat",
+        "mutations": [
+          {"target": "state.messages", "op": "append", "description": "new Message(id=m_<next>, chat_id, sender_id=actor, text, ts=max(ts)+1, reply_to=null, read_by=[actor])"},
+          {"target": "state.next_message_id", "op": "increment", "description": "advances the message-id counter"}
+        ]
+      },
+      "returns": "the created message view"
+    },
+    {
+      "id": "reply_to",
+      "tool": "chat_reply_to",
+      "address": {"server": "chat", "url": "assigned per rollout (http://127.0.0.1:<port>/mcp)"},
+      "kind": "write",
+      "description": "Reply to an existing message in its chat (threaded).",
+      "params": [
+        {"name": "message_id", "type": "string", "required": true, "description": "the message being replied to"},
+        {"name": "text", "type": "string", "required": true, "description": "reply body"}
+      ],
+      "preconditions": [
+        {"requires": "entity_exists", "entity": "message", "ref": "message_id", "enforced": true, "description": "The parent message must exist; otherwise the tool returns {\"error\": \"no such message\"} and nothing is written."}
+      ],
+      "effect": {
+        "summary": "appends a new message that references the parent, in the parent's chat",
+        "mutations": [
+          {"target": "state.messages", "op": "append", "description": "new Message(chat_id=parent.chat_id, sender_id=actor, text, ts=max(ts)+1, reply_to=message_id, read_by=[actor])"},
+          {"target": "state.next_message_id", "op": "increment", "description": "advances the message-id counter"}
+        ]
+      },
+      "returns": "the created message view"
+    },
+    {
+      "id": "add_reaction",
+      "tool": "chat_add_reaction",
+      "address": {"server": "chat", "url": "assigned per rollout (http://127.0.0.1:<port>/mcp)"},
+      "kind": "write",
+      "description": "Add an emoji reaction from the acting user to a message.",
+      "params": [
+        {"name": "message_id", "type": "string", "required": true, "description": "the message to react to"},
+        {"name": "emoji", "type": "string", "required": true, "description": "reaction emoji, e.g. ':+1:'"}
+      ],
+      "preconditions": [
+        {"requires": "entity_exists", "entity": "message", "ref": "message_id", "enforced": true, "description": "The target message must exist; otherwise the tool returns {\"error\": \"no such message\"}."}
+      ],
+      "effect": {
+        "summary": "adds the actor to the message's reaction set for the emoji (idempotent)",
+        "mutations": [
+          {"target": "state.messages[message_id].reactions[emoji]", "op": "add_unique", "value": "actor", "description": "actor id appended if not already present"}
+        ]
+      },
+      "returns": "the updated message view"
+    },
+    {
+      "id": "mark_read",
+      "tool": "chat_mark_read",
+      "address": {"server": "chat", "url": "assigned per rollout (http://127.0.0.1:<port>/mcp)"},
+      "kind": "write",
+      "description": "Mark every message in a chat as read by the acting user.",
+      "params": [
+        {"name": "chat_id", "type": "string", "required": true, "description": "chat to mark read"}
+      ],
+      "preconditions": [
+        {"requires": "entity_exists", "entity": "chat", "ref": "chat_id", "enforced": false, "description": "Not checked; a nonexistent or empty chat simply marks 0 messages. A meaningful mark_read targets a chat with unread messages."}
+      ],
+      "effect": {
+        "summary": "adds the actor to read_by of each not-yet-read message in the chat",
+        "mutations": [
+          {"target": "state.messages[*].read_by (where chat_id matches and actor absent)", "op": "add_unique", "value": "actor", "description": "actor appended to read_by of each qualifying message"}
+        ]
+      },
+      "returns": "{chat_id, marked_read: <count>}"
+    },
+    {
+      "id": "create_chat",
+      "tool": "chat_create_chat",
+      "address": {"server": "chat", "url": "assigned per rollout (http://127.0.0.1:<port>/mcp)"},
+      "kind": "write",
+      "description": "Create a new chat; the acting user is always included as a member.",
+      "params": [
+        {"name": "member_ids", "type": "string[]", "required": true, "description": "user ids to include (actor added automatically)"},
+        {"name": "name", "type": "string", "required": false, "default": null, "description": "chat name; if set (or >2 members) the chat is a group, else a dm"}
+      ],
+      "preconditions": [
+        {"requires": "entities_exist", "entity": "user", "ref": "member_ids", "enforced": false, "description": "Not checked, but member_ids should reference existing users for the chat to be meaningful/verifiable."}
+      ],
+      "effect": {
+        "summary": "adds a new chat containing the actor and the given members",
+        "mutations": [
+          {"target": "state.chats", "op": "insert", "description": "new Chat(id=c_<next_chat_id>, kind=group if name or >2 members else dm, name, member_ids=[actor, *member_ids] deduped)"},
+          {"target": "state.next_chat_id", "op": "increment", "description": "advances the chat-id counter"}
+        ]
+      },
+      "returns": "{id, kind, name, members}"
+    },
+    {
+      "id": "ask_question",
+      "tool": "deepwiki_ask_question",
+      "address": {"server": "deepwiki", "url": "https://mcp.deepwiki.com/mcp"},
+      "kind": "read",
+      "description": "Ask an AI-grounded question about a GitHub repository.",
+      "params": [
+        {"name": "repoName", "type": "string", "required": true, "description": "GitHub repo in owner/repo form (or a list, max 10)"},
+        {"name": "question", "type": "string", "required": true, "description": "the question to ask"}
+      ],
+      "preconditions": [
+        {"requires": "external_available", "entity": "github_repo", "ref": "repoName", "enforced": false, "description": "The repo must be indexed by DeepWiki. Answers are LLM-generated and may vary run-to-run; prefer questions with stable, unambiguous answers."}
+      ],
+      "returns": "free-text answer (nondeterministic)"
+    },
+    {
+      "id": "read_wiki_contents",
+      "tool": "deepwiki_read_wiki_contents",
+      "address": {"server": "deepwiki", "url": "https://mcp.deepwiki.com/mcp"},
+      "kind": "read",
+      "description": "View DeepWiki documentation for a GitHub repository.",
+      "params": [
+        {"name": "repoName", "type": "string", "required": true, "description": "GitHub repo in owner/repo form"}
+      ],
+      "preconditions": [
+        {"requires": "external_available", "entity": "github_repo", "ref": "repoName", "enforced": false, "description": "The repo must be indexed by DeepWiki. Content can drift as the repo/docs change (no version pinning)."}
+      ],
+      "returns": "documentation text"
+    },
+    {
+      "id": "read_wiki_structure",
+      "tool": "deepwiki_read_wiki_structure",
+      "address": {"server": "deepwiki", "url": "https://mcp.deepwiki.com/mcp"},
+      "kind": "read",
+      "description": "List the DeepWiki documentation topics for a GitHub repository.",
+      "params": [
+        {"name": "repoName", "type": "string", "required": true, "description": "GitHub repo in owner/repo form"}
+      ],
+      "preconditions": [
+        {"requires": "external_available", "entity": "github_repo", "ref": "repoName", "enforced": false, "description": "The repo must be indexed by DeepWiki."}
+      ],
+      "returns": "list of documentation topics"
+    }
+  ]
+}
