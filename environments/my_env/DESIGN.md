@@ -148,8 +148,12 @@ must survive character for character, since the golds are keyed to them.
 Each `GeneratedTask` sums three weighted `@vf.reward`s:
 
 - **`state_diff`** (0.5) — F1 between the **expected** and actual `trace.state`, reduced
-  to id/structure facts via `adapter.signature` (message/chat ids, `(msg, reacted_by)`,
-  `(msg, read_by)`, `(chat, member)`; content excluded). Scored over the change vs the
+  to id/structure facts via `adapter.signature`: `(chat, id)`, `(member, chat, user)`,
+  `(msg, id)`, `(in, msg, chat)`, `(replyto, msg, parent)`, `(react, msg, user)`,
+  `(read, msg, user)`. Content — text, emoji, chat names — is excluded, but *where* a
+  message landed is structure, not content: without `in`/`replyto` a message sent to the
+  wrong chat, or a reply threaded onto the wrong parent, scored the same as a correct one,
+  which left the referential difficulty of a prompt unmeasured. Scored over the change vs the
   seed: missing expected changes ↓recall, unexpected changes ↓precision (extra creates
   subtract). Extra reads change no state, so they're not penalized.
 - **`tool_calls`** (0.2) — `verify.tool_call_score`: fraction of the agent's tool calls

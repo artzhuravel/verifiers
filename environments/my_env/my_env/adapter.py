@@ -64,6 +64,12 @@ class ChatAdapter:
                 facts.add(("member", chat.id, user_id))
         for message in state.messages:
             facts.add(("msg", message.id))
+            # Where a message landed is structure, not content: without these two, sending
+            # to the wrong chat or replying to the wrong parent scores the same as getting
+            # it right, and the referential difficulty of a prompt goes unmeasured.
+            facts.add(("in", message.id, message.chat_id))
+            if message.reply_to:
+                facts.add(("replyto", message.id, message.reply_to))
             for reactors in message.reactions.values():
                 for user_id in reactors:
                     facts.add(("react", message.id, user_id))  # emoji excluded (content)
