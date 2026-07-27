@@ -79,6 +79,11 @@ for where the agent's answer should appear in its output. Decide whether the age
 output contains a correct answer — matching the gold in substance (exact wording may
 differ). Judge correctness only, not style.
 
+The agent's output has two parts. Grade against the DELIVERED OUTPUT section only: an
+answer that appears in a tool result but that the agent never delivered where the hint
+says does NOT count as correct. The FULL ROLLOUT section is context — use it to tell a
+genuinely retrieved answer from a guess, never as the answer itself.
+
 Items:
 {items}
 

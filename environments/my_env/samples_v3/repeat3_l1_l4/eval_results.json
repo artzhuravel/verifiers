@@ -1,0 +1,161 @@
+{
+  "model": "openai/gpt-5-nano",
+  "judge": "openai/gpt-5-mini",
+  "rollouts_per_task": 3,
+  "dataset": "environments/my_env/samples_v3",
+  "levels": {
+    "L1": {
+      "name": "explicit",
+      "n_tasks": 5,
+      "n_rollouts": 15,
+      "errors": 0,
+      "mean_total": 0.8812,
+      "stdev_total": 0.1225,
+      "mean_rewards": {
+        "state_diff": 0.4952,
+        "tool_calls": 0.2,
+        "open_ended": 0.186
+      },
+      "per_task": {
+        "0": {
+          "rollouts": [
+            0.85,
+            0.7786,
+            0.85
+          ],
+          "mean": 0.8262,
+          "min": 0.7786,
+          "max": 0.85
+        },
+        "1": {
+          "rollouts": [
+            1.0,
+            1.0,
+            1.0
+          ],
+          "mean": 1.0,
+          "min": 1.0,
+          "max": 1.0
+        },
+        "2": {
+          "rollouts": [
+            0.76,
+            0.82,
+            0.76
+          ],
+          "mean": 0.78,
+          "min": 0.76,
+          "max": 0.82
+        },
+        "3": {
+          "rollouts": [
+            1.0,
+            1.0,
+            1.0
+          ],
+          "mean": 1.0,
+          "min": 1.0,
+          "max": 1.0
+        },
+        "4": {
+          "rollouts": [
+            0.7,
+            0.7,
+            1.0
+          ],
+          "mean": 0.8,
+          "min": 0.7,
+          "max": 1.0
+        }
+      },
+      "discovery_reads": 22,
+      "failed_calls": 2,
+      "unplanned_writes": 0
+    },
+    "L4": {
+      "name": "conditional",
+      "n_tasks": 5,
+      "n_rollouts": 15,
+      "errors": 0,
+      "mean_total": 0.785,
+      "stdev_total": 0.2256,
+      "mean_rewards": {
+        "state_diff": 0.403,
+        "tool_calls": 0.2,
+        "open_ended": 0.182
+      },
+      "per_task": {
+        "0": {
+          "rollouts": [
+            0.85,
+            1.0,
+            1.0
+          ],
+          "mean": 0.95,
+          "min": 0.85,
+          "max": 1.0
+        },
+        "1": {
+          "rollouts": [
+            0.6545,
+            0.9545,
+            0.6545
+          ],
+          "mean": 0.7545,
+          "min": 0.6545,
+          "max": 0.9545
+        },
+        "2": {
+          "rollouts": [
+            0.88,
+            0.38,
+            0.32
+          ],
+          "mean": 0.5267,
+          "min": 0.32,
+          "max": 0.88
+        },
+        "3": {
+          "rollouts": [
+            1.0,
+            1.0,
+            1.0
+          ],
+          "mean": 1.0,
+          "min": 1.0,
+          "max": 1.0
+        },
+        "4": {
+          "rollouts": [
+            0.7,
+            0.6818,
+            0.7
+          ],
+          "mean": 0.6939,
+          "min": 0.6818,
+          "max": 0.7
+        }
+      },
+      "discovery_reads": 61,
+      "failed_calls": 0,
+      "unplanned_writes": 1
+    }
+  },
+  "paired": {
+    "delta_per_task": {
+      "0": 0.1238,
+      "1": -0.2455,
+      "2": -0.2533,
+      "3": 0.0,
+      "4": -0.1061
+    },
+    "mean_delta": -0.0962,
+    "stdev_delta": 0.1618,
+    "std_error": 0.0724,
+    "t_statistic": -1.33,
+    "df": 4,
+    "significant_at_p05": false,
+    "tasks_worse_at_L4": 3,
+    "tasks_better_at_L4": 1
+  }
+}

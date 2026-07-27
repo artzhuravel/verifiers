@@ -1,0 +1,200 @@
+{
+  "model": "openai/gpt-5-nano",
+  "judge": "openai/gpt-5-mini",
+  "harness": "null",
+  "dataset": "environments/my_env/samples_v2",
+  "levels": {
+    "L1": {
+      "n_tasks": 5,
+      "errors": [],
+      "mean_total": 0.827,
+      "mean_rewards": {
+        "state_diff": 0.387,
+        "tool_calls": 0.2,
+        "open_ended": 0.24
+      },
+      "unplanned_writes": 0,
+      "failed_calls": 5,
+      "tasks": {
+        "0": {
+          "rewards": {
+            "open_ended": 0.3,
+            "state_diff": 0.5,
+            "tool_calls": 0.2
+          },
+          "total": 1.0,
+          "unplanned_writes": 0,
+          "failed_calls": 0
+        },
+        "1": {
+          "rewards": {
+            "open_ended": 0.15,
+            "state_diff": 0.4348,
+            "tool_calls": 0.2
+          },
+          "total": 0.7848,
+          "unplanned_writes": 0,
+          "failed_calls": 0
+        },
+        "2": {
+          "rewards": {
+            "open_ended": 0.15,
+            "state_diff": 0.5,
+            "tool_calls": 0.2
+          },
+          "total": 0.85,
+          "unplanned_writes": 0,
+          "failed_calls": 0
+        },
+        "3": {
+          "rewards": {
+            "open_ended": 0.3,
+            "state_diff": 0.5,
+            "tool_calls": 0.2
+          },
+          "total": 1.0,
+          "unplanned_writes": 0,
+          "failed_calls": 0
+        },
+        "4": {
+          "rewards": {
+            "open_ended": 0.3,
+            "state_diff": 0.0,
+            "tool_calls": 0.2
+          },
+          "total": 0.5,
+          "unplanned_writes": 0,
+          "failed_calls": 5
+        }
+      }
+    },
+    "L2": {
+      "n_tasks": 5,
+      "errors": [],
+      "mean_total": 0.97,
+      "mean_rewards": {
+        "state_diff": 0.5,
+        "tool_calls": 0.2,
+        "open_ended": 0.27
+      },
+      "unplanned_writes": 0,
+      "failed_calls": 0,
+      "tasks": {
+        "0": {
+          "rewards": {
+            "open_ended": 0.3,
+            "state_diff": 0.5,
+            "tool_calls": 0.2
+          },
+          "total": 1.0,
+          "unplanned_writes": 0,
+          "failed_calls": 0
+        },
+        "1": {
+          "rewards": {
+            "open_ended": 0.15,
+            "state_diff": 0.5,
+            "tool_calls": 0.2
+          },
+          "total": 0.85,
+          "unplanned_writes": 0,
+          "failed_calls": 0
+        },
+        "2": {
+          "rewards": {
+            "open_ended": 0.3,
+            "state_diff": 0.5,
+            "tool_calls": 0.2
+          },
+          "total": 1.0,
+          "unplanned_writes": 0,
+          "failed_calls": 0
+        },
+        "3": {
+          "rewards": {
+            "open_ended": 0.3,
+            "state_diff": 0.5,
+            "tool_calls": 0.2
+          },
+          "total": 1.0,
+          "unplanned_writes": 0,
+          "failed_calls": 0
+        },
+        "4": {
+          "rewards": {
+            "open_ended": 0.3,
+            "state_diff": 0.5,
+            "tool_calls": 0.2
+          },
+          "total": 1.0,
+          "unplanned_writes": 0,
+          "failed_calls": 0
+        }
+      }
+    },
+    "L3": {
+      "n_tasks": 5,
+      "errors": [],
+      "mean_total": 0.9446,
+      "mean_rewards": {
+        "state_diff": 0.4746,
+        "tool_calls": 0.2,
+        "open_ended": 0.27
+      },
+      "unplanned_writes": 2,
+      "failed_calls": 0,
+      "tasks": {
+        "0": {
+          "rewards": {
+            "open_ended": 0.3,
+            "state_diff": 0.4444,
+            "tool_calls": 0.2
+          },
+          "total": 0.9444,
+          "unplanned_writes": 1,
+          "failed_calls": 0
+        },
+        "1": {
+          "rewards": {
+            "open_ended": 0.15,
+            "state_diff": 0.4286,
+            "tool_calls": 0.2
+          },
+          "total": 0.7786,
+          "unplanned_writes": 0,
+          "failed_calls": 0
+        },
+        "2": {
+          "rewards": {
+            "open_ended": 0.3,
+            "state_diff": 0.5,
+            "tool_calls": 0.2
+          },
+          "total": 1.0,
+          "unplanned_writes": 1,
+          "failed_calls": 0
+        },
+        "3": {
+          "rewards": {
+            "open_ended": 0.3,
+            "state_diff": 0.5,
+            "tool_calls": 0.2
+          },
+          "total": 1.0,
+          "unplanned_writes": 0,
+          "failed_calls": 0
+        },
+        "4": {
+          "rewards": {
+            "open_ended": 0.3,
+            "state_diff": 0.5,
+            "tool_calls": 0.2
+          },
+          "total": 1.0,
+          "unplanned_writes": 0,
+          "failed_calls": 0
+        }
+      }
+    }
+  }
+}

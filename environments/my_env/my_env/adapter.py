@@ -14,12 +14,14 @@ from verifiers.v1.mcp.server import _call_state
 
 from my_env.generate import Outcome
 from my_env.servers.tool import ChatToolset
-from my_env.state import Chat, ChatState, Message, User
+from my_env.state import ChatState
+from my_env.world import build_world
 
-_NAMES = ["Alice", "Bob", "Carol", "Dave", "Erin"]
 _TEXTS = ["on my way", "sounds good", "running late", "let's sync tomorrow", "shipping it"]
 _EMOJIS = [":+1:", ":tada:", ":eyes:", ":heart:"]
-_CHAT_NAMES = ["launch", "planning", "coffee", "random"]
+_CHAT_NAMES = ["standup", "retro", "offsite", "triage"]
+"""Names for chats the agent is asked to *create* — kept disjoint from the seeded chat
+names so a created chat is never confused with a pre-existing one."""
 _BAD = {"chat": "c_missing", "message": "m_missing", "user": "u_missing"}
 
 
@@ -28,20 +30,7 @@ class ChatAdapter:
         self._tools = ChatToolset(vf.ToolsetConfig())
 
     def initial_state(self, rng: Random) -> ChatState:
-        others = ["u_a", "u_b", "u_c"]
-        users = {"u_me": User(id="u_me", name="You", handle="you")}
-        for uid, name in zip(others, rng.sample(_NAMES, len(others))):
-            users[uid] = User(id=uid, name=name, handle=name.lower())
-        chat = Chat(id="c_001", kind="group", name=rng.choice(_CHAT_NAMES), member_ids=["u_me", *others])
-        messages = [
-            Message(id=f"m_{i + 1:03d}", chat_id="c_001", sender_id=rng.choice(others),
-                    text=rng.choice(_TEXTS), ts=i + 1)
-            for i in range(2)
-        ]
-        return ChatState(
-            me="u_me", users=users, chats={"c_001": chat}, messages=messages,
-            next_message_id=len(messages) + 1, next_chat_id=2,
-        )
+        return build_world(rng)
 
     def objects_of_type(self, state: ChatState, entity_type: str) -> list[str]:
         if entity_type == "chat":

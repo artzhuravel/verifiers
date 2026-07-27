@@ -109,17 +109,30 @@ def _render_prompt(timeline: list[list[dict]]) -> str:
     return "\n".join(lines)
 
 
-def _transcript(trace: vf.Trace) -> str:
-    # The agent's answer-bearing output for the judge: messages it sent + its final reply.
+def _transcript(trace: vf.Trace, seeded: set[str]) -> str:
+    """What the judge sees: the whole rollout, then the subset that counts for grading.
+
+    The full trace lets the judge check the agent actually did the work (an answer it
+    never retrieved but guessed is not the same as one it looked up). Grading still
+    targets the delivered output only — messages the agent sent during this rollout plus
+    its final reply — because the reward measures delivery, not retrieval. Seeded
+    messages are excluded: the world ships with history the acting user "wrote".
+    """
     state = trace.state
     sent = []
     for message in state.messages:
-        if message.sender_id == state.me:
+        if message.sender_id == state.me and message.id not in seeded:
             chat = state.chats.get(message.chat_id)
             label = chat.name if chat and chat.name else message.chat_id
             sent.append(f"[{label}] {message.text}")
     body = "\n".join(sent) or "(none)"
-    return f"Messages the agent sent:\n{body}\n\nAgent's final reply:\n{trace.last_reply or ''}"
+    return (
+        "FULL ROLLOUT — every tool call the agent made and what came back. Context only:\n"
+        f"{trace.transcript}\n\n"
+        "=== DELIVERED OUTPUT — grade against this section alone ===\n"
+        f"Messages the agent sent:\n{body}\n\n"
+        f"Agent's final reply:\n{trace.last_reply or ''}"
+    )
 
 
 class GeneratedTask(ChatTask):
@@ -139,8 +152,9 @@ class GeneratedTask(ChatTask):
 
     @vf.reward(weight=0.3)
     async def open_ended(self, trace: vf.Trace) -> float:
+        seeded = {message.id for message in self.data.seed.messages}
         return await judge_open_ended(
-            self.data.open_ended, _transcript(trace), self.config.judge, trace=trace
+            self.data.open_ended, _transcript(trace, seeded), self.config.judge, trace=trace
         )
 
 
