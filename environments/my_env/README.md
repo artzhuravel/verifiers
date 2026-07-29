@@ -6,7 +6,9 @@ It doubles as a reusable *pattern* for building generated-task environments: the
 generator and scoring core are environment-agnostic (driven by a spec + an adapter), so
 only the chat-specific pieces are bespoke.
 
-Read this first. `DESIGN.md`, `HANDOFF.md` and `PRESENTATION.md` now live under `tmp/`.
+Read this first. Known gaps are tracked in `OPEN_QUESTIONS.md`, and the next milestone is
+planned in `CHAIN_PLAN.md`. `DESIGN.md`, `HANDOFF.md` and `PRESENTATION.md` now live under
+`tmp/`.
 
 ## What we're trying to achieve
 
@@ -63,7 +65,7 @@ across every rung, so a score gap is attributable to the wording alone.
 
 Ambiguity is **referential, not semantic**: the intended action set must stay uniquely
 recoverable at every rung. A rewrite that makes the task genuinely underdetermined is a
-defect, not a harder task — and nothing currently detects that (see `HANDOFF.md` §8.1).
+defect, not a harder task — and nothing currently detects that (see `OPEN_QUESTIONS.md` §4).
 
 `samples_v3/ladder_example.md` shows one real plan rendered at all five rungs.
 
@@ -131,6 +133,8 @@ part of its identity; that is the judge's job.
 | `samples_v3/sample_output.json` | inspection artifact: raw `generate` output (seed/expected/timeline) |
 | `samples_v3/rescore/` | latest eval (post-signature-fix): `eval_results.md` + `transcripts/l*.md` |
 | `my_env/cli.py` | `plan` / `prompts` / `result` inspection commands (driven by `./tasks`) |
+| `OPEN_QUESTIONS.md` | known gaps: what's wrong, the in-repo evidence, and what a fix touches |
+| `CHAIN_PLAN.md` | plan under review for the next milestone — dependency-chain generation |
 
 Superseded artifacts (the pre-ladder dataset, `samples_v2/`, the old-world
 `sample_output.json`, and the unused `legacy_tasksets.py`) were moved to `tmp/` at the
@@ -185,7 +189,7 @@ Config knobs — taskset: `dataset`, `num_generated`, `timesteps`, `max_actions_
   names — only ids and structural facts. Content correctness is the judge's job.
 - **State-diff over trace-matching (Option B).** The reward compares expected vs actual
   final state (F1), which naturally penalizes *extra* actions (precision). Trade-off:
-  invalid actions leave no state footprint, so they're currently **ungraded** (see gaps).
+  invalid actions leave no state footprint, so they're currently **ungraded**.
 - **Deterministic entity ids** (monotonic counters, not `len()`). This is what makes the
   expected state, chaining, and prompts reproducible. Never reuse a freed id.
 - **Authoring is offline & the prompt must be self-contained.** The solving agent sees

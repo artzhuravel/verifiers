@@ -68,6 +68,8 @@
       "description": "List the chats the acting user is a member of.",
       "params": [],
       "preconditions": [],
+      "produces": {"kind": "info", "type": "text", "source": "internal", "shape": "collection"},
+      "consumes": [],
       "returns": "array of {id, kind, name, members} for chats where actor is in member_ids"
     },
     {
@@ -83,6 +85,10 @@
       "preconditions": [
         {"requires": "entity_exists", "entity": "chat", "ref": "chat_id", "enforced": false, "description": "If the chat does not exist the tool returns an empty list (no error); a valid read targets an existing chat."}
       ],
+      "produces": {"kind": "info", "type": "text", "source": "internal", "shape": "collection"},
+      "consumes": [
+        {"param": "chat_id", "slot": "object", "type": "chat", "arity": "one"}
+      ],
       "returns": "array of message views {id, from, text, ts, reply_to, reactions, read_by}"
     },
     {
@@ -96,6 +102,10 @@
       ],
       "preconditions": [
         {"requires": "entity_exists", "entity": "user", "ref": "user_id", "enforced": true, "description": "If the user does not exist the tool returns {\"error\": \"no such user\"}."}
+      ],
+      "produces": {"kind": "info", "type": "text", "source": "internal", "shape": "scalar"},
+      "consumes": [
+        {"param": "user_id", "slot": "object", "type": "user", "arity": "one"}
       ],
       "returns": "{id, name, handle} or {\"error\": \"no such user\"}"
     },
@@ -119,6 +129,11 @@
           {"target": "state.next_message_id", "op": "increment", "description": "advances the message-id counter"}
         ]
       },
+      "produces": {"kind": "entity", "type": "message"},
+      "consumes": [
+        {"param": "chat_id", "slot": "object", "type": "chat", "arity": "one"},
+        {"param": "text", "slot": "value", "type": "text", "arity": "many"}
+      ],
       "returns": "the created message view"
     },
     {
@@ -141,6 +156,11 @@
           {"target": "state.next_message_id", "op": "increment", "description": "advances the message-id counter"}
         ]
       },
+      "produces": {"kind": "entity", "type": "message"},
+      "consumes": [
+        {"param": "message_id", "slot": "object", "type": "message", "arity": "one"},
+        {"param": "text", "slot": "value", "type": "text", "arity": "many"}
+      ],
       "returns": "the created message view"
     },
     {
@@ -162,6 +182,10 @@
           {"target": "state.messages[message_id].reactions[emoji]", "op": "add_unique", "value": "actor", "description": "actor id appended if not already present"}
         ]
       },
+      "produces": null,
+      "consumes": [
+        {"param": "message_id", "slot": "object", "type": "message", "arity": "one"}
+      ],
       "returns": "the updated message view"
     },
     {
@@ -182,6 +206,10 @@
           {"target": "state.messages[*].read_by (where chat_id matches and actor absent)", "op": "add_unique", "value": "actor", "description": "actor appended to read_by of each qualifying message"}
         ]
       },
+      "produces": null,
+      "consumes": [
+        {"param": "chat_id", "slot": "object", "type": "chat", "arity": "one"}
+      ],
       "returns": "{chat_id, marked_read: <count>}"
     },
     {
@@ -204,6 +232,10 @@
           {"target": "state.next_chat_id", "op": "increment", "description": "advances the chat-id counter"}
         ]
       },
+      "produces": {"kind": "entity", "type": "chat"},
+      "consumes": [
+        {"param": "member_ids", "slot": "object", "type": "user", "arity": "many"}
+      ],
       "returns": "{id, kind, name, members}"
     },
     {
@@ -219,6 +251,8 @@
       "preconditions": [
         {"requires": "external_available", "entity": "github_repo", "ref": "repoName", "enforced": false, "description": "The repo must be indexed by DeepWiki. Answers are LLM-generated and may vary run-to-run; prefer questions with stable, unambiguous answers."}
       ],
+      "produces": {"kind": "info", "type": "text", "source": "external", "shape": "scalar"},
+      "consumes": [],
       "returns": "free-text answer (nondeterministic)"
     },
     {
@@ -233,6 +267,8 @@
       "preconditions": [
         {"requires": "external_available", "entity": "github_repo", "ref": "repoName", "enforced": false, "description": "The repo must be indexed by DeepWiki. Content can drift as the repo/docs change (no version pinning)."}
       ],
+      "produces": {"kind": "info", "type": "text", "source": "external", "shape": "collection"},
+      "consumes": [],
       "returns": "documentation text"
     },
     {
@@ -247,6 +283,8 @@
       "preconditions": [
         {"requires": "external_available", "entity": "github_repo", "ref": "repoName", "enforced": false, "description": "The repo must be indexed by DeepWiki."}
       ],
+      "produces": {"kind": "info", "type": "text", "source": "external", "shape": "collection"},
+      "consumes": [],
       "returns": "list of documentation topics"
     }
   ]

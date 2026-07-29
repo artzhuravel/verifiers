@@ -1,0 +1,47 @@
+EXAMPLE 4  —  interleaved, with waiting
+========================================================================================
+
+Threads skip turns and borrow, so a strand can begin late by picking up another's output. The prompt has to convey ordering without numbering steps.
+
+Provenance
+----------------------------------------------------------------------------------------
+  source          chain_examples.json, examples[3]
+  generator       my_env.sequential_generate.gen_dependency_chains
+  renderer        my_env.sequential_author.render_steps (deterministic, no LLM)
+  seed_idx        7   (seed state = adapter.initial_state(Random(7)))
+  global cap      None
+  chain 0         max_depth=2  max_breadth=2  p_skip=0.35  p_cross=0.5  p_unrelated=0.0
+  chain 1         max_depth=2  max_breadth=2  p_skip=0.35  p_cross=0.5  p_unrelated=0.0
+  chain 2         max_depth=2  max_breadth=1  p_skip=0.5  p_cross=0.8  p_unrelated=0.0
+  totals          4 turns, 6 actions (6 links + 0 distractors), depths [2, 2, 2]
+  edges           4 total, 2 crossing threads, 2 object / 2 value, widest fan-in 1
+  author slots    1 open-ended
+
+Steps  (turn-major order; '<-' is a dependency, '=' a literal)
+----------------------------------------------------------------------------------------
+
+step 1  [read]  read_wiki_structure — List the DeepWiki documentation topics for a GitHub repository.
+    repoName     ?  supplied by the author — GitHub repo in owner/repo form
+    returns      list of documentation topics
+step 2  [write]  send_message — Send a message from the acting user to a chat.
+    chat_id      =  c_001 (a chat that already exists)
+    text         =  '<text>'  (placeholder — the author decides: message body)
+step 3  [write]  reply_to — Reply to an existing message in its chat (threaded).
+    message_id   =  m_015 (a message that already exists)
+    text         <- must carry what step 1 returned
+step 4  [write]  reply_to — Reply to an existing message in its chat (threaded).
+    message_id   =  m_003 (a message that already exists)
+    text         <- must carry what step 1 returned
+step 5  [write]  add_reaction — Add an emoji reaction from the acting user to a message.
+    message_id   <- the message produced by step 3
+    emoji        =  '<emoji>'  (placeholder — the author decides: reaction emoji, e.g. ':+1:')
+step 6  [write]  reply_to — Reply to an existing message in its chat (threaded).
+    message_id   <- the message produced by step 4
+    text         =  '<text>'  (placeholder — the author decides: reply body)
+
+Thread membership  (the flat order above loses it; kept for later thread-major work)
+----------------------------------------------------------------------------------------
+  chain 0: steps 2, 6
+  chain 1: steps 3, 5
+  chain 2: steps 1, 4
+  (* = distractor: depends on nothing and does not count toward depth)

@@ -18,12 +18,20 @@ from my_env.servers.tool import ChatToolset
 from my_env.state import ChatState
 from my_env.world import build_world
 
-_TEXTS = ["on my way", "sounds good", "running late", "let's sync tomorrow", "shipping it"]
-_EMOJIS = [":+1:", ":tada:", ":eyes:", ":heart:"]
-_CHAT_NAMES = ["standup", "retro", "offsite", "triage"]
-"""Names for chats the agent is asked to *create* — kept disjoint from the seeded chat
-names so a created chat is never confused with a pre-existing one."""
 _BAD = {"chat": "c_missing", "message": "m_missing", "user": "u_missing"}
+
+
+def _placeholder(param: str) -> str:
+    """A value arg the generator has no business choosing.
+
+    Content — a message body, a reaction, a chat's name — belongs to the authoring step, not
+    to sampling. Filling these with plausible-looking strings ("sounds good", ":tada:") was
+    actively harmful: the authoring model cannot tell a sampled filler from a requirement, so
+    it treated the wording as fixed and inherited its tone. A self-describing sentinel makes
+    the emptiness explicit instead. None of these reach the reward — `signature` excludes
+    text, emoji and names by design.
+    """
+    return f"<{param}>"
 
 
 class ChatAdapter:
@@ -148,7 +156,8 @@ class ChatAdapter:
             _call_state.reset(token)
         error = isinstance(result, dict) and "error" in result
         entity_id = None if error else self._entity_id(action, args, result)
-        return Outcome(error=error, entity_id=entity_id, args=args)
+        value = None if error else self._value(action, result)
+        return Outcome(error=error, entity_id=entity_id, args=args, value=value)
 
     def _args(self, action: str, object_id: str | None, state: ChatState, rng: Random) -> dict:
         if action == "list_chats":
@@ -160,15 +169,25 @@ class ChatAdapter:
         if action == "mark_read":
             return {"chat_id": object_id}
         if action == "send_message":
-            return {"chat_id": object_id, "text": rng.choice(_TEXTS)}
+            return {"chat_id": object_id, "text": _placeholder("text")}
         if action == "reply_to":
-            return {"message_id": object_id, "text": rng.choice(_TEXTS)}
+            return {"message_id": object_id, "text": _placeholder("text")}
         if action == "add_reaction":
-            return {"message_id": object_id, "emoji": rng.choice(_EMOJIS)}
-        # create_chat has no single object; pick valid members and maybe a name.
+            return {"message_id": object_id, "emoji": _placeholder("emoji")}
+        # create_chat has no single object; pick valid members, and sometimes name the chat —
+        # whether it is named is structure (it decides dm vs group), what it is called is not.
         others = [u for u in state.users if u != state.me]
         members = rng.sample(others, rng.randint(1, min(2, len(others))))
-        return {"member_ids": members, "name": rng.choice(_CHAT_NAMES) if rng.random() < 0.5 else None}
+        named = rng.random() < 0.5
+        return {"member_ids": members, "name": _placeholder("name") if named else None}
+
+    def _value(self, action: str, result) -> str | None:
+        """The nameable result of a read, for the actions where there is exactly one. Only
+        `get_user` qualifies: a handle is a single value an authored obligation can be about,
+        whereas a chat's messages are a collection with no one value to point at."""
+        if action == "get_user":
+            return result.get("handle")
+        return None
 
     def _entity_id(self, action: str, args: dict, result) -> str | None:
         if action in ("send_message", "reply_to", "create_chat"):

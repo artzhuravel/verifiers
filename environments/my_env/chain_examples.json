@@ -1,0 +1,2481 @@
+{
+  "_meta": {
+    "generator": "my_env.sequential_generate.gen_dependency_chains",
+    "purpose": "Input for the prompt-authoring step: symbolic threads to be turned into natural language. Each example is one independent batch of chains.",
+    "seed_world": "Rebuild with ChatAdapter().initial_state(Random(example['seed_idx'])) \u2014 world.build_world is deterministic in that seed, so the world is not duplicated into this file.",
+    "shape": "timelines[chain][turn] -> list of actions. An empty list means that thread sat the turn out. Turn indices are shared across threads.",
+    "edges": {
+      "depends_on": "One entry per source this action consumes. Referenced BY KEY, so interleaving further actions into a turn cannot shift what an edge points at.",
+      "via=object": "The id is bound: args[param] is exactly the source's entity_id, and the placement is deterministically checkable.",
+      "via=value": "Only the edge is recorded. args[param] is still sampled filler \u2014 the content obligation ('this must carry what that step returned') is the authoring step's to express and the judge's to grade.",
+      "unrelated": "True for a distractor: depends on nothing and does not count toward its thread's depth."
+    },
+    "not_included": "No expected state diff. These examples are for prompt authoring; scoring is wired up separately."
+  },
+  "examples": [
+    {
+      "id": 1,
+      "label": "two short self-contained errands",
+      "why": "The floor: two independent strands, nothing crossing, nothing skipped. A prompt for this is two unrelated requests in one message.",
+      "seed_idx": 3,
+      "max_global_depth": null,
+      "configs": [
+        {
+          "max_depth": 2,
+          "max_breadth": 1,
+          "p_skip": 0.0,
+          "p_cross": 0.0,
+          "p_unrelated": 0.0
+        },
+        {
+          "max_depth": 2,
+          "max_breadth": 1,
+          "p_skip": 0.0,
+          "p_cross": 0.0,
+          "p_unrelated": 0.0
+        }
+      ],
+      "stats": {
+        "turns": 2,
+        "actions": 4,
+        "links": 4,
+        "distractors": 0,
+        "edges": 2,
+        "cross_chain_edges": 0,
+        "object_edges": 2,
+        "value_edges": 0,
+        "widest_fan_in": 1,
+        "depth_per_chain": [
+          2,
+          2
+        ],
+        "open_ended_slots": 0
+      },
+      "timelines": [
+        [
+          [
+            {
+              "key": "c0a0",
+              "chain": 0,
+              "turn": 0,
+              "action": "create_chat",
+              "tool": "chat_create_chat",
+              "kind": "write",
+              "open_ended": false,
+              "objects": {
+                "member_ids": [
+                  "u_lena",
+                  "u_noor"
+                ]
+              },
+              "args": {
+                "member_ids": [
+                  "u_lena",
+                  "u_noor"
+                ],
+                "name": "<name>"
+              },
+              "expect_error": false,
+              "entity_id": "c_007",
+              "depends_on": [],
+              "produced_value": null,
+              "unrelated": false
+            }
+          ],
+          [
+            {
+              "key": "c0a1",
+              "chain": 0,
+              "turn": 1,
+              "action": "send_message",
+              "tool": "chat_send_message",
+              "kind": "write",
+              "open_ended": false,
+              "objects": {
+                "chat_id": "c_007"
+              },
+              "args": {
+                "chat_id": "c_007",
+                "text": "<text>"
+              },
+              "expect_error": false,
+              "entity_id": "m_042",
+              "depends_on": [
+                {
+                  "source": "c0a0",
+                  "via": "object",
+                  "param": "chat_id",
+                  "entity_id": "c_007"
+                }
+              ],
+              "produced_value": null,
+              "unrelated": false
+            }
+          ]
+        ],
+        [
+          [
+            {
+              "key": "c1a0",
+              "chain": 1,
+              "turn": 0,
+              "action": "send_message",
+              "tool": "chat_send_message",
+              "kind": "write",
+              "open_ended": false,
+              "objects": {
+                "chat_id": "c_002"
+              },
+              "args": {
+                "chat_id": "c_002",
+                "text": "<text>"
+              },
+              "expect_error": false,
+              "entity_id": "m_041",
+              "depends_on": [],
+              "produced_value": null,
+              "unrelated": false
+            }
+          ],
+          [
+            {
+              "key": "c1a1",
+              "chain": 1,
+              "turn": 1,
+              "action": "add_reaction",
+              "tool": "chat_add_reaction",
+              "kind": "write",
+              "open_ended": false,
+              "objects": {
+                "message_id": "m_041"
+              },
+              "args": {
+                "message_id": "m_041",
+                "emoji": "<emoji>"
+              },
+              "expect_error": false,
+              "entity_id": "m_041",
+              "depends_on": [
+                {
+                  "source": "c1a0",
+                  "via": "object",
+                  "param": "message_id",
+                  "entity_id": "m_041"
+                }
+              ],
+              "produced_value": null,
+              "unrelated": false
+            }
+          ]
+        ]
+      ]
+    },
+    {
+      "id": 2,
+      "label": "one linear errand, four deep",
+      "why": "A single strand where each step feeds the next \u2014 the simplest thing that still needs to be described in order.",
+      "seed_idx": 5,
+      "max_global_depth": null,
+      "configs": [
+        {
+          "max_depth": 4,
+          "max_breadth": 1,
+          "p_skip": 0.0,
+          "p_cross": 0.0,
+          "p_unrelated": 0.0
+        }
+      ],
+      "stats": {
+        "turns": 4,
+        "actions": 4,
+        "links": 4,
+        "distractors": 0,
+        "edges": 3,
+        "cross_chain_edges": 0,
+        "object_edges": 0,
+        "value_edges": 3,
+        "widest_fan_in": 1,
+        "depth_per_chain": [
+          4
+        ],
+        "open_ended_slots": 1
+      },
+      "timelines": [
+        [
+          [
+            {
+              "key": "c0a0",
+              "chain": 0,
+              "turn": 0,
+              "action": "read_wiki_structure",
+              "tool": "deepwiki_read_wiki_structure",
+              "kind": "read",
+              "open_ended": true,
+              "objects": {},
+              "args": {},
+              "expect_error": false,
+              "entity_id": null,
+              "depends_on": [],
+              "produced_value": null,
+              "unrelated": false
+            }
+          ],
+          [
+            {
+              "key": "c0a1",
+              "chain": 0,
+              "turn": 1,
+              "action": "send_message",
+              "tool": "chat_send_message",
+              "kind": "write",
+              "open_ended": false,
+              "objects": {
+                "chat_id": "c_003"
+              },
+              "args": {
+                "chat_id": "c_003",
+                "text": "<text>"
+              },
+              "expect_error": false,
+              "entity_id": "m_041",
+              "depends_on": [
+                {
+                  "source": "c0a0",
+                  "via": "value",
+                  "param": "text",
+                  "entity_id": null
+                }
+              ],
+              "produced_value": null,
+              "unrelated": false
+            }
+          ],
+          [
+            {
+              "key": "c0a2",
+              "chain": 0,
+              "turn": 2,
+              "action": "reply_to",
+              "tool": "chat_reply_to",
+              "kind": "write",
+              "open_ended": false,
+              "objects": {
+                "message_id": "m_027"
+              },
+              "args": {
+                "message_id": "m_027",
+                "text": "<text>"
+              },
+              "expect_error": false,
+              "entity_id": "m_042",
+              "depends_on": [
+                {
+                  "source": "c0a0",
+                  "via": "value",
+                  "param": "text",
+                  "entity_id": null
+                }
+              ],
+              "produced_value": null,
+              "unrelated": false
+            }
+          ],
+          [
+            {
+              "key": "c0a3",
+              "chain": 0,
+              "turn": 3,
+              "action": "reply_to",
+              "tool": "chat_reply_to",
+              "kind": "write",
+              "open_ended": false,
+              "objects": {
+                "message_id": "m_040"
+              },
+              "args": {
+                "message_id": "m_040",
+                "text": "<text>"
+              },
+              "expect_error": false,
+              "entity_id": "m_043",
+              "depends_on": [
+                {
+                  "source": "c0a0",
+                  "via": "value",
+                  "param": "text",
+                  "entity_id": null
+                }
+              ],
+              "produced_value": null,
+              "unrelated": false
+            }
+          ]
+        ]
+      ]
+    },
+    {
+      "id": 3,
+      "label": "fan-in synthesis",
+      "why": "High breadth with full crossing, so one action gathers several earlier results. This is the 'one message carrying what two lookups found' case.",
+      "seed_idx": 11,
+      "max_global_depth": null,
+      "configs": [
+        {
+          "max_depth": 2,
+          "max_breadth": 3,
+          "p_skip": 0.0,
+          "p_cross": 1.0,
+          "p_unrelated": 0.0
+        },
+        {
+          "max_depth": 2,
+          "max_breadth": 3,
+          "p_skip": 0.0,
+          "p_cross": 1.0,
+          "p_unrelated": 0.0
+        },
+        {
+          "max_depth": 2,
+          "max_breadth": 3,
+          "p_skip": 0.0,
+          "p_cross": 1.0,
+          "p_unrelated": 0.0
+        }
+      ],
+      "stats": {
+        "turns": 2,
+        "actions": 6,
+        "links": 6,
+        "distractors": 0,
+        "edges": 7,
+        "cross_chain_edges": 5,
+        "object_edges": 0,
+        "value_edges": 7,
+        "widest_fan_in": 3,
+        "depth_per_chain": [
+          2,
+          2,
+          2
+        ],
+        "open_ended_slots": 3
+      },
+      "timelines": [
+        [
+          [
+            {
+              "key": "c0a0",
+              "chain": 0,
+              "turn": 0,
+              "action": "read_wiki_contents",
+              "tool": "deepwiki_read_wiki_contents",
+              "kind": "read",
+              "open_ended": true,
+              "objects": {},
+              "args": {},
+              "expect_error": false,
+              "entity_id": null,
+              "depends_on": [],
+              "produced_value": null,
+              "unrelated": false
+            }
+          ],
+          [
+            {
+              "key": "c0a1",
+              "chain": 0,
+              "turn": 1,
+              "action": "send_message",
+              "tool": "chat_send_message",
+              "kind": "write",
+              "open_ended": false,
+              "objects": {
+                "chat_id": "c_005"
+              },
+              "args": {
+                "chat_id": "c_005",
+                "text": "<text>"
+              },
+              "expect_error": false,
+              "entity_id": "m_041",
+              "depends_on": [
+                {
+                  "source": "c1a0",
+                  "via": "value",
+                  "param": "text",
+                  "entity_id": null
+                },
+                {
+                  "source": "c2a0",
+                  "via": "value",
+                  "param": "text",
+                  "entity_id": null
+                },
+                {
+                  "source": "c0a0",
+                  "via": "value",
+                  "param": "text",
+                  "entity_id": null
+                }
+              ],
+              "produced_value": null,
+              "unrelated": false
+            }
+          ]
+        ],
+        [
+          [
+            {
+              "key": "c1a0",
+              "chain": 1,
+              "turn": 0,
+              "action": "read_wiki_structure",
+              "tool": "deepwiki_read_wiki_structure",
+              "kind": "read",
+              "open_ended": true,
+              "objects": {},
+              "args": {},
+              "expect_error": false,
+              "entity_id": null,
+              "depends_on": [],
+              "produced_value": null,
+              "unrelated": false
+            }
+          ],
+          [
+            {
+              "key": "c1a1",
+              "chain": 1,
+              "turn": 1,
+              "action": "send_message",
+              "tool": "chat_send_message",
+              "kind": "write",
+              "open_ended": false,
+              "objects": {
+                "chat_id": "c_001"
+              },
+              "args": {
+                "chat_id": "c_001",
+                "text": "<text>"
+              },
+              "expect_error": false,
+              "entity_id": "m_042",
+              "depends_on": [
+                {
+                  "source": "c2a0",
+                  "via": "value",
+                  "param": "text",
+                  "entity_id": null
+                }
+              ],
+              "produced_value": null,
+              "unrelated": false
+            }
+          ]
+        ],
+        [
+          [
+            {
+              "key": "c2a0",
+              "chain": 2,
+              "turn": 0,
+              "action": "read_wiki_contents",
+              "tool": "deepwiki_read_wiki_contents",
+              "kind": "read",
+              "open_ended": true,
+              "objects": {},
+              "args": {},
+              "expect_error": false,
+              "entity_id": null,
+              "depends_on": [],
+              "produced_value": null,
+              "unrelated": false
+            }
+          ],
+          [
+            {
+              "key": "c2a1",
+              "chain": 2,
+              "turn": 1,
+              "action": "send_message",
+              "tool": "chat_send_message",
+              "kind": "write",
+              "open_ended": false,
+              "objects": {
+                "chat_id": "c_001"
+              },
+              "args": {
+                "chat_id": "c_001",
+                "text": "<text>"
+              },
+              "expect_error": false,
+              "entity_id": "m_043",
+              "depends_on": [
+                {
+                  "source": "c2a0",
+                  "via": "value",
+                  "param": "text",
+                  "entity_id": null
+                },
+                {
+                  "source": "c0a0",
+                  "via": "value",
+                  "param": "text",
+                  "entity_id": null
+                },
+                {
+                  "source": "c1a0",
+                  "via": "value",
+                  "param": "text",
+                  "entity_id": null
+                }
+              ],
+              "produced_value": null,
+              "unrelated": false
+            }
+          ]
+        ]
+      ]
+    },
+    {
+      "id": 4,
+      "label": "interleaved, with waiting",
+      "why": "Threads skip turns and borrow, so a strand can begin late by picking up another's output. The prompt has to convey ordering without numbering steps.",
+      "seed_idx": 7,
+      "max_global_depth": null,
+      "configs": [
+        {
+          "max_depth": 2,
+          "max_breadth": 2,
+          "p_skip": 0.35,
+          "p_cross": 0.5,
+          "p_unrelated": 0.0
+        },
+        {
+          "max_depth": 2,
+          "max_breadth": 2,
+          "p_skip": 0.35,
+          "p_cross": 0.5,
+          "p_unrelated": 0.0
+        },
+        {
+          "max_depth": 2,
+          "max_breadth": 1,
+          "p_skip": 0.5,
+          "p_cross": 0.8,
+          "p_unrelated": 0.0
+        }
+      ],
+      "stats": {
+        "turns": 4,
+        "actions": 6,
+        "links": 6,
+        "distractors": 0,
+        "edges": 4,
+        "cross_chain_edges": 2,
+        "object_edges": 2,
+        "value_edges": 2,
+        "widest_fan_in": 1,
+        "depth_per_chain": [
+          2,
+          2,
+          2
+        ],
+        "open_ended_slots": 1
+      },
+      "timelines": [
+        [
+          [],
+          [
+            {
+              "key": "c0a0",
+              "chain": 0,
+              "turn": 1,
+              "action": "send_message",
+              "tool": "chat_send_message",
+              "kind": "write",
+              "open_ended": false,
+              "objects": {
+                "chat_id": "c_001"
+              },
+              "args": {
+                "chat_id": "c_001",
+                "text": "<text>"
+              },
+              "expect_error": false,
+              "entity_id": "m_041",
+              "depends_on": [],
+              "produced_value": null,
+              "unrelated": false
+            }
+          ],
+          [],
+          [
+            {
+              "key": "c0a1",
+              "chain": 0,
+              "turn": 3,
+              "action": "reply_to",
+              "tool": "chat_reply_to",
+              "kind": "write",
+              "open_ended": false,
+              "objects": {
+                "message_id": "m_043"
+              },
+              "args": {
+                "message_id": "m_043",
+                "text": "<text>"
+              },
+              "expect_error": false,
+              "entity_id": "m_044",
+              "depends_on": [
+                {
+                  "source": "c2a1",
+                  "via": "object",
+                  "param": "message_id",
+                  "entity_id": "m_043"
+                }
+              ],
+              "produced_value": null,
+              "unrelated": false
+            }
+          ]
+        ],
+        [
+          [],
+          [
+            {
+              "key": "c1a0",
+              "chain": 1,
+              "turn": 1,
+              "action": "reply_to",
+              "tool": "chat_reply_to",
+              "kind": "write",
+              "open_ended": false,
+              "objects": {
+                "message_id": "m_015"
+              },
+              "args": {
+                "message_id": "m_015",
+                "text": "<text>"
+              },
+              "expect_error": false,
+              "entity_id": "m_042",
+              "depends_on": [
+                {
+                  "source": "c2a0",
+                  "via": "value",
+                  "param": "text",
+                  "entity_id": null
+                }
+              ],
+              "produced_value": null,
+              "unrelated": false
+            }
+          ],
+          [
+            {
+              "key": "c1a1",
+              "chain": 1,
+              "turn": 2,
+              "action": "add_reaction",
+              "tool": "chat_add_reaction",
+              "kind": "write",
+              "open_ended": false,
+              "objects": {
+                "message_id": "m_042"
+              },
+              "args": {
+                "message_id": "m_042",
+                "emoji": "<emoji>"
+              },
+              "expect_error": false,
+              "entity_id": "m_042",
+              "depends_on": [
+                {
+                  "source": "c1a0",
+                  "via": "object",
+                  "param": "message_id",
+                  "entity_id": "m_042"
+                }
+              ],
+              "produced_value": null,
+              "unrelated": false
+            }
+          ],
+          []
+        ],
+        [
+          [
+            {
+              "key": "c2a0",
+              "chain": 2,
+              "turn": 0,
+              "action": "read_wiki_structure",
+              "tool": "deepwiki_read_wiki_structure",
+              "kind": "read",
+              "open_ended": true,
+              "objects": {},
+              "args": {},
+              "expect_error": false,
+              "entity_id": null,
+              "depends_on": [],
+              "produced_value": null,
+              "unrelated": false
+            }
+          ],
+          [
+            {
+              "key": "c2a1",
+              "chain": 2,
+              "turn": 1,
+              "action": "reply_to",
+              "tool": "chat_reply_to",
+              "kind": "write",
+              "open_ended": false,
+              "objects": {
+                "message_id": "m_003"
+              },
+              "args": {
+                "message_id": "m_003",
+                "text": "<text>"
+              },
+              "expect_error": false,
+              "entity_id": "m_043",
+              "depends_on": [
+                {
+                  "source": "c2a0",
+                  "via": "value",
+                  "param": "text",
+                  "entity_id": null
+                }
+              ],
+              "produced_value": null,
+              "unrelated": false
+            }
+          ],
+          [],
+          []
+        ]
+      ]
+    },
+    {
+      "id": 5,
+      "label": "distractor-heavy",
+      "why": "Half the actions depend on nothing. The prompt must ask for them without hinting that they are incidental.",
+      "seed_idx": 1,
+      "max_global_depth": null,
+      "configs": [
+        {
+          "max_depth": 3,
+          "max_breadth": 1,
+          "p_skip": 0.0,
+          "p_cross": 0.2,
+          "p_unrelated": 0.5
+        },
+        {
+          "max_depth": 3,
+          "max_breadth": 1,
+          "p_skip": 0.0,
+          "p_cross": 0.2,
+          "p_unrelated": 0.5
+        }
+      ],
+      "stats": {
+        "turns": 3,
+        "actions": 11,
+        "links": 6,
+        "distractors": 5,
+        "edges": 4,
+        "cross_chain_edges": 0,
+        "object_edges": 2,
+        "value_edges": 2,
+        "widest_fan_in": 1,
+        "depth_per_chain": [
+          3,
+          3
+        ],
+        "open_ended_slots": 4
+      },
+      "timelines": [
+        [
+          [
+            {
+              "key": "c0a0",
+              "chain": 0,
+              "turn": 0,
+              "action": "read_messages",
+              "tool": "chat_read_messages",
+              "kind": "read",
+              "open_ended": false,
+              "objects": {
+                "chat_id": "c_003"
+              },
+              "args": {
+                "chat_id": "c_003"
+              },
+              "expect_error": false,
+              "entity_id": null,
+              "depends_on": [],
+              "produced_value": null,
+              "unrelated": false
+            },
+            {
+              "key": "c0a1",
+              "chain": 0,
+              "turn": 0,
+              "action": "create_chat",
+              "tool": "chat_create_chat",
+              "kind": "write",
+              "open_ended": false,
+              "objects": {
+                "member_ids": [
+                  "u_lena",
+                  "u_tomas"
+                ]
+              },
+              "args": {
+                "member_ids": [
+                  "u_lena",
+                  "u_tomas"
+                ],
+                "name": null
+              },
+              "expect_error": false,
+              "entity_id": "c_007",
+              "depends_on": [],
+              "produced_value": null,
+              "unrelated": true
+            }
+          ],
+          [
+            {
+              "key": "c0a2",
+              "chain": 0,
+              "turn": 1,
+              "action": "reply_to",
+              "tool": "chat_reply_to",
+              "kind": "write",
+              "open_ended": false,
+              "objects": {
+                "message_id": "m_002"
+              },
+              "args": {
+                "message_id": "m_002",
+                "text": "<text>"
+              },
+              "expect_error": false,
+              "entity_id": "m_041",
+              "depends_on": [
+                {
+                  "source": "c0a0",
+                  "via": "value",
+                  "param": "text",
+                  "entity_id": null
+                }
+              ],
+              "produced_value": null,
+              "unrelated": false
+            },
+            {
+              "key": "c0a3",
+              "chain": 0,
+              "turn": 1,
+              "action": "read_wiki_structure",
+              "tool": "deepwiki_read_wiki_structure",
+              "kind": "read",
+              "open_ended": true,
+              "objects": {},
+              "args": {},
+              "expect_error": false,
+              "entity_id": null,
+              "depends_on": [],
+              "produced_value": null,
+              "unrelated": true
+            }
+          ],
+          [
+            {
+              "key": "c0a4",
+              "chain": 0,
+              "turn": 2,
+              "action": "mark_read",
+              "tool": "chat_mark_read",
+              "kind": "write",
+              "open_ended": false,
+              "objects": {
+                "chat_id": "c_007"
+              },
+              "args": {
+                "chat_id": "c_007"
+              },
+              "expect_error": false,
+              "entity_id": "c_007",
+              "depends_on": [
+                {
+                  "source": "c0a1",
+                  "via": "object",
+                  "param": "chat_id",
+                  "entity_id": "c_007"
+                }
+              ],
+              "produced_value": null,
+              "unrelated": false
+            },
+            {
+              "key": "c0a5",
+              "chain": 0,
+              "turn": 2,
+              "action": "read_wiki_structure",
+              "tool": "deepwiki_read_wiki_structure",
+              "kind": "read",
+              "open_ended": true,
+              "objects": {},
+              "args": {},
+              "expect_error": false,
+              "entity_id": null,
+              "depends_on": [],
+              "produced_value": null,
+              "unrelated": true
+            }
+          ]
+        ],
+        [
+          [
+            {
+              "key": "c1a0",
+              "chain": 1,
+              "turn": 0,
+              "action": "ask_question",
+              "tool": "deepwiki_ask_question",
+              "kind": "read",
+              "open_ended": true,
+              "objects": {},
+              "args": {},
+              "expect_error": false,
+              "entity_id": null,
+              "depends_on": [],
+              "produced_value": null,
+              "unrelated": false
+            },
+            {
+              "key": "c1a1",
+              "chain": 1,
+              "turn": 0,
+              "action": "list_chats",
+              "tool": "chat_list_chats",
+              "kind": "read",
+              "open_ended": false,
+              "objects": {},
+              "args": {},
+              "expect_error": false,
+              "entity_id": null,
+              "depends_on": [],
+              "produced_value": null,
+              "unrelated": true
+            }
+          ],
+          [
+            {
+              "key": "c1a2",
+              "chain": 1,
+              "turn": 1,
+              "action": "reply_to",
+              "tool": "chat_reply_to",
+              "kind": "write",
+              "open_ended": false,
+              "objects": {
+                "message_id": "m_002"
+              },
+              "args": {
+                "message_id": "m_002",
+                "text": "<text>"
+              },
+              "expect_error": false,
+              "entity_id": "m_042",
+              "depends_on": [
+                {
+                  "source": "c1a1",
+                  "via": "value",
+                  "param": "text",
+                  "entity_id": null
+                }
+              ],
+              "produced_value": null,
+              "unrelated": false
+            }
+          ],
+          [
+            {
+              "key": "c1a3",
+              "chain": 1,
+              "turn": 2,
+              "action": "reply_to",
+              "tool": "chat_reply_to",
+              "kind": "write",
+              "open_ended": false,
+              "objects": {
+                "message_id": "m_042"
+              },
+              "args": {
+                "message_id": "m_042",
+                "text": "<text>"
+              },
+              "expect_error": false,
+              "entity_id": "m_043",
+              "depends_on": [
+                {
+                  "source": "c1a2",
+                  "via": "object",
+                  "param": "message_id",
+                  "entity_id": "m_042"
+                }
+              ],
+              "produced_value": null,
+              "unrelated": false
+            },
+            {
+              "key": "c1a4",
+              "chain": 1,
+              "turn": 2,
+              "action": "ask_question",
+              "tool": "deepwiki_ask_question",
+              "kind": "read",
+              "open_ended": true,
+              "objects": {},
+              "args": {},
+              "expect_error": false,
+              "entity_id": null,
+              "depends_on": [],
+              "produced_value": null,
+              "unrelated": true
+            }
+          ]
+        ]
+      ]
+    },
+    {
+      "id": 6,
+      "label": "three independent parallel errands",
+      "why": "p_cross=0 throughout, so the three strands never touch \u2014 the prompt is three separable sub-tasks that can be done in any order.",
+      "seed_idx": 17,
+      "max_global_depth": null,
+      "configs": [
+        {
+          "max_depth": 3,
+          "max_breadth": 1,
+          "p_skip": 0.0,
+          "p_cross": 0.0,
+          "p_unrelated": 0.0
+        },
+        {
+          "max_depth": 3,
+          "max_breadth": 1,
+          "p_skip": 0.0,
+          "p_cross": 0.0,
+          "p_unrelated": 0.0
+        },
+        {
+          "max_depth": 3,
+          "max_breadth": 1,
+          "p_skip": 0.0,
+          "p_cross": 0.0,
+          "p_unrelated": 0.0
+        }
+      ],
+      "stats": {
+        "turns": 3,
+        "actions": 9,
+        "links": 9,
+        "distractors": 0,
+        "edges": 6,
+        "cross_chain_edges": 0,
+        "object_edges": 5,
+        "value_edges": 1,
+        "widest_fan_in": 1,
+        "depth_per_chain": [
+          3,
+          3,
+          3
+        ],
+        "open_ended_slots": 1
+      },
+      "timelines": [
+        [
+          [
+            {
+              "key": "c0a0",
+              "chain": 0,
+              "turn": 0,
+              "action": "create_chat",
+              "tool": "chat_create_chat",
+              "kind": "write",
+              "open_ended": false,
+              "objects": {
+                "member_ids": [
+                  "u_jordan_lee",
+                  "u_rosa"
+                ]
+              },
+              "args": {
+                "member_ids": [
+                  "u_jordan_lee",
+                  "u_rosa"
+                ],
+                "name": null
+              },
+              "expect_error": false,
+              "entity_id": "c_007",
+              "depends_on": [],
+              "produced_value": null,
+              "unrelated": false
+            }
+          ],
+          [
+            {
+              "key": "c0a1",
+              "chain": 0,
+              "turn": 1,
+              "action": "mark_read",
+              "tool": "chat_mark_read",
+              "kind": "write",
+              "open_ended": false,
+              "objects": {
+                "chat_id": "c_007"
+              },
+              "args": {
+                "chat_id": "c_007"
+              },
+              "expect_error": false,
+              "entity_id": "c_007",
+              "depends_on": [
+                {
+                  "source": "c0a0",
+                  "via": "object",
+                  "param": "chat_id",
+                  "entity_id": "c_007"
+                }
+              ],
+              "produced_value": null,
+              "unrelated": false
+            }
+          ],
+          [
+            {
+              "key": "c0a2",
+              "chain": 0,
+              "turn": 2,
+              "action": "send_message",
+              "tool": "chat_send_message",
+              "kind": "write",
+              "open_ended": false,
+              "objects": {
+                "chat_id": "c_007"
+              },
+              "args": {
+                "chat_id": "c_007",
+                "text": "<text>"
+              },
+              "expect_error": false,
+              "entity_id": "m_042",
+              "depends_on": [
+                {
+                  "source": "c0a0",
+                  "via": "object",
+                  "param": "chat_id",
+                  "entity_id": "c_007"
+                }
+              ],
+              "produced_value": null,
+              "unrelated": false
+            }
+          ]
+        ],
+        [
+          [
+            {
+              "key": "c1a0",
+              "chain": 1,
+              "turn": 0,
+              "action": "ask_question",
+              "tool": "deepwiki_ask_question",
+              "kind": "read",
+              "open_ended": true,
+              "objects": {},
+              "args": {},
+              "expect_error": false,
+              "entity_id": null,
+              "depends_on": [],
+              "produced_value": null,
+              "unrelated": false
+            }
+          ],
+          [
+            {
+              "key": "c1a1",
+              "chain": 1,
+              "turn": 1,
+              "action": "send_message",
+              "tool": "chat_send_message",
+              "kind": "write",
+              "open_ended": false,
+              "objects": {
+                "chat_id": "c_002"
+              },
+              "args": {
+                "chat_id": "c_002",
+                "text": "<text>"
+              },
+              "expect_error": false,
+              "entity_id": "m_041",
+              "depends_on": [
+                {
+                  "source": "c1a0",
+                  "via": "value",
+                  "param": "text",
+                  "entity_id": null
+                }
+              ],
+              "produced_value": null,
+              "unrelated": false
+            }
+          ],
+          [
+            {
+              "key": "c1a2",
+              "chain": 1,
+              "turn": 2,
+              "action": "reply_to",
+              "tool": "chat_reply_to",
+              "kind": "write",
+              "open_ended": false,
+              "objects": {
+                "message_id": "m_041"
+              },
+              "args": {
+                "message_id": "m_041",
+                "text": "<text>"
+              },
+              "expect_error": false,
+              "entity_id": "m_043",
+              "depends_on": [
+                {
+                  "source": "c1a1",
+                  "via": "object",
+                  "param": "message_id",
+                  "entity_id": "m_041"
+                }
+              ],
+              "produced_value": null,
+              "unrelated": false
+            }
+          ]
+        ],
+        [
+          [
+            {
+              "key": "c2a0",
+              "chain": 2,
+              "turn": 0,
+              "action": "create_chat",
+              "tool": "chat_create_chat",
+              "kind": "write",
+              "open_ended": false,
+              "objects": {
+                "member_ids": [
+                  "u_sam_patel",
+                  "u_hana"
+                ]
+              },
+              "args": {
+                "member_ids": [
+                  "u_sam_patel",
+                  "u_hana"
+                ],
+                "name": "<name>"
+              },
+              "expect_error": false,
+              "entity_id": "c_008",
+              "depends_on": [],
+              "produced_value": null,
+              "unrelated": false
+            }
+          ],
+          [
+            {
+              "key": "c2a1",
+              "chain": 2,
+              "turn": 1,
+              "action": "mark_read",
+              "tool": "chat_mark_read",
+              "kind": "write",
+              "open_ended": false,
+              "objects": {
+                "chat_id": "c_008"
+              },
+              "args": {
+                "chat_id": "c_008"
+              },
+              "expect_error": false,
+              "entity_id": "c_008",
+              "depends_on": [
+                {
+                  "source": "c2a0",
+                  "via": "object",
+                  "param": "chat_id",
+                  "entity_id": "c_008"
+                }
+              ],
+              "produced_value": null,
+              "unrelated": false
+            }
+          ],
+          [
+            {
+              "key": "c2a2",
+              "chain": 2,
+              "turn": 2,
+              "action": "send_message",
+              "tool": "chat_send_message",
+              "kind": "write",
+              "open_ended": false,
+              "objects": {
+                "chat_id": "c_008"
+              },
+              "args": {
+                "chat_id": "c_008",
+                "text": "<text>"
+              },
+              "expect_error": false,
+              "entity_id": "m_044",
+              "depends_on": [
+                {
+                  "source": "c2a0",
+                  "via": "object",
+                  "param": "chat_id",
+                  "entity_id": "c_008"
+                }
+              ],
+              "produced_value": null,
+              "unrelated": false
+            }
+          ]
+        ]
+      ]
+    },
+    {
+      "id": 7,
+      "label": "heavily tangled",
+      "why": "Full crossing at breadth 2: the strands are one DAG in practice, and thread identity is only bookkeeping.",
+      "seed_idx": 19,
+      "max_global_depth": null,
+      "configs": [
+        {
+          "max_depth": 4,
+          "max_breadth": 2,
+          "p_skip": 0.0,
+          "p_cross": 1.0,
+          "p_unrelated": 0.0
+        },
+        {
+          "max_depth": 4,
+          "max_breadth": 2,
+          "p_skip": 0.0,
+          "p_cross": 1.0,
+          "p_unrelated": 0.0
+        }
+      ],
+      "stats": {
+        "turns": 4,
+        "actions": 8,
+        "links": 8,
+        "distractors": 0,
+        "edges": 8,
+        "cross_chain_edges": 3,
+        "object_edges": 2,
+        "value_edges": 6,
+        "widest_fan_in": 2,
+        "depth_per_chain": [
+          4,
+          4
+        ],
+        "open_ended_slots": 2
+      },
+      "timelines": [
+        [
+          [
+            {
+              "key": "c0a0",
+              "chain": 0,
+              "turn": 0,
+              "action": "read_wiki_structure",
+              "tool": "deepwiki_read_wiki_structure",
+              "kind": "read",
+              "open_ended": true,
+              "objects": {},
+              "args": {},
+              "expect_error": false,
+              "entity_id": null,
+              "depends_on": [],
+              "produced_value": null,
+              "unrelated": false
+            }
+          ],
+          [
+            {
+              "key": "c0a1",
+              "chain": 0,
+              "turn": 1,
+              "action": "reply_to",
+              "tool": "chat_reply_to",
+              "kind": "write",
+              "open_ended": false,
+              "objects": {
+                "message_id": "m_007"
+              },
+              "args": {
+                "message_id": "m_007",
+                "text": "<text>"
+              },
+              "expect_error": false,
+              "entity_id": "m_041",
+              "depends_on": [
+                {
+                  "source": "c1a0",
+                  "via": "value",
+                  "param": "text",
+                  "entity_id": null
+                },
+                {
+                  "source": "c0a0",
+                  "via": "value",
+                  "param": "text",
+                  "entity_id": null
+                }
+              ],
+              "produced_value": null,
+              "unrelated": false
+            }
+          ],
+          [
+            {
+              "key": "c0a2",
+              "chain": 0,
+              "turn": 2,
+              "action": "send_message",
+              "tool": "chat_send_message",
+              "kind": "write",
+              "open_ended": false,
+              "objects": {
+                "chat_id": "c_005"
+              },
+              "args": {
+                "chat_id": "c_005",
+                "text": "<text>"
+              },
+              "expect_error": false,
+              "entity_id": "m_043",
+              "depends_on": [
+                {
+                  "source": "c0a0",
+                  "via": "value",
+                  "param": "text",
+                  "entity_id": null
+                },
+                {
+                  "source": "c1a0",
+                  "via": "value",
+                  "param": "text",
+                  "entity_id": null
+                }
+              ],
+              "produced_value": null,
+              "unrelated": false
+            }
+          ],
+          [
+            {
+              "key": "c0a3",
+              "chain": 0,
+              "turn": 3,
+              "action": "send_message",
+              "tool": "chat_send_message",
+              "kind": "write",
+              "open_ended": false,
+              "objects": {
+                "chat_id": "c_002"
+              },
+              "args": {
+                "chat_id": "c_002",
+                "text": "<text>"
+              },
+              "expect_error": false,
+              "entity_id": "m_045",
+              "depends_on": [
+                {
+                  "source": "c1a0",
+                  "via": "value",
+                  "param": "text",
+                  "entity_id": null
+                }
+              ],
+              "produced_value": null,
+              "unrelated": false
+            }
+          ]
+        ],
+        [
+          [
+            {
+              "key": "c1a0",
+              "chain": 1,
+              "turn": 0,
+              "action": "read_wiki_structure",
+              "tool": "deepwiki_read_wiki_structure",
+              "kind": "read",
+              "open_ended": true,
+              "objects": {},
+              "args": {},
+              "expect_error": false,
+              "entity_id": null,
+              "depends_on": [],
+              "produced_value": null,
+              "unrelated": false
+            }
+          ],
+          [
+            {
+              "key": "c1a1",
+              "chain": 1,
+              "turn": 1,
+              "action": "send_message",
+              "tool": "chat_send_message",
+              "kind": "write",
+              "open_ended": false,
+              "objects": {
+                "chat_id": "c_001"
+              },
+              "args": {
+                "chat_id": "c_001",
+                "text": "<text>"
+              },
+              "expect_error": false,
+              "entity_id": "m_042",
+              "depends_on": [
+                {
+                  "source": "c1a0",
+                  "via": "value",
+                  "param": "text",
+                  "entity_id": null
+                }
+              ],
+              "produced_value": null,
+              "unrelated": false
+            }
+          ],
+          [
+            {
+              "key": "c1a2",
+              "chain": 1,
+              "turn": 2,
+              "action": "reply_to",
+              "tool": "chat_reply_to",
+              "kind": "write",
+              "open_ended": false,
+              "objects": {
+                "message_id": "m_042"
+              },
+              "args": {
+                "message_id": "m_042",
+                "text": "<text>"
+              },
+              "expect_error": false,
+              "entity_id": "m_044",
+              "depends_on": [
+                {
+                  "source": "c1a1",
+                  "via": "object",
+                  "param": "message_id",
+                  "entity_id": "m_042"
+                }
+              ],
+              "produced_value": null,
+              "unrelated": false
+            }
+          ],
+          [
+            {
+              "key": "c1a3",
+              "chain": 1,
+              "turn": 3,
+              "action": "add_reaction",
+              "tool": "chat_add_reaction",
+              "kind": "write",
+              "open_ended": false,
+              "objects": {
+                "message_id": "m_042"
+              },
+              "args": {
+                "message_id": "m_042",
+                "emoji": "<emoji>"
+              },
+              "expect_error": false,
+              "entity_id": "m_042",
+              "depends_on": [
+                {
+                  "source": "c1a1",
+                  "via": "object",
+                  "param": "message_id",
+                  "entity_id": "m_042"
+                }
+              ],
+              "produced_value": null,
+              "unrelated": false
+            }
+          ]
+        ]
+      ]
+    },
+    {
+      "id": 8,
+      "label": "asymmetric threads",
+      "why": "One fast shallow strand, one slow strand, one deep one. Tests that a prompt can carry sub-tasks of visibly different size.",
+      "seed_idx": 23,
+      "max_global_depth": null,
+      "configs": [
+        {
+          "max_depth": 1,
+          "max_breadth": 1,
+          "p_skip": 0.0,
+          "p_cross": 0.0,
+          "p_unrelated": 0.0
+        },
+        {
+          "max_depth": 2,
+          "max_breadth": 2,
+          "p_skip": 0.6,
+          "p_cross": 0.5,
+          "p_unrelated": 0.0
+        },
+        {
+          "max_depth": 5,
+          "max_breadth": 1,
+          "p_skip": 0.0,
+          "p_cross": 0.3,
+          "p_unrelated": 0.0
+        }
+      ],
+      "stats": {
+        "turns": 9,
+        "actions": 8,
+        "links": 8,
+        "distractors": 0,
+        "edges": 5,
+        "cross_chain_edges": 0,
+        "object_edges": 4,
+        "value_edges": 1,
+        "widest_fan_in": 1,
+        "depth_per_chain": [
+          1,
+          2,
+          5
+        ],
+        "open_ended_slots": 1
+      },
+      "timelines": [
+        [
+          [
+            {
+              "key": "c0a0",
+              "chain": 0,
+              "turn": 0,
+              "action": "read_messages",
+              "tool": "chat_read_messages",
+              "kind": "read",
+              "open_ended": false,
+              "objects": {
+                "chat_id": "c_001"
+              },
+              "args": {
+                "chat_id": "c_001"
+              },
+              "expect_error": false,
+              "entity_id": null,
+              "depends_on": [],
+              "produced_value": null,
+              "unrelated": false
+            }
+          ],
+          [],
+          [],
+          [],
+          [],
+          [],
+          [],
+          [],
+          []
+        ],
+        [
+          [],
+          [],
+          [],
+          [],
+          [],
+          [],
+          [
+            {
+              "key": "c1a0",
+              "chain": 1,
+              "turn": 6,
+              "action": "read_wiki_contents",
+              "tool": "deepwiki_read_wiki_contents",
+              "kind": "read",
+              "open_ended": true,
+              "objects": {},
+              "args": {},
+              "expect_error": false,
+              "entity_id": null,
+              "depends_on": [],
+              "produced_value": null,
+              "unrelated": false
+            }
+          ],
+          [],
+          [
+            {
+              "key": "c1a1",
+              "chain": 1,
+              "turn": 8,
+              "action": "send_message",
+              "tool": "chat_send_message",
+              "kind": "write",
+              "open_ended": false,
+              "objects": {
+                "chat_id": "c_001"
+              },
+              "args": {
+                "chat_id": "c_001",
+                "text": "<text>"
+              },
+              "expect_error": false,
+              "entity_id": "m_044",
+              "depends_on": [
+                {
+                  "source": "c1a0",
+                  "via": "value",
+                  "param": "text",
+                  "entity_id": null
+                }
+              ],
+              "produced_value": null,
+              "unrelated": false
+            }
+          ]
+        ],
+        [
+          [
+            {
+              "key": "c2a0",
+              "chain": 2,
+              "turn": 0,
+              "action": "send_message",
+              "tool": "chat_send_message",
+              "kind": "write",
+              "open_ended": false,
+              "objects": {
+                "chat_id": "c_003"
+              },
+              "args": {
+                "chat_id": "c_003",
+                "text": "<text>"
+              },
+              "expect_error": false,
+              "entity_id": "m_041",
+              "depends_on": [],
+              "produced_value": null,
+              "unrelated": false
+            }
+          ],
+          [
+            {
+              "key": "c2a1",
+              "chain": 2,
+              "turn": 1,
+              "action": "reply_to",
+              "tool": "chat_reply_to",
+              "kind": "write",
+              "open_ended": false,
+              "objects": {
+                "message_id": "m_041"
+              },
+              "args": {
+                "message_id": "m_041",
+                "text": "<text>"
+              },
+              "expect_error": false,
+              "entity_id": "m_042",
+              "depends_on": [
+                {
+                  "source": "c2a0",
+                  "via": "object",
+                  "param": "message_id",
+                  "entity_id": "m_041"
+                }
+              ],
+              "produced_value": null,
+              "unrelated": false
+            }
+          ],
+          [
+            {
+              "key": "c2a2",
+              "chain": 2,
+              "turn": 2,
+              "action": "reply_to",
+              "tool": "chat_reply_to",
+              "kind": "write",
+              "open_ended": false,
+              "objects": {
+                "message_id": "m_041"
+              },
+              "args": {
+                "message_id": "m_041",
+                "text": "<text>"
+              },
+              "expect_error": false,
+              "entity_id": "m_043",
+              "depends_on": [
+                {
+                  "source": "c2a0",
+                  "via": "object",
+                  "param": "message_id",
+                  "entity_id": "m_041"
+                }
+              ],
+              "produced_value": null,
+              "unrelated": false
+            }
+          ],
+          [
+            {
+              "key": "c2a3",
+              "chain": 2,
+              "turn": 3,
+              "action": "add_reaction",
+              "tool": "chat_add_reaction",
+              "kind": "write",
+              "open_ended": false,
+              "objects": {
+                "message_id": "m_043"
+              },
+              "args": {
+                "message_id": "m_043",
+                "emoji": "<emoji>"
+              },
+              "expect_error": false,
+              "entity_id": "m_043",
+              "depends_on": [
+                {
+                  "source": "c2a2",
+                  "via": "object",
+                  "param": "message_id",
+                  "entity_id": "m_043"
+                }
+              ],
+              "produced_value": null,
+              "unrelated": false
+            }
+          ],
+          [
+            {
+              "key": "c2a4",
+              "chain": 2,
+              "turn": 4,
+              "action": "add_reaction",
+              "tool": "chat_add_reaction",
+              "kind": "write",
+              "open_ended": false,
+              "objects": {
+                "message_id": "m_043"
+              },
+              "args": {
+                "message_id": "m_043",
+                "emoji": "<emoji>"
+              },
+              "expect_error": false,
+              "entity_id": "m_043",
+              "depends_on": [
+                {
+                  "source": "c2a2",
+                  "via": "object",
+                  "param": "message_id",
+                  "entity_id": "m_043"
+                }
+              ],
+              "produced_value": null,
+              "unrelated": false
+            }
+          ],
+          [],
+          [],
+          [],
+          []
+        ]
+      ]
+    },
+    {
+      "id": 9,
+      "label": "everything at once",
+      "why": "Wide fan-in, frequent waiting, frequent distractors, heavy crossing \u2014 the hardest shape the generator currently produces.",
+      "seed_idx": 29,
+      "max_global_depth": null,
+      "configs": [
+        {
+          "max_depth": 3,
+          "max_breadth": 3,
+          "p_skip": 0.4,
+          "p_cross": 0.7,
+          "p_unrelated": 0.4
+        },
+        {
+          "max_depth": 3,
+          "max_breadth": 3,
+          "p_skip": 0.4,
+          "p_cross": 0.7,
+          "p_unrelated": 0.4
+        },
+        {
+          "max_depth": 3,
+          "max_breadth": 3,
+          "p_skip": 0.4,
+          "p_cross": 0.7,
+          "p_unrelated": 0.4
+        }
+      ],
+      "stats": {
+        "turns": 6,
+        "actions": 11,
+        "links": 9,
+        "distractors": 2,
+        "edges": 7,
+        "cross_chain_edges": 4,
+        "object_edges": 2,
+        "value_edges": 5,
+        "widest_fan_in": 1,
+        "depth_per_chain": [
+          3,
+          3,
+          3
+        ],
+        "open_ended_slots": 0
+      },
+      "timelines": [
+        [
+          [
+            {
+              "key": "c0a0",
+              "chain": 0,
+              "turn": 0,
+              "action": "reply_to",
+              "tool": "chat_reply_to",
+              "kind": "write",
+              "open_ended": false,
+              "objects": {
+                "message_id": "m_006"
+              },
+              "args": {
+                "message_id": "m_006",
+                "text": "<text>"
+              },
+              "expect_error": false,
+              "entity_id": "m_041",
+              "depends_on": [],
+              "produced_value": null,
+              "unrelated": false
+            }
+          ],
+          [
+            {
+              "key": "c0a1",
+              "chain": 0,
+              "turn": 1,
+              "action": "reply_to",
+              "tool": "chat_reply_to",
+              "kind": "write",
+              "open_ended": false,
+              "objects": {
+                "message_id": "m_013"
+              },
+              "args": {
+                "message_id": "m_013",
+                "text": "<text>"
+              },
+              "expect_error": false,
+              "entity_id": "m_042",
+              "depends_on": [
+                {
+                  "source": "c2a0",
+                  "via": "value",
+                  "param": "text",
+                  "entity_id": null
+                }
+              ],
+              "produced_value": null,
+              "unrelated": false
+            }
+          ],
+          [
+            {
+              "key": "c0a2",
+              "chain": 0,
+              "turn": 2,
+              "action": "add_reaction",
+              "tool": "chat_add_reaction",
+              "kind": "write",
+              "open_ended": false,
+              "objects": {
+                "message_id": "m_043"
+              },
+              "args": {
+                "message_id": "m_043",
+                "emoji": "<emoji>"
+              },
+              "expect_error": false,
+              "entity_id": "m_043",
+              "depends_on": [
+                {
+                  "source": "c2a1",
+                  "via": "object",
+                  "param": "message_id",
+                  "entity_id": "m_043"
+                }
+              ],
+              "produced_value": null,
+              "unrelated": false
+            }
+          ],
+          [],
+          [],
+          []
+        ],
+        [
+          [],
+          [],
+          [
+            {
+              "key": "c1a0",
+              "chain": 1,
+              "turn": 2,
+              "action": "reply_to",
+              "tool": "chat_reply_to",
+              "kind": "write",
+              "open_ended": false,
+              "objects": {
+                "message_id": "m_024"
+              },
+              "args": {
+                "message_id": "m_024",
+                "text": "<text>"
+              },
+              "expect_error": false,
+              "entity_id": "m_045",
+              "depends_on": [
+                {
+                  "source": "c2a0",
+                  "via": "value",
+                  "param": "text",
+                  "entity_id": null
+                }
+              ],
+              "produced_value": null,
+              "unrelated": false
+            }
+          ],
+          [
+            {
+              "key": "c1a1",
+              "chain": 1,
+              "turn": 3,
+              "action": "add_reaction",
+              "tool": "chat_add_reaction",
+              "kind": "write",
+              "open_ended": false,
+              "objects": {
+                "message_id": "m_045"
+              },
+              "args": {
+                "message_id": "m_045",
+                "emoji": "<emoji>"
+              },
+              "expect_error": false,
+              "entity_id": "m_045",
+              "depends_on": [
+                {
+                  "source": "c1a0",
+                  "via": "object",
+                  "param": "message_id",
+                  "entity_id": "m_045"
+                }
+              ],
+              "produced_value": null,
+              "unrelated": false
+            }
+          ],
+          [],
+          [
+            {
+              "key": "c1a2",
+              "chain": 1,
+              "turn": 5,
+              "action": "reply_to",
+              "tool": "chat_reply_to",
+              "kind": "write",
+              "open_ended": false,
+              "objects": {
+                "message_id": "m_001"
+              },
+              "args": {
+                "message_id": "m_001",
+                "text": "<text>"
+              },
+              "expect_error": false,
+              "entity_id": "m_047",
+              "depends_on": [
+                {
+                  "source": "c2a4",
+                  "via": "value",
+                  "param": "text",
+                  "entity_id": null
+                }
+              ],
+              "produced_value": null,
+              "unrelated": false
+            }
+          ]
+        ],
+        [
+          [
+            {
+              "key": "c2a0",
+              "chain": 2,
+              "turn": 0,
+              "action": "read_messages",
+              "tool": "chat_read_messages",
+              "kind": "read",
+              "open_ended": false,
+              "objects": {
+                "chat_id": "c_004"
+              },
+              "args": {
+                "chat_id": "c_004"
+              },
+              "expect_error": false,
+              "entity_id": null,
+              "depends_on": [],
+              "produced_value": null,
+              "unrelated": false
+            }
+          ],
+          [
+            {
+              "key": "c2a1",
+              "chain": 2,
+              "turn": 1,
+              "action": "reply_to",
+              "tool": "chat_reply_to",
+              "kind": "write",
+              "open_ended": false,
+              "objects": {
+                "message_id": "m_020"
+              },
+              "args": {
+                "message_id": "m_020",
+                "text": "<text>"
+              },
+              "expect_error": false,
+              "entity_id": "m_043",
+              "depends_on": [
+                {
+                  "source": "c2a0",
+                  "via": "value",
+                  "param": "text",
+                  "entity_id": null
+                }
+              ],
+              "produced_value": null,
+              "unrelated": false
+            },
+            {
+              "key": "c2a2",
+              "chain": 2,
+              "turn": 1,
+              "action": "send_message",
+              "tool": "chat_send_message",
+              "kind": "write",
+              "open_ended": false,
+              "objects": {
+                "chat_id": "c_004"
+              },
+              "args": {
+                "chat_id": "c_004",
+                "text": "<text>"
+              },
+              "expect_error": false,
+              "entity_id": "m_044",
+              "depends_on": [],
+              "produced_value": null,
+              "unrelated": true
+            }
+          ],
+          [],
+          [
+            {
+              "key": "c2a3",
+              "chain": 2,
+              "turn": 3,
+              "action": "reply_to",
+              "tool": "chat_reply_to",
+              "kind": "write",
+              "open_ended": false,
+              "objects": {
+                "message_id": "m_043"
+              },
+              "args": {
+                "message_id": "m_043",
+                "text": "<text>"
+              },
+              "expect_error": false,
+              "entity_id": "m_046",
+              "depends_on": [
+                {
+                  "source": "c2a0",
+                  "via": "value",
+                  "param": "text",
+                  "entity_id": null
+                }
+              ],
+              "produced_value": null,
+              "unrelated": false
+            },
+            {
+              "key": "c2a4",
+              "chain": 2,
+              "turn": 3,
+              "action": "list_chats",
+              "tool": "chat_list_chats",
+              "kind": "read",
+              "open_ended": false,
+              "objects": {},
+              "args": {},
+              "expect_error": false,
+              "entity_id": null,
+              "depends_on": [],
+              "produced_value": null,
+              "unrelated": true
+            }
+          ],
+          [],
+          []
+        ]
+      ]
+    },
+    {
+      "id": 10,
+      "label": "globally capped",
+      "why": "Deep configs deliberately cut short by max_global_depth, so every strand stops as soon as one reaches depth 2. Useful for short prompts from ambitious configs.",
+      "seed_idx": 31,
+      "max_global_depth": 2,
+      "configs": [
+        {
+          "max_depth": 5,
+          "max_breadth": 2,
+          "p_skip": 0.0,
+          "p_cross": 0.5,
+          "p_unrelated": 0.0
+        },
+        {
+          "max_depth": 5,
+          "max_breadth": 2,
+          "p_skip": 0.0,
+          "p_cross": 0.5,
+          "p_unrelated": 0.0
+        },
+        {
+          "max_depth": 5,
+          "max_breadth": 2,
+          "p_skip": 0.0,
+          "p_cross": 0.5,
+          "p_unrelated": 0.0
+        }
+      ],
+      "stats": {
+        "turns": 2,
+        "actions": 6,
+        "links": 6,
+        "distractors": 0,
+        "edges": 3,
+        "cross_chain_edges": 0,
+        "object_edges": 0,
+        "value_edges": 3,
+        "widest_fan_in": 1,
+        "depth_per_chain": [
+          2,
+          2,
+          2
+        ],
+        "open_ended_slots": 2
+      },
+      "timelines": [
+        [
+          [
+            {
+              "key": "c0a0",
+              "chain": 0,
+              "turn": 0,
+              "action": "ask_question",
+              "tool": "deepwiki_ask_question",
+              "kind": "read",
+              "open_ended": true,
+              "objects": {},
+              "args": {},
+              "expect_error": false,
+              "entity_id": null,
+              "depends_on": [],
+              "produced_value": null,
+              "unrelated": false
+            }
+          ],
+          [
+            {
+              "key": "c0a1",
+              "chain": 0,
+              "turn": 1,
+              "action": "reply_to",
+              "tool": "chat_reply_to",
+              "kind": "write",
+              "open_ended": false,
+              "objects": {
+                "message_id": "m_038"
+              },
+              "args": {
+                "message_id": "m_038",
+                "text": "<text>"
+              },
+              "expect_error": false,
+              "entity_id": "m_041",
+              "depends_on": [
+                {
+                  "source": "c0a0",
+                  "via": "value",
+                  "param": "text",
+                  "entity_id": null
+                }
+              ],
+              "produced_value": null,
+              "unrelated": false
+            }
+          ]
+        ],
+        [
+          [
+            {
+              "key": "c1a0",
+              "chain": 1,
+              "turn": 0,
+              "action": "read_wiki_structure",
+              "tool": "deepwiki_read_wiki_structure",
+              "kind": "read",
+              "open_ended": true,
+              "objects": {},
+              "args": {},
+              "expect_error": false,
+              "entity_id": null,
+              "depends_on": [],
+              "produced_value": null,
+              "unrelated": false
+            }
+          ],
+          [
+            {
+              "key": "c1a1",
+              "chain": 1,
+              "turn": 1,
+              "action": "reply_to",
+              "tool": "chat_reply_to",
+              "kind": "write",
+              "open_ended": false,
+              "objects": {
+                "message_id": "m_014"
+              },
+              "args": {
+                "message_id": "m_014",
+                "text": "<text>"
+              },
+              "expect_error": false,
+              "entity_id": "m_042",
+              "depends_on": [
+                {
+                  "source": "c1a0",
+                  "via": "value",
+                  "param": "text",
+                  "entity_id": null
+                }
+              ],
+              "produced_value": null,
+              "unrelated": false
+            }
+          ]
+        ],
+        [
+          [
+            {
+              "key": "c2a0",
+              "chain": 2,
+              "turn": 0,
+              "action": "list_chats",
+              "tool": "chat_list_chats",
+              "kind": "read",
+              "open_ended": false,
+              "objects": {},
+              "args": {},
+              "expect_error": false,
+              "entity_id": null,
+              "depends_on": [],
+              "produced_value": null,
+              "unrelated": false
+            }
+          ],
+          [
+            {
+              "key": "c2a1",
+              "chain": 2,
+              "turn": 1,
+              "action": "send_message",
+              "tool": "chat_send_message",
+              "kind": "write",
+              "open_ended": false,
+              "objects": {
+                "chat_id": "c_005"
+              },
+              "args": {
+                "chat_id": "c_005",
+                "text": "<text>"
+              },
+              "expect_error": false,
+              "entity_id": "m_043",
+              "depends_on": [
+                {
+                  "source": "c2a0",
+                  "via": "value",
+                  "param": "text",
+                  "entity_id": null
+                }
+              ],
+              "produced_value": null,
+              "unrelated": false
+            }
+          ]
+        ]
+      ]
+    }
+  ]
+}

@@ -1,0 +1,58 @@
+EXAMPLE 5  —  distractor-heavy
+========================================================================================
+
+Half the actions depend on nothing. The prompt must ask for them without hinting that they are incidental.
+
+Provenance
+----------------------------------------------------------------------------------------
+  source          chain_examples.json, examples[4]
+  generator       my_env.sequential_generate.gen_dependency_chains
+  renderer        my_env.sequential_author.render_steps (deterministic, no LLM)
+  seed_idx        1   (seed state = adapter.initial_state(Random(1)))
+  global cap      None
+  chain 0         max_depth=3  max_breadth=1  p_skip=0.0  p_cross=0.2  p_unrelated=0.5
+  chain 1         max_depth=3  max_breadth=1  p_skip=0.0  p_cross=0.2  p_unrelated=0.5
+  totals          3 turns, 11 actions (6 links + 5 distractors), depths [3, 3]
+  edges           4 total, 0 crossing threads, 2 object / 2 value, widest fan-in 1
+  author slots    4 open-ended
+
+Steps  (turn-major order; '<-' is a dependency, '=' a literal)
+----------------------------------------------------------------------------------------
+
+step 1  [read]  read_messages — Read the most recent messages in a chat, oldest to newest.
+    chat_id      =  c_003 (a chat that already exists)
+step 2  [write]  create_chat — Create a new chat; the acting user is always included as a member.
+    member_ids   =  u_lena (a user that already exists) and u_tomas (a user that already exists)
+    name         =  None  (placeholder — the author decides: chat name; if set (or >2 members) the chat is a group, else a dm)
+step 3  [read]  ask_question — Ask an AI-grounded question about a GitHub repository.
+    repoName     ?  supplied by the author — GitHub repo in owner/repo form (or a list, max 10)
+    question     ?  supplied by the author — the question to ask
+    returns      free-text answer (nondeterministic)
+step 4  [read]  list_chats — List the chats the acting user is a member of.
+step 5  [write]  reply_to — Reply to an existing message in its chat (threaded).
+    message_id   =  m_002 (a message that already exists)
+    text         <- must carry what step 1 returned
+step 6  [read]  read_wiki_structure — List the DeepWiki documentation topics for a GitHub repository.
+    repoName     ?  supplied by the author — GitHub repo in owner/repo form
+    returns      list of documentation topics
+step 7  [write]  reply_to — Reply to an existing message in its chat (threaded).
+    message_id   =  m_002 (a message that already exists)
+    text         <- must carry what step 4 returned
+step 8  [write]  mark_read — Mark every message in a chat as read by the acting user.
+    chat_id      <- the chat produced by step 2
+step 9  [read]  read_wiki_structure — List the DeepWiki documentation topics for a GitHub repository.
+    repoName     ?  supplied by the author — GitHub repo in owner/repo form
+    returns      list of documentation topics
+step 10  [write]  reply_to — Reply to an existing message in its chat (threaded).
+    message_id   <- the message produced by step 7
+    text         =  '<text>'  (placeholder — the author decides: reply body)
+step 11  [read]  ask_question — Ask an AI-grounded question about a GitHub repository.
+    repoName     ?  supplied by the author — GitHub repo in owner/repo form (or a list, max 10)
+    question     ?  supplied by the author — the question to ask
+    returns      free-text answer (nondeterministic)
+
+Thread membership  (the flat order above loses it; kept for later thread-major work)
+----------------------------------------------------------------------------------------
+  chain 0: steps 1, 2*, 5, 6*, 8, 9*
+  chain 1: steps 3, 4*, 7, 10, 11*
+  (* = distractor: depends on nothing and does not count toward depth)

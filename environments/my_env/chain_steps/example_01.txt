@@ -1,0 +1,39 @@
+EXAMPLE 1  —  two short self-contained errands
+========================================================================================
+
+The floor: two independent strands, nothing crossing, nothing skipped. A prompt for this is two unrelated requests in one message.
+
+Provenance
+----------------------------------------------------------------------------------------
+  source          chain_examples.json, examples[0]
+  generator       my_env.sequential_generate.gen_dependency_chains
+  renderer        my_env.sequential_author.render_steps (deterministic, no LLM)
+  seed_idx        3   (seed state = adapter.initial_state(Random(3)))
+  global cap      None
+  chain 0         max_depth=2  max_breadth=1  p_skip=0.0  p_cross=0.0  p_unrelated=0.0
+  chain 1         max_depth=2  max_breadth=1  p_skip=0.0  p_cross=0.0  p_unrelated=0.0
+  totals          2 turns, 4 actions (4 links + 0 distractors), depths [2, 2]
+  edges           2 total, 0 crossing threads, 2 object / 0 value, widest fan-in 1
+  author slots    0 open-ended
+
+Steps  (turn-major order; '<-' is a dependency, '=' a literal)
+----------------------------------------------------------------------------------------
+
+step 1  [write]  create_chat — Create a new chat; the acting user is always included as a member.
+    member_ids   =  u_lena (a user that already exists) and u_noor (a user that already exists)
+    name         =  '<name>'  (placeholder — the author decides: chat name; if set (or >2 members) the chat is a group, else a dm)
+step 2  [write]  send_message — Send a message from the acting user to a chat.
+    chat_id      =  c_002 (a chat that already exists)
+    text         =  '<text>'  (placeholder — the author decides: message body)
+step 3  [write]  send_message — Send a message from the acting user to a chat.
+    chat_id      <- the chat produced by step 1
+    text         =  '<text>'  (placeholder — the author decides: message body)
+step 4  [write]  add_reaction — Add an emoji reaction from the acting user to a message.
+    message_id   <- the message produced by step 2
+    emoji        =  '<emoji>'  (placeholder — the author decides: reaction emoji, e.g. ':+1:')
+
+Thread membership  (the flat order above loses it; kept for later thread-major work)
+----------------------------------------------------------------------------------------
+  chain 0: steps 1, 3
+  chain 1: steps 2, 4
+  (* = distractor: depends on nothing and does not count toward depth)
