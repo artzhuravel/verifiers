@@ -7,6 +7,7 @@ reporting the created/affected entity id.
 """
 
 import json
+from collections import Counter
 from random import Random
 
 import verifiers.v1 as vf
@@ -55,26 +56,85 @@ class ChatAdapter:
             return '"error"' in result
         return isinstance(parsed, dict) and "error" in parsed
 
-    def signature(self, state: ChatState) -> set:
-        """Id/structure facts about the state — content (text/emoji/name) excluded."""
+    def _comparison_keys(self, state: ChatState, seed: ChatState) -> dict:
+        """How each entity is named when two states are compared.
+
+        Entities present in `seed` keep their real id — those are stable and mean the same
+        thing in every trajectory. Entities *created during the rollout* are keyed by what
+        they are (a chat by its members; a message by its chat, sender and parent) plus an
+        occurrence index. A minted id is an artifact of a counter: an agent that creates
+        one extra entity shifts every later id, and id-based comparison would then score
+        correct work against structurally unrelated entities.
+        """
+        seeded_chats = set(seed.chats)
+        seeded_messages = {message.id for message in seed.messages}
+        keys: dict[str, object] = {}
+        seen: Counter = Counter()
+        # Chats first, in creation order, so a message into a new chat can name it.
+        for chat_id in sorted(state.chats, key=lambda cid: int(cid.rsplit("_", 1)[-1])):
+            if chat_id in seeded_chats:
+                keys[chat_id] = chat_id
+                continue
+            shape = ("new_chat", tuple(sorted(state.chats[chat_id].member_ids)))
+            seen[shape] += 1
+            keys[chat_id] = (*shape, seen[shape])
+        for message in sorted(state.messages, key=lambda m: m.ts):
+            if message.id in seeded_messages:
+                keys[message.id] = message.id
+                continue
+            shape = (
+                "new_msg",
+                keys.get(message.chat_id, message.chat_id),
+                message.sender_id,
+                keys.get(message.reply_to, message.reply_to),
+            )
+            seen[shape] += 1
+            keys[message.id] = (*shape, seen[shape])
+        return keys
+
+    def signature(self, state: ChatState, seed: ChatState) -> set:
+        """Id/structure facts about the state — content (text/emoji/name) excluded.
+
+        A created entity contributes exactly one fact: its key already encodes both that it
+        exists and how it is structured, so re-emitting membership / placement would count
+        the same thing several times and over-weight whichever entity has more members.
+        Facts about *seeded* entities stay id-keyed and itemised, since those are the ones
+        an action can change after the fact (a reaction, a read).
+        """
+        keys = self._comparison_keys(state, seed)
+        seeded_chats = set(seed.chats)
+        seeded_messages = {message.id for message in seed.messages}
         facts: set = set()
         for chat in state.chats.values():
-            facts.add(("chat", chat.id))
+            key = keys[chat.id]
+            if chat.id not in seeded_chats:
+                facts.add(key)  # existence + membership, in one fact
+                continue
+            facts.add(("chat", key))
             for user_id in chat.member_ids:
-                facts.add(("member", chat.id, user_id))
+                facts.add(("member", key, user_id))
         for message in state.messages:
-            facts.add(("msg", message.id))
-            # Where a message landed is structure, not content: without these two, sending
-            # to the wrong chat or replying to the wrong parent scores the same as getting
-            # it right, and the referential difficulty of a prompt goes unmeasured.
-            facts.add(("in", message.id, message.chat_id))
-            if message.reply_to:
-                facts.add(("replyto", message.id, message.reply_to))
+            key = keys[message.id]
+            new = message.id not in seeded_messages
+            if new:
+                facts.add(key)  # existence + chat + sender + parent, in one fact
+            else:
+                facts.add(("msg", key))
+                # Where a message landed is structure, not content: without these, posting
+                # to the wrong chat or replying to the wrong parent would score the same as
+                # getting it right.
+                facts.add(("in", key, keys.get(message.chat_id, message.chat_id)))
+                if message.reply_to:
+                    facts.add(("replyto", key, keys.get(message.reply_to, message.reply_to)))
             for reactors in message.reactions.values():
                 for user_id in reactors:
-                    facts.add(("react", message.id, user_id))  # emoji excluded (content)
+                    facts.add(("react", key, user_id))  # emoji excluded (content)
             for user_id in message.read_by:
-                facts.add(("read", message.id, user_id))
+                # A new message is auto-read by its sender; that is implied by its key, not
+                # a separate thing the agent achieved.
+                if new and user_id == message.sender_id:
+                    continue
+                facts.add(("read", key, user_id))
         return facts
 
     def apply(self, action: str, object_id: str | None, state: ChatState, rng: Random) -> Outcome:

@@ -27,9 +27,11 @@ def _f1(expected: set, actual: set) -> float:
 
 
 def score(seed, expected, trace, adapter) -> float:
-    baseline = adapter.signature(seed)
-    delta_expected = adapter.signature(expected) - baseline
-    delta_actual = adapter.signature(trace.state) - baseline
+    # `seed` is passed to every signature call: it is what tells the adapter which
+    # entities pre-existed (and so keep their ids) and which the rollout created.
+    baseline = adapter.signature(seed, seed)
+    delta_expected = adapter.signature(expected, seed) - baseline
+    delta_actual = adapter.signature(trace.state, seed) - baseline
     return _f1(delta_expected, delta_actual)
 
 

@@ -44,6 +44,7 @@ from openai import OpenAI
 
 from my_env.adapter import ChatAdapter
 from my_env.generate import generate
+from my_env.state import ChatState
 
 _SPEC = json.loads((Path(__file__).parent / "action_spec.json").read_text())
 
@@ -68,9 +69,11 @@ chat as read" (that is `chat_mark_read`, a different action with a lasting effec
 Likewise `chat_get_user` only looks a person up. If the plan does not contain a write, the \
 prompt must not ask for one.
 
-For each [open-ended] DeepWiki step, YOU choose a real GitHub repo and a specific question \
-(language, authors, license, purpose, stars — anything) and weave the request naturally \
-into the task. IMPORTANT: the agent sees ONLY your `prompt` text — it never sees the list \
+For each [open-ended] DeepWiki step, YOU choose a real GitHub repo and a specific question, \
+then weave the request naturally into the task. The three DeepWiki tools answer different \
+things and the plan fixes which one that step uses — each open-ended entry states what its \
+tool can answer, and a question outside that range has NO obtainable answer, which makes \
+the task unscorable. Stay inside it. IMPORTANT: the agent sees ONLY your `prompt` text — it never sees the list \
 below — so embed the full repo name and the exact question directly in the prompt. Never \
 write "see the open-ended step below" or refer to a separate list. Then record for it:
 - question: the exact question you embedded in the prompt,
@@ -197,9 +200,36 @@ Respond with ONLY a JSON object, no prose or code fences:
 {{"prompt": "<the rewritten prompt>"}}"""
 
 
+# What each DeepWiki tool can actually answer. The plan fixes which tool a step uses, and
+# a question that tool cannot answer is unscorable: the agent reports "not stated" and the
+# judge marks it wrong even though the agent behaved correctly. `read_wiki_*` return the
+# repo's prose documentation, which does not carry repo metadata (licence, stars,
+# maintainers) — only `ask_question` can be asked for that.
+_OPEN_GUIDANCE = {
+    "deepwiki_ask_question": (
+        "answers ANY question about the repo (metadata such as licence, primary language "
+        "or maintainers, and prose questions alike) — ask whatever you like"
+    ),
+    "deepwiki_read_wiki_contents": (
+        "returns the repo's WIKI DOCUMENTATION PROSE. Ask only something the documentation "
+        "actually states — what the project is for, how a subsystem works, what a concept "
+        "means. NEVER ask for licence, stars, maintainers or primary language: the wiki "
+        "page does not state them, so the answer would be unobtainable"
+    ),
+    "deepwiki_read_wiki_structure": (
+        "returns only the LIST OF DOCUMENTATION TOPIC TITLES. Ask only about which areas "
+        "the documentation covers — never about repo metadata or the content of a page"
+    ),
+}
+
+
 def _describe(step: dict) -> str:
     if step.get("open_ended"):
-        return f"[open-ended] {step['tool']}: you choose the repo + question, and supply the gold answer + judge hint"
+        guidance = _OPEN_GUIDANCE.get(step["tool"], "you choose the repo + question")
+        return (
+            f"[open-ended] {step['tool']} — {guidance}. Choose the repo and the question, "
+            "and supply the gold answer + judge hint."
+        )
     desc = f"{step['tool']}({json.dumps(step['args'])})"
     if step["kind"] == "invalid":
         desc += "  — targets a nonexistent entity; include it as a normal instruction (the agent will attempt it and it will fail)"
@@ -345,6 +375,11 @@ def main() -> None:
     parser.add_argument("--max-actions", type=int, default=3)
     parser.add_argument("--p-invalid", type=float, default=0.2)
     parser.add_argument("--p-open", type=float, default=0.3)
+    parser.add_argument(
+        "--plan",
+        help="author from plans saved by `my_env.cli plan --save` instead of sampling "
+        "fresh ones; --num and the sampling knobs are then ignored",
+    )
     args = parser.parse_args()
 
     if not 1 <= args.levels <= max(_LEVELS):
@@ -358,12 +393,30 @@ def main() -> None:
     action_ids = [a["id"] for a in _SPEC["actions"]]
     levels = range(1, args.levels + 1)
 
+    # Either replay saved plans (so the plan shown is provably the plan authored) or
+    # sample fresh ones.
+    if args.plan:
+        saved = json.loads(Path(args.plan).read_text())
+        sources = [
+            (
+                entry["idx"],
+                ChatState.model_validate(entry["seed"]),
+                ChatState.model_validate(entry["expected"]),
+                entry["timeline"],
+            )
+            for entry in (saved if isinstance(saved, list) else [saved])
+        ]
+        print(f"authoring {len(sources)} saved plan(s) from {args.plan}")
+    else:
+        sources = [
+            (idx, *generate(_SPEC, adapter, action_ids, args.timesteps, args.max_actions,
+                            args.p_invalid, args.p_open, idx))
+            for idx in range(args.num)
+        ]
+
     by_level: dict[int, list[dict]] = {level: [] for level in levels}
     dropped = []
-    for idx in range(args.num):
-        seed, expected, timeline = generate(
-            _SPEC, adapter, action_ids, args.timesteps, args.max_actions, args.p_invalid, args.p_open, idx
-        )
+    for idx, seed, expected, timeline in sources:
         plan = _render_plan(seed, timeline)
 
         authored = _attempt("authoring", idx, lambda: _complete(client, args.model, _SYSTEM, plan))

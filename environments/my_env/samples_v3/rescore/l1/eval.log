@@ -1,0 +1,148 @@
+17:58:02    INFO eval config:
+{
+  "env": {
+    "id": "",
+    "taskset": {
+      "id": "my_env",
+      "task": {
+        "judges": [],
+        "tools": {
+          "colocated": false,
+          "runtime": {
+            "type": "subprocess"
+          },
+          "url": null
+        },
+        "web": {
+          "colocated": false,
+          "runtime": {
+            "type": "subprocess"
+          },
+          "url": "https://mcp.deepwiki.com/mcp"
+        },
+        "judge": {
+          "base_url": "https://openrouter.ai/api/v1",
+          "api_key_var": "OPENROUTER_API_KEY",
+          "headers": {},
+          "id": "",
+          "name": "",
+          "weight": 1.0,
+          "model": "openai/gpt-5-mini",
+          "sampling": {
+            "temperature": null,
+            "top_p": null,
+            "reasoning_effort": null,
+            "max_tokens": null
+          },
+          "prompt": null,
+          "prompt_file": null
+        }
+      },
+      "dataset": "environments/my_env/samples_v3/authored_tasks_l1.jsonl",
+      "num_generated": 5,
+      "timesteps": 3,
+      "max_actions_per_t": 3,
+      "p_invalid": 0.2,
+      "p_open": 0.15
+    },
+    "timeout": {
+      "episode": null,
+      "finalize": null
+    },
+    "retries": {
+      "max_retries": 0,
+      "include": [],
+      "exclude": []
+    },
+    "max_concurrent": null,
+    "interception": {
+      "type": "elastic",
+      "multiplex": 32
+    },
+    "agent": {
+      "harness": {
+        "id": "null",
+        "env": {},
+        "forward_env": [],
+        "disabled_tools": null,
+        "skills": []
+      },
+      "runtime": {
+        "type": "subprocess"
+      },
+      "model": null,
+      "client": null,
+      "sampling": null,
+      "timeout": {
+        "setup": null,
+        "rollout": null,
+        "finalize": null,
+        "scoring": null
+      },
+      "retries": {
+        "max_retries": 0,
+        "include": [],
+        "exclude": []
+      },
+      "max_turns": null,
+      "max_input_tokens": null,
+      "max_output_tokens": null,
+      "max_total_tokens": null
+    }
+  },
+  "pool": {
+    "type": "elastic",
+    "max_workers": null,
+    "multiplex": 128
+  },
+  "id": null,
+  "args": {},
+  "extra_env_kwargs": {},
+  "model": "openai/gpt-5-nano",
+  "client": {
+    "base_url": "https://openrouter.ai/api/v1",
+    "api_key_var": "OPENROUTER_API_KEY",
+    "headers": {},
+    "type": "eval"
+  },
+  "sampling": {
+    "temperature": null,
+    "top_p": null,
+    "reasoning_effort": null,
+    "max_tokens": null
+  },
+  "num_tasks": null,
+  "num_rollouts": 1,
+  "shuffle": false,
+  "max_concurrent": 128,
+  "verbose": false,
+  "rich": false,
+  "server": false,
+  "push": false,
+  "output_dir": "environments/my_env/samples_v3/rescore/l1"
+}
+17:58:02    INFO running 5x1 rollouts on openai/gpt-5-nano
+17:58:02    INFO results: environments/my_env/samples_v3/rescore/l1
+17:58:02    INFO rollout start: id=ad03a92994964ba1942b6c289481f73a task=0 harness=null runtime=subprocess
+17:58:02    INFO rollout start: id=e51b8e971b7b457da52cfda44e0bdc73 task=1 harness=null runtime=subprocess
+17:58:02    INFO rollout start: id=31b25468218c44f4af422fd9ff4e1b56 task=2 harness=null runtime=subprocess
+17:58:02    INFO rollout start: id=bd142e0a7b514d5b815a8f9612e2ec49 task=3 harness=null runtime=subprocess
+17:58:02    INFO rollout start: id=5bbeaa74e119473f90063d0358c29c2c task=4 harness=null runtime=subprocess
+17:58:02    INFO interception up: url=http://127.0.0.1:56356
+17:58:02    INFO interception pool: 1 server(s), multiplex=32
+17:58:12    INFO tool server 'chat': http://127.0.0.1:56376/mcp
+17:58:12    INFO tool server 'deepwiki' (remote): https://mcp.deepwiki.com/mcp
+17:58:12    INFO tool server 'chat': http://127.0.0.1:56378/mcp
+17:58:12    INFO tool server 'deepwiki' (remote): https://mcp.deepwiki.com/mcp
+17:58:12    INFO tool server 'chat': http://127.0.0.1:56379/mcp
+17:58:12    INFO tool server 'deepwiki' (remote): https://mcp.deepwiki.com/mcp
+17:58:12    INFO tool server 'chat': http://127.0.0.1:56377/mcp
+17:58:12    INFO tool server 'deepwiki' (remote): https://mcp.deepwiki.com/mcp
+17:58:12    INFO tool server 'chat': http://127.0.0.1:56380/mcp
+17:58:12    INFO tool server 'deepwiki' (remote): https://mcp.deepwiki.com/mcp
+17:59:13    INFO rollout done: id=e51b8e971b7b457da52cfda44e0bdc73 task=1 reward=1.000 turns=8 stop=agent_completed
+17:59:20    INFO rollout done: id=5bbeaa74e119473f90063d0358c29c2c task=4 reward=0.700 turns=6 stop=agent_completed
+17:59:30    INFO rollout done: id=bd142e0a7b514d5b815a8f9612e2ec49 task=3 reward=1.000 turns=8 stop=agent_completed
+18:00:58    INFO rollout done: id=ad03a92994964ba1942b6c289481f73a task=0 reward=0.805 turns=12 stop=agent_completed
+18:02:00    INFO rollout done: id=31b25468218c44f4af422fd9ff4e1b56 task=2 reward=0.880 turns=10 stop=agent_completed
+18:02:00    INFO interception down: url=http://127.0.0.1:56356

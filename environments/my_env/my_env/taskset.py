@@ -5,7 +5,6 @@
 author.py). Each `GeneratedTask` is scored by three rewards: the state-diff (chat
 effects), tool-call well-formedness, and an LLM judge over open-ended DeepWiki answers.
 
-Hand-written example tasks live in `legacy_tasksets.py` (not loaded here).
 """
 
 import json

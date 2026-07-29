@@ -1,9 +1,9 @@
 """Schema for the mock chat app: the entities plus the per-rollout state container.
 
-Shared by the tools (which read/mutate it) and the taskset (which seeds it and
-scores against it). `ChatState` is a `vf.State`, so once per-task seeding is wired
-(step 2) it becomes the live per-rollout state; step 1 just seeds it statically
-via the `SAMPLE` constant below.
+Shared by the tools (which read/mutate it), the taskset (which seeds it and scores
+against it), and the generator (which simulates over it). `ChatState` is a `vf.State`,
+so it is the live per-rollout state, seeded per task in `Task.setup`. The seeded
+workspace itself is built by `world.build_world`.
 """
 
 from typing import Literal
@@ -52,31 +52,3 @@ class ChatState(vf.State):
     # order (not of collection size), independent of deletions or seeded id names.
     next_message_id: int = 1
     next_chat_id: int = 1
-
-
-# A tiny fixed conversation for step 1. Replaced by per-task seeding in step 2.
-SAMPLE = ChatState(
-    me="u_me",
-    users={
-        "u_me": User(id="u_me", name="You", handle="you"),
-        "u_alice": User(id="u_alice", name="Alice", handle="alice"),
-        "u_bob": User(id="u_bob", name="Bob", handle="bob"),
-    },
-    chats={
-        "c_launch": Chat(
-            id="c_launch",
-            kind="group",
-            name="launch",
-            member_ids=["u_me", "u_alice", "u_bob"],
-        ),
-        "c_alice": Chat(id="c_alice", kind="dm", member_ids=["u_me", "u_alice"]),
-    },
-    messages=[
-        Message(id="m_001", chat_id="c_launch", sender_id="u_alice", text="kickoff at 3pm?", ts=1),
-        Message(id="m_002", chat_id="c_launch", sender_id="u_bob", text="works for me", ts=2),
-        Message(id="m_003", chat_id="c_launch", sender_id="u_alice", text="great, see you then", ts=3),
-        Message(id="m_004", chat_id="c_alice", sender_id="u_alice", text="can you review the deck?", ts=4),
-    ],
-    next_message_id=5,
-    next_chat_id=3,
-)

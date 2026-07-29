@@ -1,0 +1,164 @@
+18:05:40    INFO eval config:
+{
+  "env": {
+    "id": "",
+    "taskset": {
+      "id": "my_env",
+      "task": {
+        "judges": [],
+        "tools": {
+          "colocated": false,
+          "runtime": {
+            "type": "subprocess"
+          },
+          "url": null
+        },
+        "web": {
+          "colocated": false,
+          "runtime": {
+            "type": "subprocess"
+          },
+          "url": "https://mcp.deepwiki.com/mcp"
+        },
+        "judge": {
+          "base_url": "https://openrouter.ai/api/v1",
+          "api_key_var": "OPENROUTER_API_KEY",
+          "headers": {},
+          "id": "",
+          "name": "",
+          "weight": 1.0,
+          "model": "openai/gpt-5-mini",
+          "sampling": {
+            "temperature": null,
+            "top_p": null,
+            "reasoning_effort": null,
+            "max_tokens": null
+          },
+          "prompt": null,
+          "prompt_file": null
+        }
+      },
+      "dataset": "environments/my_env/samples_v3/authored_tasks_l3.jsonl",
+      "num_generated": 5,
+      "timesteps": 3,
+      "max_actions_per_t": 3,
+      "p_invalid": 0.2,
+      "p_open": 0.15
+    },
+    "timeout": {
+      "episode": null,
+      "finalize": null
+    },
+    "retries": {
+      "max_retries": 0,
+      "include": [],
+      "exclude": []
+    },
+    "max_concurrent": null,
+    "interception": {
+      "type": "elastic",
+      "multiplex": 32
+    },
+    "agent": {
+      "harness": {
+        "id": "null",
+        "env": {},
+        "forward_env": [],
+        "disabled_tools": null,
+        "skills": []
+      },
+      "runtime": {
+        "type": "subprocess"
+      },
+      "model": null,
+      "client": null,
+      "sampling": null,
+      "timeout": {
+        "setup": null,
+        "rollout": null,
+        "finalize": null,
+        "scoring": null
+      },
+      "retries": {
+        "max_retries": 0,
+        "include": [],
+        "exclude": []
+      },
+      "max_turns": null,
+      "max_input_tokens": null,
+      "max_output_tokens": null,
+      "max_total_tokens": null
+    }
+  },
+  "pool": {
+    "type": "elastic",
+    "max_workers": null,
+    "multiplex": 128
+  },
+  "id": null,
+  "args": {},
+  "extra_env_kwargs": {},
+  "model": "openai/gpt-5-nano",
+  "client": {
+    "base_url": "https://openrouter.ai/api/v1",
+    "api_key_var": "OPENROUTER_API_KEY",
+    "headers": {},
+    "type": "eval"
+  },
+  "sampling": {
+    "temperature": null,
+    "top_p": null,
+    "reasoning_effort": null,
+    "max_tokens": null
+  },
+  "num_tasks": null,
+  "num_rollouts": 1,
+  "shuffle": false,
+  "max_concurrent": 128,
+  "verbose": false,
+  "rich": false,
+  "server": false,
+  "push": false,
+  "output_dir": "environments/my_env/samples_v3/rescore/l3"
+}
+18:05:40    INFO running 5x1 rollouts on openai/gpt-5-nano
+18:05:40    INFO results: environments/my_env/samples_v3/rescore/l3
+18:05:40    INFO rollout start: id=c8c61ae63ba34554a6a809db40bfcf6f task=0 harness=null runtime=subprocess
+18:05:40    INFO rollout start: id=54133df9868d4a109d2c4111b0955a05 task=1 harness=null runtime=subprocess
+18:05:40    INFO rollout start: id=f0bb5944c4804c43be91dc62621b6798 task=2 harness=null runtime=subprocess
+18:05:40    INFO rollout start: id=54ac73eb82e344779840dedd0f73666b task=3 harness=null runtime=subprocess
+18:05:40    INFO rollout start: id=654beb5ad88d4b06be3e22fcf8f3b8e7 task=4 harness=null runtime=subprocess
+18:05:40    INFO interception up: url=http://127.0.0.1:57269
+18:05:40    INFO interception pool: 1 server(s), multiplex=32
+18:05:46    INFO tool server 'chat': http://127.0.0.1:57289/mcp
+18:05:46    INFO tool server 'deepwiki' (remote): https://mcp.deepwiki.com/mcp
+18:05:46    INFO tool server 'chat': http://127.0.0.1:57285/mcp
+18:05:46    INFO tool server 'deepwiki' (remote): https://mcp.deepwiki.com/mcp
+18:05:46    INFO tool server 'chat': http://127.0.0.1:57287/mcp
+18:05:46    INFO tool server 'deepwiki' (remote): https://mcp.deepwiki.com/mcp
+18:05:46    INFO tool server 'chat': http://127.0.0.1:57288/mcp
+18:05:46    INFO tool server 'deepwiki' (remote): https://mcp.deepwiki.com/mcp
+18:05:46    INFO tool server 'chat': http://127.0.0.1:57286/mcp
+18:05:46    INFO tool server 'deepwiki' (remote): https://mcp.deepwiki.com/mcp
+18:06:08 WARNING model call failed: id=54ac73eb82e344779840dedd0f73666b ProviderError: malformed upstream response: ValidationError: 5 validation errors for ModdedChatCompletion
+id
+  Field required [type=missing, input_value={'error': {'message': 'So...t wrong.', 'code': 502}}, input_type=dict]
+    For further information visit https://errors.pydantic.dev/2.13/v/missing
+choices
+  Field required [type=missing, input_value={'error': {'message': 'So...t wrong.', 'code': 502}}, input_type=dict]
+    For further information visit https://errors.pydantic.dev/2.13/v/missing
+created
+  Field required [type=missing, input_value={'error': {'message': 'So...t wrong.', 'code': 502}}, input_type=dict]
+    For further information visit https://errors.pydantic.dev/2.13/v/missing
+model
+  Field required [type=missing, input_value={'error': {'message': 'So...t wrong.', 'code': 502}}, input_type=dict]
+    For further information visit https://errors.pydantic.dev/2.13/v/missing
+object
+  Field required [type=missing, input_value={'error': {'message': 'So...t wrong.', 'code': 502}}, input_type=dict]
+    For further information visit https://errors.pydantic.dev/2.13/v/missing
+18:07:20    INFO rollout done: id=54ac73eb82e344779840dedd0f73666b task=3 reward=1.000 turns=11 stop=agent_completed
+18:07:37    INFO rollout done: id=654beb5ad88d4b06be3e22fcf8f3b8e7 task=4 reward=1.000 turns=11 stop=agent_completed
+18:08:41    INFO rollout done: id=c8c61ae63ba34554a6a809db40bfcf6f task=0 reward=0.978 turns=13 stop=agent_completed
+18:08:52    INFO rollout done: id=54133df9868d4a109d2c4111b0955a05 task=1 reward=0.955 turns=12 stop=agent_completed
+18:09:19    INFO rollout done: id=f0bb5944c4804c43be91dc62621b6798 task=2 reward=0.820 turns=16 stop=agent_completed
+18:09:19    INFO interception down: url=http://127.0.0.1:57269
