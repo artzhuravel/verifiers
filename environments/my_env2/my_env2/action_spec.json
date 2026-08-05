@@ -1,0 +1,794 @@
+{
+  "_meta": {
+    "description": "Machine-readable action spec for the my_env2 chat environment. Consumed by the symbolic sequence generator (which reads only `produces`/`consumes`/`preconditions`), by the authoring stages (which read every `description`, `returns` and `reference_modes` entry), and by replay (which reads `params`).",
+    "source_of_truth": "my_env2/servers/tool.py (local chat tools) and my_env2/servers/web.py (remote DeepWiki tools). Keep this file in sync when tools change.",
+    "actor": {
+      "ref": "state.me",
+      "description": "The acting user's id. Every write is attributed to this user; reads are scoped to it where noted."
+    },
+    "precondition_semantics": {
+      "enforced": "The tool itself checks it and returns an {\"error\": ...} object if violated (the action does not take effect).",
+      "soft": "Not checked by the tool, but required for the action to be meaningful/verifiable; the generator must satisfy it when seeding."
+    },
+    "reference_mode_semantics": {
+      "purpose": "A reference mode is a way of picking an entity out of the environment by describing it rather than by naming its id. The authoring pass assigns one mode per core entity; the prompt then refers to that entity through the mode's `phrase` instead of its id, so an agent has to inspect the environment to resolve it.",
+      "contract": "Each mode is a Boolean predicate over environment state, parameterised by `params`. The adapter must implement it as `resolve(state, mode, params) -> [entity_id]`, returning every entity that satisfies it; a mode is usable for a given entity only when that list is exactly [entity]. Every mode is GLOBALLY scoped: it names no other entity, so uniqueness is decidable without resolving a second reference and `phrase` needs no nesting.",
+      "readability": "`readable_via` lists the actions an agent needs, in combination, to observe the property during a rollout — enumerating the candidates as well as reading the property off them. A mode no set of tools can observe would make the task unsolvable rather than hard, so this field is load-bearing, not documentation.",
+      "ordering": "Modes are declared most indirect first. That order is the fallback the pipeline walks when the authoring pass proposes nothing usable, so a reference that has to be derived still asks the agent to work something out rather than restating a name."
+    }
+  },
+  "entities": {
+    "user": {
+      "collection": "state.users (dict keyed by id)",
+      "key": "id",
+      "fields": {
+        "id": "string",
+        "name": "string",
+        "handle": "string"
+      },
+      "description": "A person in the workspace. Display names may collide; handles never do.",
+      "reference_modes": [
+        {
+          "id": "user_authored_text",
+          "params": [
+            {
+              "name": "text",
+              "type": "string",
+              "description": "a distinctive phrase appearing in exactly one message, which that user wrote"
+            }
+          ],
+          "predicate": "the user who wrote the one message whose text contains {text}",
+          "phrase": "whoever wrote the message about {text}",
+          "readable_via": [
+            "read_messages"
+          ]
+        },
+        {
+          "id": "user_most_messages",
+          "params": [],
+          "predicate": "the user who has written more messages than any other across the workspace (strictly more, so there is no tie)",
+          "phrase": "the person who has posted the most across all your chats",
+          "readable_via": [
+            "list_chats",
+            "read_messages"
+          ]
+        },
+        {
+          "id": "user_by_display_name",
+          "params": [
+            {
+              "name": "name",
+              "type": "string",
+              "description": "the user's exact display name"
+            }
+          ],
+          "predicate": "the user whose display name is exactly {name}, and who is the only such user",
+          "phrase": "the person called {name}",
+          "readable_via": [
+            "list_chats",
+            "get_user",
+            "read_messages"
+          ]
+        },
+        {
+          "id": "user_by_handle",
+          "params": [
+            {
+              "name": "handle",
+              "type": "string",
+              "description": "the user's exact handle, without a leading @"
+            }
+          ],
+          "predicate": "the user whose handle is exactly {handle}",
+          "phrase": "the person whose handle is @{handle}",
+          "readable_via": [
+            "list_chats",
+            "get_user"
+          ]
+        }
+      ]
+    },
+    "chat": {
+      "collection": "state.chats (dict keyed by id)",
+      "key": "id",
+      "fields": {
+        "id": "string",
+        "kind": "\"dm\" | \"group\"",
+        "name": "string | null",
+        "member_ids": "string[] (user ids)"
+      },
+      "description": "A conversation the acting user takes part in. `name` is null for a DM.",
+      "reference_modes": [
+        {
+          "id": "chat_containing_text",
+          "params": [
+            {
+              "name": "text",
+              "type": "string",
+              "description": "a distinctive phrase appearing in exactly one chat"
+            }
+          ],
+          "predicate": "the chat containing a message whose text contains {text}",
+          "phrase": "the conversation where {text} came up",
+          "readable_via": [
+            "list_chats",
+            "read_messages"
+          ]
+        },
+        {
+          "id": "chat_only_with_unread",
+          "params": [],
+          "predicate": "the only chat holding at least one message the acting user has not read",
+          "phrase": "the one conversation you still have not caught up on",
+          "readable_via": [
+            "list_chats",
+            "read_messages"
+          ]
+        },
+        {
+          "id": "chat_by_member_count",
+          "params": [
+            {
+              "name": "count",
+              "type": "int",
+              "description": "how many members the chat has, counting the acting user"
+            }
+          ],
+          "predicate": "the chat that has exactly {count} members, and is the only chat with that many",
+          "phrase": "the conversation with exactly {count} people in it",
+          "readable_via": [
+            "list_chats"
+          ]
+        },
+        {
+          "id": "chat_by_name",
+          "params": [
+            {
+              "name": "name",
+              "type": "string",
+              "description": "the chat's exact title"
+            }
+          ],
+          "predicate": "the chat whose title is exactly {name}",
+          "phrase": "the {name} channel",
+          "readable_via": [
+            "list_chats"
+          ]
+        }
+      ]
+    },
+    "message": {
+      "collection": "state.messages (ordered list, chronological by ts)",
+      "key": "id",
+      "fields": {
+        "id": "string",
+        "chat_id": "string (chat id)",
+        "sender_id": "string (user id)",
+        "text": "string",
+        "ts": "int (logical clock, not wall time)",
+        "reply_to": "string | null (parent message id)",
+        "reactions": "object (emoji -> user_id[])",
+        "read_by": "string[] (user ids)"
+      },
+      "description": "One posted message. `reply_to` threads it under an earlier message in the same chat.",
+      "reference_modes": [
+        {
+          "id": "message_reply_to_text",
+          "params": [
+            {
+              "name": "text",
+              "type": "string",
+              "description": "a distinctive phrase in the PARENT message, which must have exactly one reply"
+            }
+          ],
+          "predicate": "the single reply to the one message whose text contains {text}",
+          "phrase": "the reply to the message about {text}",
+          "readable_via": [
+            "read_messages"
+          ]
+        },
+        {
+          "id": "message_most_reacted",
+          "params": [],
+          "predicate": "the message with strictly more distinct reactors than any other in the workspace",
+          "phrase": "the message that has drawn the most reactions",
+          "readable_via": [
+            "list_chats",
+            "read_messages"
+          ]
+        },
+        {
+          "id": "message_newest_by_handle",
+          "params": [
+            {
+              "name": "handle",
+              "type": "string",
+              "description": "the author's exact handle, without a leading @"
+            }
+          ],
+          "predicate": "the most recent message written by the user whose handle is {handle}",
+          "phrase": "the latest thing @{handle} posted",
+          "readable_via": [
+            "list_chats",
+            "read_messages",
+            "get_user"
+          ]
+        },
+        {
+          "id": "message_by_text",
+          "params": [
+            {
+              "name": "text",
+              "type": "string",
+              "description": "a distinctive phrase appearing in exactly one message"
+            }
+          ],
+          "predicate": "the one message whose text contains {text}",
+          "phrase": "the message about {text}",
+          "readable_via": [
+            "read_messages"
+          ]
+        }
+      ]
+    }
+  },
+  "servers": {
+    "chat": {
+      "transport": "local",
+      "url": "assigned per rollout (http://127.0.0.1:<port>/mcp)",
+      "state": "per-rollout ChatState, synced through the rollout state channel",
+      "description": "Local mock chat app. Read and write tools operate on the rollout's ChatState."
+    },
+    "deepwiki": {
+      "transport": "remote",
+      "url": "https://mcp.deepwiki.com/mcp",
+      "state": "none (external, read-only)",
+      "description": "Public DeepWiki MCP server: read-only GitHub-repo Q&A. Answers can be nondeterministic; requires the repo to be indexed by DeepWiki."
+    }
+  },
+  "actions": [
+    {
+      "id": "list_chats",
+      "tool": "chat_list_chats",
+      "address": {
+        "server": "chat",
+        "url": "assigned per rollout (http://127.0.0.1:<port>/mcp)"
+      },
+      "kind": "read",
+      "description": "List the chats the acting user is a member of.",
+      "params": [],
+      "preconditions": [],
+      "produces": {
+        "kind": "info",
+        "type": "text",
+        "source": "internal",
+        "shape": "collection"
+      },
+      "consumes": [],
+      "returns": "array of {id, kind, name, members} for chats where actor is in member_ids"
+    },
+    {
+      "id": "read_messages",
+      "tool": "chat_read_messages",
+      "address": {
+        "server": "chat",
+        "url": "assigned per rollout (http://127.0.0.1:<port>/mcp)"
+      },
+      "kind": "read",
+      "description": "Read the most recent messages in a chat, oldest to newest.",
+      "params": [
+        {
+          "name": "chat_id",
+          "type": "string",
+          "required": true,
+          "description": "chat to read"
+        },
+        {
+          "name": "limit",
+          "type": "int",
+          "required": false,
+          "default": 20,
+          "description": "max messages, most recent"
+        }
+      ],
+      "preconditions": [
+        {
+          "requires": "entity_exists",
+          "entity": "chat",
+          "ref": "chat_id",
+          "enforced": false,
+          "description": "If the chat does not exist the tool returns an empty list (no error); a valid read targets an existing chat."
+        }
+      ],
+      "produces": {
+        "kind": "info",
+        "type": "text",
+        "source": "internal",
+        "shape": "collection"
+      },
+      "consumes": [
+        {
+          "param": "chat_id",
+          "slot": "object",
+          "type": "chat",
+          "arity": "one"
+        }
+      ],
+      "meaningful_when": [
+        {
+          "entity": "chat",
+          "ref": "chat_id",
+          "requires_history": true,
+          "requirement": "the chat already has messages in it. A chat created during this task holds nothing worth reading, so reading it returns no information a later step could carry."
+        }
+      ],
+      "returns": "array of message views {id, chat_id, from, sender_id, text, ts, reply_to, reactions, read_by}"
+    },
+    {
+      "id": "get_user",
+      "tool": "chat_get_user",
+      "address": {
+        "server": "chat",
+        "url": "assigned per rollout (http://127.0.0.1:<port>/mcp)"
+      },
+      "kind": "read",
+      "description": "Look up a user by id.",
+      "params": [
+        {
+          "name": "user_id",
+          "type": "string",
+          "required": true,
+          "description": "user to look up"
+        }
+      ],
+      "preconditions": [
+        {
+          "requires": "entity_exists",
+          "entity": "user",
+          "ref": "user_id",
+          "enforced": true,
+          "description": "If the user does not exist the tool returns {\"error\": \"no such user\"}."
+        }
+      ],
+      "produces": {
+        "kind": "info",
+        "type": "text",
+        "source": "internal",
+        "shape": "scalar"
+      },
+      "consumes": [
+        {
+          "param": "user_id",
+          "slot": "object",
+          "type": "user",
+          "arity": "one"
+        }
+      ],
+      "returns": "{id, name, handle} or {\"error\": \"no such user\"}"
+    },
+    {
+      "id": "send_message",
+      "tool": "chat_send_message",
+      "address": {
+        "server": "chat",
+        "url": "assigned per rollout (http://127.0.0.1:<port>/mcp)"
+      },
+      "kind": "write",
+      "description": "Send a message from the acting user to a chat.",
+      "params": [
+        {
+          "name": "chat_id",
+          "type": "string",
+          "required": true,
+          "description": "destination chat"
+        },
+        {
+          "name": "text",
+          "type": "string",
+          "required": true,
+          "description": "message body"
+        }
+      ],
+      "preconditions": [
+        {
+          "requires": "entity_exists",
+          "entity": "chat",
+          "ref": "chat_id",
+          "enforced": true,
+          "description": "The destination chat must exist; otherwise the tool returns {\"error\": \"no such chat\"} and nothing is written."
+        }
+      ],
+      "effect": {
+        "summary": "appends a new message from the actor to the chat",
+        "mutations": [
+          {
+            "target": "state.messages",
+            "op": "append",
+            "description": "new Message(id=m_<next>, chat_id, sender_id=actor, text, ts=max(ts)+1, reply_to=null, read_by=[actor])"
+          },
+          {
+            "target": "state.next_message_id",
+            "op": "increment",
+            "description": "advances the message-id counter"
+          }
+        ]
+      },
+      "produces": {
+        "kind": "entity",
+        "type": "message"
+      },
+      "consumes": [
+        {
+          "param": "chat_id",
+          "slot": "object",
+          "type": "chat",
+          "arity": "one"
+        },
+        {
+          "param": "text",
+          "slot": "value",
+          "type": "text",
+          "arity": "many"
+        }
+      ],
+      "returns": "the created message view"
+    },
+    {
+      "id": "reply_to",
+      "tool": "chat_reply_to",
+      "address": {
+        "server": "chat",
+        "url": "assigned per rollout (http://127.0.0.1:<port>/mcp)"
+      },
+      "kind": "write",
+      "description": "Reply to an existing message in its chat (threaded).",
+      "params": [
+        {
+          "name": "message_id",
+          "type": "string",
+          "required": true,
+          "description": "the message being replied to"
+        },
+        {
+          "name": "text",
+          "type": "string",
+          "required": true,
+          "description": "reply body"
+        }
+      ],
+      "preconditions": [
+        {
+          "requires": "entity_exists",
+          "entity": "message",
+          "ref": "message_id",
+          "enforced": true,
+          "description": "The parent message must exist; otherwise the tool returns {\"error\": \"no such message\"} and nothing is written."
+        }
+      ],
+      "effect": {
+        "summary": "appends a new message that references the parent, in the parent's chat",
+        "mutations": [
+          {
+            "target": "state.messages",
+            "op": "append",
+            "description": "new Message(chat_id=parent.chat_id, sender_id=actor, text, ts=max(ts)+1, reply_to=message_id, read_by=[actor])"
+          },
+          {
+            "target": "state.next_message_id",
+            "op": "increment",
+            "description": "advances the message-id counter"
+          }
+        ]
+      },
+      "produces": {
+        "kind": "entity",
+        "type": "message"
+      },
+      "consumes": [
+        {
+          "param": "message_id",
+          "slot": "object",
+          "type": "message",
+          "arity": "one"
+        },
+        {
+          "param": "text",
+          "slot": "value",
+          "type": "text",
+          "arity": "many"
+        }
+      ],
+      "returns": "the created message view"
+    },
+    {
+      "id": "add_reaction",
+      "tool": "chat_add_reaction",
+      "address": {
+        "server": "chat",
+        "url": "assigned per rollout (http://127.0.0.1:<port>/mcp)"
+      },
+      "kind": "write",
+      "description": "Add an emoji reaction from the acting user to a message.",
+      "params": [
+        {
+          "name": "message_id",
+          "type": "string",
+          "required": true,
+          "description": "the message to react to"
+        },
+        {
+          "name": "emoji",
+          "type": "string",
+          "required": true,
+          "description": "reaction emoji, e.g. ':+1:'"
+        }
+      ],
+      "preconditions": [
+        {
+          "requires": "entity_exists",
+          "entity": "message",
+          "ref": "message_id",
+          "enforced": true,
+          "description": "The target message must exist; otherwise the tool returns {\"error\": \"no such message\"}."
+        }
+      ],
+      "effect": {
+        "summary": "adds the actor to the message's reaction set for the emoji (idempotent)",
+        "mutations": [
+          {
+            "target": "state.messages[message_id].reactions[emoji]",
+            "op": "add_unique",
+            "value": "actor",
+            "description": "actor id appended if not already present"
+          }
+        ]
+      },
+      "produces": null,
+      "consumes": [
+        {
+          "param": "message_id",
+          "slot": "object",
+          "type": "message",
+          "arity": "one"
+        }
+      ],
+      "meaningful_when": [
+        {
+          "entity": "message",
+          "ref": "message_id",
+          "requirement": "the acting user has not already reacted to this message, and no other step of the task reacts to it — a second reaction writes a fact that is already true and so is worth nothing."
+        }
+      ],
+      "returns": "the updated message view"
+    },
+    {
+      "id": "mark_read",
+      "tool": "chat_mark_read",
+      "address": {
+        "server": "chat",
+        "url": "assigned per rollout (http://127.0.0.1:<port>/mcp)"
+      },
+      "kind": "write",
+      "description": "Mark every message in a chat as read by the acting user.",
+      "params": [
+        {
+          "name": "chat_id",
+          "type": "string",
+          "required": true,
+          "description": "chat to mark read"
+        }
+      ],
+      "preconditions": [
+        {
+          "requires": "entity_exists",
+          "entity": "chat",
+          "ref": "chat_id",
+          "enforced": false,
+          "description": "Not checked; a nonexistent or empty chat simply marks 0 messages. A meaningful mark_read targets a chat with unread messages."
+        }
+      ],
+      "effect": {
+        "summary": "adds the actor to read_by of each not-yet-read message in the chat",
+        "mutations": [
+          {
+            "target": "state.messages[*].read_by (where chat_id matches and actor absent)",
+            "op": "add_unique",
+            "value": "actor",
+            "description": "actor appended to read_by of each qualifying message"
+          }
+        ]
+      },
+      "produces": null,
+      "consumes": [
+        {
+          "param": "chat_id",
+          "slot": "object",
+          "type": "chat",
+          "arity": "one"
+        }
+      ],
+      "meaningful_when": [
+        {
+          "entity": "chat",
+          "ref": "chat_id",
+          "requires_history": true,
+          "requirement": "the chat holds at least one message the acting user has not read — on a fully-read or empty chat this action changes nothing."
+        }
+      ],
+      "returns": "{chat_id, marked_read: <count>}"
+    },
+    {
+      "id": "create_chat",
+      "tool": "chat_create_chat",
+      "address": {
+        "server": "chat",
+        "url": "assigned per rollout (http://127.0.0.1:<port>/mcp)"
+      },
+      "kind": "write",
+      "description": "Create a new chat; the acting user is always included as a member.",
+      "params": [
+        {
+          "name": "member_ids",
+          "type": "string[]",
+          "required": true,
+          "description": "user ids to include (actor added automatically)"
+        },
+        {
+          "name": "name",
+          "type": "string",
+          "required": false,
+          "default": null,
+          "description": "chat name; if set (or >2 members) the chat is a group, else a dm"
+        }
+      ],
+      "preconditions": [
+        {
+          "requires": "entities_exist",
+          "entity": "user",
+          "ref": "member_ids",
+          "enforced": false,
+          "description": "Not checked, but member_ids should reference existing users for the chat to be meaningful/verifiable."
+        }
+      ],
+      "effect": {
+        "summary": "adds a new chat containing the actor and the given members",
+        "mutations": [
+          {
+            "target": "state.chats",
+            "op": "insert",
+            "description": "new Chat(id=c_<next_chat_id>, kind=group if name or >2 members else dm, name, member_ids=[actor, *member_ids] deduped)"
+          },
+          {
+            "target": "state.next_chat_id",
+            "op": "increment",
+            "description": "advances the chat-id counter"
+          }
+        ]
+      },
+      "produces": {
+        "kind": "entity",
+        "type": "chat"
+      },
+      "consumes": [
+        {
+          "param": "member_ids",
+          "slot": "object",
+          "type": "user",
+          "arity": "many"
+        }
+      ],
+      "returns": "{id, kind, name, members}"
+    },
+    {
+      "id": "ask_question",
+      "tool": "deepwiki_ask_question",
+      "address": {
+        "server": "deepwiki",
+        "url": "https://mcp.deepwiki.com/mcp"
+      },
+      "kind": "read",
+      "description": "Ask an AI-grounded question about a GitHub repository.",
+      "params": [
+        {
+          "name": "repoName",
+          "type": "string",
+          "required": true,
+          "description": "GitHub repo in owner/repo form (or a list, max 10)"
+        },
+        {
+          "name": "question",
+          "type": "string",
+          "required": true,
+          "description": "the question to ask"
+        }
+      ],
+      "preconditions": [
+        {
+          "requires": "external_available",
+          "entity": "github_repo",
+          "ref": "repoName",
+          "enforced": false,
+          "description": "The repo must be indexed by DeepWiki. Answers are LLM-generated and may vary run-to-run; prefer questions with stable, unambiguous answers."
+        }
+      ],
+      "produces": {
+        "kind": "info",
+        "type": "text",
+        "source": "external",
+        "shape": "scalar"
+      },
+      "consumes": [],
+      "returns": "a free-text answer to any question about the repo — metadata (licence, primary language, maintainers) and prose questions alike. Nondeterministic wording, so only ask things with a stable, unambiguous answer."
+    },
+    {
+      "id": "read_wiki_contents",
+      "tool": "deepwiki_read_wiki_contents",
+      "address": {
+        "server": "deepwiki",
+        "url": "https://mcp.deepwiki.com/mcp"
+      },
+      "kind": "read",
+      "description": "View DeepWiki documentation for a GitHub repository.",
+      "params": [
+        {
+          "name": "repoName",
+          "type": "string",
+          "required": true,
+          "description": "GitHub repo in owner/repo form"
+        }
+      ],
+      "preconditions": [
+        {
+          "requires": "external_available",
+          "entity": "github_repo",
+          "ref": "repoName",
+          "enforced": false,
+          "description": "The repo must be indexed by DeepWiki. Content can drift as the repo/docs change (no version pinning)."
+        }
+      ],
+      "produces": {
+        "kind": "info",
+        "type": "text",
+        "source": "external",
+        "shape": "collection"
+      },
+      "consumes": [],
+      "returns": "the repo's wiki DOCUMENTATION PROSE. It states what the project is for, how a subsystem works, what a concept means. It does NOT state licence, stars, maintainers or primary language, so a question about those has no obtainable answer here."
+    },
+    {
+      "id": "read_wiki_structure",
+      "tool": "deepwiki_read_wiki_structure",
+      "address": {
+        "server": "deepwiki",
+        "url": "https://mcp.deepwiki.com/mcp"
+      },
+      "kind": "read",
+      "description": "List the DeepWiki documentation topics for a GitHub repository.",
+      "params": [
+        {
+          "name": "repoName",
+          "type": "string",
+          "required": true,
+          "description": "GitHub repo in owner/repo form"
+        }
+      ],
+      "preconditions": [
+        {
+          "requires": "external_available",
+          "entity": "github_repo",
+          "ref": "repoName",
+          "enforced": false,
+          "description": "The repo must be indexed by DeepWiki."
+        }
+      ],
+      "produces": {
+        "kind": "info",
+        "type": "text",
+        "source": "external",
+        "shape": "collection"
+      },
+      "consumes": [],
+      "returns": "only the LIST OF DOCUMENTATION TOPIC TITLES. It can answer which areas the documentation covers, and nothing about repo metadata or the content of any page."
+    }
+  ]
+}

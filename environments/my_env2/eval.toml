@@ -1,0 +1,41 @@
+# A runnable eval, so the whole thing is one command rather than a dozen flags:
+#
+#     uv run eval @ environments/my_env2/eval.toml
+#
+# Change `level` to compare rungs: 1 explicit and numbered, 2 prose with described references,
+# 3 goal-level. The seed, the expected state and the judge items are identical at every level, so
+# a score gap between two runs of this file is attributable to the wording and to nothing else.
+#
+# `subprocess` runtimes are for local debugging; use `docker` or `prime` for an isolated run.
+model = "openai/gpt-5-nano"
+num_rollouts = 1
+shuffle = false
+rich = false
+push = false
+output_dir = "tmp/eval_my_env2"
+
+[client]
+base_url = "https://openrouter.ai/api/v1"
+api_key_var = "OPENROUTER_API_KEY"
+
+[env.taskset]
+id = "my_env2"
+dataset = "tmp/tasks_v2.jsonl"
+level = 3
+
+[env.taskset.task.tools.runtime]
+type = "subprocess"
+
+[env.taskset.task.web.runtime]
+type = "subprocess"
+
+[env.taskset.task.judge]
+model = "openai/gpt-5-mini"
+base_url = "https://openrouter.ai/api/v1"
+api_key_var = "OPENROUTER_API_KEY"
+
+[env.agent.harness]
+id = "null"
+
+[env.agent.runtime]
+type = "subprocess"
