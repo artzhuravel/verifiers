@@ -1,0 +1,37 @@
+Stage 4. Each seed entity gets ONE way of being described instead of named.
+The model picks only WHICH mode; the adapter derives the params from the world and
+proves resolve(state, mode, params) == [that entity]. A mode that cannot be made to fit
+is skipped and the next tried, so the stage is total — an entity with no working
+reference raises, because v2 strips ids out and the task would be unanswerable.
+
+  $user_0  ->  u_pri
+      the entity      Priya Sinha @pri
+      mode chosen     user_authored_text  (the model's pick)
+      params derived  {"text": "payment-service runbook with the"}
+      reads as        "whoever wrote the message about payment-service runbook with the"
+      predicate       the user who wrote the one message whose text contains payment-service runbook with the
+      PROOF           resolve() -> ['u_pri']   unique, and it is the target
+
+  $user_1  ->  u_marco
+      the entity      Marco Li @marco
+      mode chosen     user_authored_text  (the model's pick)
+      params derived  {"text": "interested in architecture and"}
+      reads as        "whoever wrote the message about interested in architecture and"
+      predicate       the user who wrote the one message whose text contains interested in architecture and
+      PROOF           resolve() -> ['u_marco']   unique, and it is the target
+
+  $message_0  ->  m_001
+      the entity      in backend-team from Priya Sinha, unread by you: 'Heads-up: We need to sync the payment-service runbook with the DeepWiki architecture page before Friday. Who can pull the current docs for owner/acme/payment-service?'
+      mode chosen     message_by_text  (the model's pick)
+      params derived  {"text": "payment-service runbook with the"}
+      reads as        "the message about payment-service runbook with the"
+      predicate       the one message whose text contains payment-service runbook with the
+      PROOF           resolve() -> ['m_001']   unique, and it is the target
+
+  $chat_0  ->  c_002
+      the entity      dm (unnamed dm) — members: Sam Harper @you, Owen Brooks @owen
+      mode chosen     chat_containing_text  (the model's pick)
+      params derived  {"text": "pushed a small update"}
+      reads as        "the conversation where pushed a small update came up"
+      predicate       the chat containing a message whose text contains pushed a small update
+      PROOF           resolve() -> ['c_002']   unique, and it is the target

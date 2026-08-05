@@ -1,0 +1,29 @@
+Stage 4. Each seed entity gets ONE way of being described instead of named.
+The model picks only WHICH mode; the adapter derives the params from the world and
+proves resolve(state, mode, params) == [that entity]. A mode that cannot be made to fit
+is skipped and the next tried, so the stage is total — an entity with no working
+reference raises, because v2 strips ids out and the task would be unanswerable.
+
+  $message_0  ->  m_001
+      the entity      in frontend-team from Priya Nair, unread by you: 'Can someone confirm the license and current maintainers for the GitHub repo loom/widget-lib before we vendor it into our codebase? Priya needs a definitive answer today.'
+      mode chosen     message_by_text  (the model's pick)
+      params derived  {"text": "someone confirm the license"}
+      reads as        "the message about someone confirm the license"
+      predicate       the one message whose text contains someone confirm the license
+      PROOF           resolve() -> ['m_001']   unique, and it is the target
+
+  $chat_0  ->  c_001
+      the entity      group 'frontend-team' — members: You @you, Priya Nair @priya_p, Mateo Ruiz @mateo_r, Sarah Kim @sarah_k
+      mode chosen     chat_containing_text  (the model's pick)
+      params derived  {"text": "someone confirm the license"}
+      reads as        "the conversation where someone confirm the license came up"
+      predicate       the chat containing a message whose text contains someone confirm the license
+      PROOF           resolve() -> ['c_001']   unique, and it is the target
+
+  $chat_1  ->  c_002
+      the entity      group 'sec-ops' — members: You @you, Mateo Ruiz @mateo_r, Jamal Brown @jamal_b
+      mode chosen     chat_by_member_count  (the model's pick)
+      params derived  {"count": 3}
+      reads as        "the conversation with exactly 3 people in it"
+      predicate       the chat that has exactly 3 members, and is the only chat with that many
+      PROOF           resolve() -> ['c_002']   unique, and it is the target

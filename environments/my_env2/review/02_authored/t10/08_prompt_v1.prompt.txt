@@ -1,0 +1,156 @@
+# Stage 8 — v1 prompt and the judge specification
+
+This is EXACTLY the prompt the authoring model received. Every input to it is stored
+in the task record, so it is a reconstruction only in the sense that it was rebuilt rather
+than logged.
+
+------------------------------------------------------------------------------------------------
+-- SYSTEM PROMPT
+------------------------------------------------------------------------------------------------
+You turn a plan into a task, written as an explicit numbered sequence.
+
+You are given a workspace, and the exact actions an agent should perform in it with every detail already decided. Write the request the agent will receive.
+
+- One numbered step per action, in the given order — but write SENTENCES. The plan you are given is a machine listing; do not reproduce its layout, its bracketed tags, its parameter lines or its "returns" notes. Those are notes to you. Ask for the thing, using the ids shown.
+- Every step is work that must happen, including any marked as an aside. The plan is the complete and exact set of actions: never ask for anything it does not contain, and never leave one out. An unplanned message is an unexpected change to the workspace, and a missing one costs the agent credit for obeying you.
+- Where a step's text must CARRY what an earlier step returned, say so plainly: the agent has to look that up and say it in the message. Ask for the information, not for a transcript — a person asks a colleague to pass on what a thread said, never to paste the raw tool output. Never guess the value yourself.
+- Where a step looks something up and no later step posts what it found, ask the agent to report that back to you in its reply.
+
+You also write the JUDGE SPECIFICATION. You are given the items that need checking, each with where its answer must appear. For each one return:
+- expected: THE ANSWER ITSELF, in a sentence. Two ways to get this wrong, and both make the item useless. Do not write "the text returned by step N" or "the answer to the question above" — a grader given that has nothing to compare against. And do not paste the returned value back verbatim — say what a correct answer STATES, in your own words, so that a grader can recognise one that is worded differently. Where the item shows what the step actually returned, draw the facts out of it ("names all three of X, Y and Z"); where the answer comes from outside the workspace, give it as best you know it.
+- hint: where in the agent's output a grader should look for it.
+
+Respond with ONLY this JSON object:
+{"prompt": "<the task text>",
+ "judge": [{"id": "<item id, copied exactly>", "expected": "...", "hint": "..."}]}
+
+------------------------------------------------------------------------------------------------
+-- USER PROMPT
+------------------------------------------------------------------------------------------------
+ENVIRONMENT
+  chat: Local mock chat app. Read and write tools operate on the rollout's ChatState.
+  deepwiki: Public DeepWiki MCP server: read-only GitHub-repo Q&A. Answers can be nondeterministic; requires the repo to be indexed by DeepWiki.
+  You act as one specific user. The acting user's id. Every write is attributed to this user; reads are scoped to it where noted.
+
+ENTITY TYPES IN THIS TASK
+  chat — A conversation the acting user takes part in. `name` is null for a DM.
+      id: string
+      kind: "dm" | "group"
+      name: string | null
+      member_ids: string[] (user ids)
+  message — One posted message. `reply_to` threads it under an earlier message in the same chat.
+      id: string
+      chat_id: string (chat id)
+      sender_id: string (user id)
+      text: string
+      ts: int (logical clock, not wall time)
+      reply_to: string | null (parent message id)
+      reactions: object (emoji -> user_id[])
+      read_by: string[] (user ids)
+
+ACTIONS THIS TASK USES
+  list_chats (read) — List the chats the acting user is a member of.
+      returns: array of {id, kind, name, members} for chats where actor is in member_ids
+  send_message (write) — Send a message from the acting user to a chat.
+      chat_id: destination chat
+      text: message body
+      returns: the created message view
+  ask_question (read) — Ask an AI-grounded question about a GitHub repository.
+      repoName: GitHub repo in owner/repo form (or a list, max 10)
+      question: the question to ask
+      returns: a free-text answer to any question about the repo — metadata (licence, primary language, maintainers) and prose questions alike. Nondeterministic wording, so only ask things with a stable, unambiguous answer.
+  mark_read (write) — Mark every message in a chat as read by the acting user.
+      chat_id: chat to mark read
+      returns: {chat_id, marked_read: <count>}
+  reply_to (write) — Reply to an existing message in its chat (threaded).
+      message_id: the message being replied to
+      text: reply body
+      returns: the created message view
+
+WORKSPACE
+You act as Sam Ortiz (id u_me).
+
+People:
+  u_me  Sam Ortiz @you
+  u_alice  Alice Chen @alice
+  u_ben  Ben Park @ben
+  u_priya  Priya Singh @priya
+  u_marco  Marco Ruiz @marco
+  u_lina  Lina Gomez @lina
+
+group frontend-sprint (c_001) — members: Sam Ortiz @you, Alice Chen @alice, Ben Park @ben, Priya Singh @priya, Marco Ruiz @marco
+  m_001 [Alice Chen @alice]: Sprint retro: the header rendering bug keeps slipping through QA. Anyone able to own it this cycle?
+  m_002 [Ben Park @ben]: I can pick it up if someone posts the failing test stack. Marco, you mentioned you saw it on staging?  (reply to m_001)
+  m_003 [Alice Chen @alice]: Also, I noticed the flakiness happens mostly on iOS Safari — could be layout reflow related.
+  m_004 [Marco Ruiz @marco]: Quick request: could someone paste the list of chats you're in? I'm mapping who needs access to the performance dashboard and it would help to see overlap.
+  m_006 [Ben Park @ben]: For the dashboard we'll need org-level perms too — tagging infra to grant them.  (reply to m_004)
+  m_007 [Priya Singh @priya]: Here's my list: frontend-sprint, design-review, infra-alerts, random-coffee. Didn't realize I was missing access to the dashboard.  (reply to m_004)
+  m_008 [Marco Ruiz @marco]: Heads-up: I pushed a tiny staging fix for the header (branch fix/header-padding). Not merged to main yet.  (UNREAD by you)
+  m_010 [Ben Park @ben]: Added a note to the PR to mention the staging repro steps.  (reply to m_007)
+  m_012 [Alice Chen @alice]: Thanks Marco — when you open the PR, drop the link here so QA can pull it into their run.  (reply to m_008)
+  m_013 [Marco Ruiz @marco]: Also pinging QA here: can we get a nightly job to run that header test?  (reply to m_008)
+  m_014 [Ben Park @ben]: I'll fetch the failing tests this afternoon and paste the stack traces into this thread.
+
+dm (dm) (c_002) — members: Sam Ortiz @you, Priya Singh @priya
+  m_009 [Priya Singh @priya]: Can you ask DeepWiki what license and primary language acme/frontend-utils uses? We need that for the upcoming audit.  (UNREAD by you)
+  m_011 [Priya Singh @priya]: Also, if there’s a listed maintainer contact on the repo page, could you include that too?  (reply to m_009; UNREAD by you)
+  m_015 [Priya Singh @priya]: Thanks — and yes, please include maintainer contact if it's listed. I'll start an audit checklist.  (reply to m_011)
+
+group random-coffee (c_003) — members: Sam Ortiz @you, Alice Chen @alice, Lina Gomez @lina
+  m_005 [Lina Gomez @lina]: Morning! Lina here — happy to join the coffee thread. Who wants to start?
+
+PLAN (perform in this order)
+step 1 [read] list_chats — List the chats the acting user is a member of.
+    -> returns: [{"id": "c_001", "kind": "group", "name": "frontend-sprint", "members": ["u_me", "u_alice", "u_ben", "u_priya", "u_marco"]}, {"id": "c_002", "kind": "dm", "name": "c_002", "members": ["u_me", "u_priya"]}, {"id": "c_003", "kind": "group", "name": "random-coffee", "members": ["u_me", "u_alice", "u_lina"]}]
+step 2 [write] send_message — Send a message from the acting user to a chat.
+    chat_id      = c_001 — group 'frontend-sprint' — members: Sam Ortiz @you, Alice Chen @alice, Ben Park @ben, Priya Singh @priya, Marco Ruiz @marco
+    text         = "Quick update: I'm checking the repo license/language Priya asked about and will DM her the results. Marco — when you open the PR for fix/header-padding, drop the link here so QA can pull it into their run."
+    -> creates something new
+step 3 [read, an aside] ask_question — Ask an AI-grounded question about a GitHub repository.
+    repoName     = 'facebook/react'
+    question     = 'What license and primary language does facebook/react use?'
+    -> returns a free-text answer to any question about the repo — metadata (licence, primary language, maintainers) and prose questions alike. Nondeterministic wording, so only ask things with a stable, unambiguous answer. (not known until the agent runs it)
+step 4 [write] mark_read — Mark every message in a chat as read by the acting user.
+    chat_id      = c_001 — group 'frontend-sprint' — members: Sam Ortiz @you, Alice Chen @alice, Ben Park @ben, Priya Singh @priya, Marco Ruiz @marco
+step 5 [write] reply_to — Reply to an existing message in its chat (threaded).
+    message_id   = the message step 2 creates
+    text         = 'Assigning the header bug to myself for this cycle — Ben, please paste the failing test stack when you fetch it and I’ll take it from there.'
+    -> creates something new
+step 6 [write] reply_to — Reply to an existing message in its chat (threaded).
+    message_id   = m_004 — in frontend-sprint from Marco Ruiz: "Quick request: could someone paste the list of chats you're in? I'm mapping who needs access to the performance dashboard and it would help to see overlap."
+    text         <- must carry what step 1 returned
+    -> creates something new
+step 7 [write] reply_to — Reply to an existing message in its chat (threaded).
+    message_id   = m_009 — in c_002 from Priya Singh, unread by you: 'Can you ask DeepWiki what license and primary language acme/frontend-utils uses? We need that for the upcoming audit.'
+    text         <- must carry what step 3 returned
+    -> creates something new
+
+ITEMS THAT NEED CHECKING
+  carry:c1a2:text
+      the text of step 6 must carry what step 1 returned
+      delivered in: the message step 6 posts
+      step 1 (list_chats) returns array of {id, kind, name, members} for chats where actor is in member_ids
+          it actually returned: [{"id": "c_001", "kind": "group", "name": "frontend-sprint", "members": ["u_me", "u_alice", "u_ben", "u_priya", "u_marco"]}, {"id": "c_002", "kind": "dm", "name": "c_002", "members": ["u_me", "u_priya"]}, {"id": "c_003", "kind": "group", "name": "random-coffee", "members": ["u_me", "u_alice", "u_lina"]}]
+  carry:c0a2:text
+      the text of step 7 must carry what step 3 returned
+      delivered in: the message step 7 posts
+      step 3 (ask_question) returns a free-text answer to any question about the repo — metadata (licence, primary language, maintainers) and prose questions alike. Nondeterministic wording, so only ask things with a stable, unambiguous answer.
+
+------------------------------------------------------------------------------------------------
+-- WHAT THE MODEL RETURNED (the shipped artifact)
+------------------------------------------------------------------------------------------------
+{
+  "prompt": "1. Call list_chats and get the list of chats the acting user (u_me) is a member of (this is step 1, id list_chats).  \n2. Send a message in chat c_001 (group 'frontend-sprint') with the exact text: \"Quick update: I'm checking the repo license/language Priya asked about and will DM her the results. Marco — when you open the PR for fix/header-padding, drop the link here so QA can pull it into their run.\" (this is step 2, id send_message).  \n3. Ask DeepWiki the question for repo facebook/react: \"What license and primary language does facebook/react use?\" and record the free-text answer it returns (this is step 3, id ask_question).  \n4. Mark every message in chat c_001 as read by the acting user (this is step 4, id mark_read).  \n5. Reply (thread) to the message created in step 2; use that message's id as the message_id and send the text: \"Assigning the header bug to myself for this cycle — Ben, please paste the failing test stack when you fetch it and I’ll take it from there.\" (this is step 5, id reply_to).  \n6. Reply (thread) to message m_004 in chat c_001 (Marco Ruiz's message asking people to paste the list of chats they're in) and in that reply include the full list you got from step 1: list each chat by id, its kind, its display name, and its member user ids (this is step 6, id reply_to).  \n7. Reply (thread) to message m_009 in chat c_002 (Priya's DM asking about acme/frontend-utils) and include the answer returned by the DeepWiki query from step 3 about facebook/react (specifically state the license and primary language reported by the ask_question result) in that reply (this is step 7, id reply_to).",
+  "judge": [
+    {
+      "id": "carry:c1a2:text",
+      "expected": "The reply to m_004 includes the complete list of chats the acting user is in, naming each chat's id, its kind, its display name, and its members: that c_001 is a group named \"frontend-sprint\" with members u_me, u_alice, u_ben, u_priya, u_marco; that c_002 is a DM (named \"c_002\") with members u_me and u_priya; and that c_003 is a group named \"random-coffee\" with members u_me, u_alice, and u_lina.",
+      "hint": "Look at the text of the message posted as the reply to m_004 (the message created in step 6)."
+    },
+    {
+      "id": "carry:c0a2:text",
+      "expected": "The reply to m_009 states that the facebook/react repository is licensed under the MIT License and that its primary language is JavaScript.",
+      "hint": "Look at the text of the message posted as the reply to m_009 (the message created in step 7)."
+    }
+  ]
+}

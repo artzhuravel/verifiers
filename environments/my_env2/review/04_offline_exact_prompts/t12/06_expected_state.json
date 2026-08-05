@@ -1,0 +1,181 @@
+{
+  "me": "u_me",
+  "users": {
+    "u_me": {
+      "id": "u_me",
+      "name": "You",
+      "handle": "you"
+    },
+    "u_person0": {
+      "id": "u_person0",
+      "name": "Person 0",
+      "handle": "person0"
+    },
+    "u_extra0": {
+      "id": "u_extra0",
+      "name": "Extra 0",
+      "handle": "extra0"
+    },
+    "u_extra1": {
+      "id": "u_extra1",
+      "name": "Extra 1",
+      "handle": "extra1"
+    },
+    "u_extra2": {
+      "id": "u_extra2",
+      "name": "Extra 2",
+      "handle": "extra2"
+    },
+    "u_filler1": {
+      "id": "u_filler1",
+      "name": "Filler One",
+      "handle": "filler1"
+    }
+  },
+  "chats": {
+    "c_001": {
+      "id": "c_001",
+      "kind": "group",
+      "name": "room-0",
+      "member_ids": [
+        "u_me",
+        "u_person0",
+        "u_extra0"
+      ]
+    },
+    "c_002": {
+      "id": "c_002",
+      "kind": "group",
+      "name": "room-1",
+      "member_ids": [
+        "u_me",
+        "u_person0",
+        "u_extra0",
+        "u_extra1"
+      ]
+    },
+    "c_003": {
+      "id": "c_003",
+      "kind": "group",
+      "name": "room-2",
+      "member_ids": [
+        "u_me",
+        "u_person0",
+        "u_extra0"
+      ]
+    },
+    "c_004": {
+      "id": "c_004",
+      "kind": "group",
+      "name": "watercooler",
+      "member_ids": [
+        "u_me",
+        "u_person0",
+        "u_filler1"
+      ]
+    },
+    "c_005": {
+      "id": "c_005",
+      "kind": "dm",
+      "name": null,
+      "member_ids": [
+        "u_me",
+        "u_person0"
+      ]
+    }
+  },
+  "messages": [
+    {
+      "id": "m_001",
+      "chat_id": "c_001",
+      "sender_id": "u_person0",
+      "text": "padding 0 mentions gadget 0 in passing",
+      "ts": 1,
+      "reply_to": null,
+      "reactions": {},
+      "read_by": [
+        "u_person0"
+      ]
+    },
+    {
+      "id": "m_002",
+      "chat_id": "c_002",
+      "sender_id": "u_extra0",
+      "text": "padding 1 mentions gadget 1 in passing",
+      "ts": 2,
+      "reply_to": null,
+      "reactions": {},
+      "read_by": [
+        "u_extra0"
+      ]
+    },
+    {
+      "id": "m_003",
+      "chat_id": "c_003",
+      "sender_id": "u_person0",
+      "text": "padding 2 mentions gadget 2 in passing",
+      "ts": 3,
+      "reply_to": null,
+      "reactions": {},
+      "read_by": [
+        "u_person0",
+        "u_me"
+      ]
+    },
+    {
+      "id": "m_004",
+      "chat_id": "c_001",
+      "sender_id": "u_extra0",
+      "text": "padding 3 mentions gadget 3 in passing",
+      "ts": 4,
+      "reply_to": null,
+      "reactions": {},
+      "read_by": [
+        "u_extra0"
+      ]
+    },
+    {
+      "id": "m_005",
+      "chat_id": "c_004",
+      "sender_id": "u_filler1",
+      "text": "unrelated chatter about the coffee machine",
+      "ts": 5,
+      "reply_to": null,
+      "reactions": {},
+      "read_by": [
+        "u_filler1",
+        "u_me"
+      ]
+    },
+    {
+      "id": "m_006",
+      "chat_id": "c_001",
+      "sender_id": "u_me",
+      "text": "$carried_c0a1_text",
+      "ts": 6,
+      "reply_to": null,
+      "reactions": {
+        "$emoji_0": [
+          "u_me"
+        ]
+      },
+      "read_by": [
+        "u_me"
+      ]
+    },
+    {
+      "id": "m_007",
+      "chat_id": "c_002",
+      "sender_id": "u_me",
+      "text": "$carried_c1a1_text",
+      "ts": 7,
+      "reply_to": null,
+      "reactions": {},
+      "read_by": [
+        "u_me"
+      ]
+    }
+  ],
+  "next_message_id": 8,
+  "next_chat_id": 6
+}

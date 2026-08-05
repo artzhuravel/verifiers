@@ -1,0 +1,58 @@
+# The delivery judge (eval time — after a rollout)
+
+Not part of authoring. This is the one model call made while *scoring*, and it is the
+whole of the `delivery` component (0.4 of the reward). One call per task, however many
+items. The judge grades over the WHOLE rollout — every tool call and every result — so
+that a retrieved answer can be told from an invented one, and so that information landing
+in a message partway through counts. It is not graded off the final reply alone.
+
+The items differ per level: each rung restates them for its own text, since the higher
+rungs remove the step numbers and ids the lower ones lean on. One section per level below.
+
+================================================================================================
+== LEVEL 1
+================================================================================================
+
+------------------------------------------------------------------------------------------------
+-- PROMPT (verify._JUDGE_PROMPT, filled in)
+------------------------------------------------------------------------------------------------
+You grade whether an agent delivered specific pieces of information.
+
+Each numbered item is something the agent had to find out and then put somewhere. You are given the requirement, what a correct answer says, and where in the agent's output to look for it.
+
+You are given the WHOLE ROLLOUT: every tool call the agent made, every result that came back, every message it sent, and its final reply. Use all of it. Do not grade off the final reply alone — most of these items are about information landing in a message partway through, and a rollout that did the work correctly and said little at the end is not a failure.
+
+Two things to hold together for each item:
+
+- **It has to be where the item says.** The hint names the place. Information that only ever appears in a tool result, and was never passed on, is not delivered — no matter how clearly the agent retrieved it.
+- **It has to be the same information.** That is a question about the whole trace: compare what the agent said against what the tools actually returned. A value the agent invented rather than retrieved is wrong even when it looks plausible, and a correct answer worded differently is right.
+
+Match on substance. Never judge style, length, or phrasing. An item is correct when a reader of the place the hint names would come away with the facts the expected answer states.
+
+Items:
+1. the text of step 4 must carry what step 1 and step 3 returned
+   A correct answer says: The reply posted to message m_004 names Lina Park and her handle (showing the user object for u_lina_p, name 'Lina Park', handle '@lina_p') and also includes the DeepWiki documentation prose for the 'prometheus/prometheus' repository (a descriptive passage from that repo's wiki explaining the project or a subsystem).
+   Where to look: Look at the body of the threaded reply created by step 4 (the reply to m_004).
+2. the text of step 5 must carry what step 1 returned
+   A correct answer says: The message sent to chat c_002 contains the user lookup result for Lina Park, i.e. the user details for u_lina_p including her name 'Lina Park' and handle '@lina_p'.
+   Where to look: Look at the message body posted to chat c_002 in step 5.
+3. the text of step 6 must carry what step 2 returned
+   A correct answer says: The reply posted to message m_004 includes the DeepWiki documentation prose for 'prometheus/node_exporter' — a descriptive excerpt or the full prose from that repository's wiki explaining the project or subsystem behavior.
+   Where to look: Check the body of the second threaded reply to m_004 created in step 6.
+4. step 7 looks something up and no later step posts what it found, so the agent must report it back in its own reply
+   A correct answer says: The agent reports the list of chats: c_001 (group, name 'backend-architecture') with members [u_me, u_marco_s, u_lina_p, u_jamal_r]; c_002 (group, name 'oncall') with members [u_me, u_marco_s, u_priya_d]; and c_003 (group, name 'c_003') with members [u_me, u_marco_s, u_carlos_v].
+   Where to look: Look in the agent's final reply (the summary it returns after performing the actions) for the list_chats result.
+
+The rollout:
+=== FULL ROLLOUT — every tool call the agent made and every result that came back ===
+    <<< the agent's transcript — only exists once a rollout has run >>>
+
+=== WHAT THE AGENT DELIVERED — the same messages, collected for convenience ===
+Messages the agent sent during this rollout:
+    <<< every message the acting user sent during the rollout, seeded history excluded >>>
+
+Agent's final reply:
+    <<< the agent's last reply >>>
+
+Respond with ONLY a JSON array of booleans, one per item in order (true = correct).
+Example for two items: [true, false]

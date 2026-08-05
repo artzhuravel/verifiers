@@ -1,0 +1,183 @@
+# Stage 10 — rewrite as a goal
+
+1 model call(s).
+
+================================================================================================
+== call 1 of 1
+================================================================================================
+
+------------------------------------------------------------------------------------------------
+-- SYSTEM PROMPT
+------------------------------------------------------------------------------------------------
+You rewrite a task as the request a person would actually have sent.
+
+You are given the workspace, the underlying plan, and a task written as connected prose. Raise its level of abstraction: say what you are trying to ACHIEVE and let the steps follow from it.
+
+- No enumeration. No numbered or bulleted steps, and no sentence that reads as "and then".
+- Nothing quoted or dictated word for word — except repository names and questions, which must survive exactly, because the expected answers are keyed to them.
+- Individual steps must stop being individually identifiable. Fold them into the goal.
+- Keep every reference resolvable: an agent reading this must still be able to work out which things you mean.
+- Refer to things the way the list below does, and never by name. A description with the answer bolted on — "Alice Rivera (the author of the message about the freeze)" — is worse than either half of it alone: it hands back the very step the description existed to create.
+- A description INTRODUCES a thing. Use it at the first mention only. Every later mention refers back the way a person would — "that conversation", "the same thread", "there", "them", "it", "the one you just read". Pasting a description a second time is the commonest way this rewrite fails: it reads as find-and-replace rather than as writing, and where a description depends on something the task itself changes, every use after that change is simply FALSE. Any description marked below as one the work invalidates must be used early and never again.
+- Never answer your own reference. No parenthetical, no "i.e.", no appositive that supplies the name or id of something you have just described.
+- You are shown the plan so you can check your text still leads to those actions. It is not something to reproduce, and none of it should be recognisable as a list.
+
+The test is simple: a colleague reading this should see a normal ask, and an agent following it should end up doing the same work.
+
+You also rewrite the JUDGE ITEMS. Each tells a grader what a correct answer says and where in the agent's output to look for it. They were written against the PREVIOUS version of this task, so they still speak its language — step numbers, entity ids, names, quoted wording — much of which you are removing. Left alone, they describe a task the agent was never given.
+
+For every item, restate `expected` and `hint` so that a grader reading YOUR text can still check the same thing:
+
+- `expected` — what a correct answer STATES, in substance. Keep every fact in it. Where the previous wording leaned on an id or a step number to say WHICH thing ("the reply to m_004"), say it the way your text says it. Never replace it with a pointer: "the answer to the question above" leaves a grader nothing to compare against.
+- `hint` — where in the agent's output to look, described the way your text describes it.
+
+Do not drop an item, do not merge two, and never change WHAT is required — only how it is said. Copy each `id` exactly.
+
+Respond with ONLY this JSON object:
+{"prompt": "<the rewritten task>",
+ "judge": [{"id": "<copied exactly>", "expected": "...", "hint": "..."}]}
+
+------------------------------------------------------------------------------------------------
+-- USER PROMPT
+------------------------------------------------------------------------------------------------
+ENVIRONMENT
+  chat: Local mock chat app. Read and write tools operate on the rollout's ChatState.
+  deepwiki: Public DeepWiki MCP server: read-only GitHub-repo Q&A. Answers can be nondeterministic; requires the repo to be indexed by DeepWiki.
+  You act as one specific user. The acting user's id. Every write is attributed to this user; reads are scoped to it where noted.
+
+ENTITY TYPES IN THIS TASK
+  message — One posted message. `reply_to` threads it under an earlier message in the same chat.
+      id: string
+      chat_id: string (chat id)
+      sender_id: string (user id)
+      text: string
+      ts: int (logical clock, not wall time)
+      reply_to: string | null (parent message id)
+      reactions: object (emoji -> user_id[])
+      read_by: string[] (user ids)
+  chat — A conversation the acting user takes part in. `name` is null for a DM.
+      id: string
+      kind: "dm" | "group"
+      name: string | null
+      member_ids: string[] (user ids)
+
+ACTIONS THIS TASK USES
+  ask_question (read) — Ask an AI-grounded question about a GitHub repository.
+      repoName: GitHub repo in owner/repo form (or a list, max 10)
+      question: the question to ask
+      returns: a free-text answer to any question about the repo — metadata (licence, primary language, maintainers) and prose questions alike. Nondeterministic wording, so only ask things with a stable, unambiguous answer.
+  reply_to (write) — Reply to an existing message in its chat (threaded).
+      message_id: the message being replied to
+      text: reply body
+      returns: the created message view
+  send_message (write) — Send a message from the acting user to a chat.
+      chat_id: destination chat
+      text: message body
+      returns: the created message view
+  add_reaction (write) — Add an emoji reaction from the acting user to a message.
+      message_id: the message to react to
+      emoji: reaction emoji, e.g. ':+1:'
+      returns: the updated message view
+
+WORKSPACE
+You act as You (id u_me).
+
+People:
+  u_me  You @you
+  u_priya_p  Priya Nair @priya_p
+  u_mateo_r  Mateo Ruiz @mateo_r
+  u_sarah_k  Sarah Kim @sarah_k
+  u_jamal_b  Jamal Brown @jamal_b
+  u_alex_p  Alex Park @alex_p
+
+group frontend-team (c_001) — members: You @you, Priya Nair @priya_p, Mateo Ruiz @mateo_r, Sarah Kim @sarah_k
+  m_001 [Priya Nair @priya_p]: Can someone confirm the license and current maintainers for the GitHub repo loom/widget-lib before we vendor it into our codebase? Priya needs a definitive answer today.  (UNREAD by you)
+  m_002 [Mateo Ruiz @mateo_r]: Is that the same widget-lib we used in the legacy dashboard? There were two similarly named repos.  (reply to m_001)
+  m_004 [Mateo Ruiz @mateo_r]: I'll check the org maintainers list and post links.  (reply to m_002)
+  m_005 [Sarah Kim @sarah_k]: Do you mean loom/widget-lib (TypeScript) or loom/widget-lib-js? They have slightly different owners.  (reply to m_001; UNREAD by you)
+  m_006 [Sarah Kim @sarah_k]: Found a packument entry that might list the publisher; saving it here for reference.  (reply to m_001)
+  m_010 [Priya Nair @priya_p]: Adding a note: check /LICENSE and the root package.json for declared authors.  (reply to m_005)
+  m_011 [Priya Nair @priya_p]: Thanks — if someone can confirm by EOD that'd be great. We're trying to avoid a last-minute license mismatch.  (reply to m_002)
+  m_013 [Sarah Kim @sarah_k]: I can take it after lunch unless @you are able to run a quick check now and post what you find.  (reply to m_001; UNREAD by you)
+
+group sec-ops (c_002) — members: You @you, Mateo Ruiz @mateo_r, Jamal Brown @jamal_b
+  m_003 [Jamal Brown @jamal_b]: If it's MIT we're probably fine to vendor; GPL-3 would be a blocker. Whoever checks, please list the license file path and the org/people listed as maintainers.
+  m_008 [Jamal Brown @jamal_b]: I couldn't find a LICENSE in the repo mirror; it might live in a monorepo root. Will keep digging.  (reply to m_003)
+  m_009 [Mateo Ruiz @mateo_r]: Jamal, could you check npm/packument and GH owners for that package? Security wants an explicit maintainer list.  (reply to m_003)
+  m_012 [Mateo Ruiz @mateo_r]: On it — I'll fetch the npm packument and paste the author/version details here.  (reply to m_009)
+  m_015 [Jamal Brown @jamal_b]: I'll scan the repo and check contributors + package.json authors. Will report back with links.  (reply to m_009)
+
+dm (dm) (c_003) — members: You @you, Sarah Kim @sarah_k
+  m_007 [Sarah Kim @sarah_k]: Hey — Priya asked the team to confirm loom/widget-lib's license. Can you pull the repo metadata (license, primary language, maintainers) when you have a moment?  (UNREAD by you)
+  m_014 [Sarah Kim @sarah_k]: Also pinged @priya_p to see if she remembers which variant we used months ago.  (reply to m_007)
+
+PLAN YOUR TEXT MUST STILL LEAD TO (do not reproduce it)
+step 1 [read] ask_question — Ask an AI-grounded question about a GitHub repository.
+    repoName     = 'loom/widget-lib'
+    question     = "What is the repo's license, primary language, and who are listed as maintainers (from LICENSE, package.json, or GitHub)?"
+    -> returns a free-text answer to any question about the repo — metadata (licence, primary language, maintainers) and prose questions alike. Nondeterministic wording, so only ask things with a stable, unambiguous answer. (not known until the agent runs it)
+step 2 [write] reply_to — Reply to an existing message in its chat (threaded).
+    message_id   = m_001 — in frontend-team from Priya Nair, unread by you: 'Can someone confirm the license and current maintainers for the GitHub repo loom/widget-lib before we vendor it into our codebase? Priya needs a definitive answer today.'
+    text         = "On it — I'll pull the license file path, primary language, and maintainer list for loom/widget-lib and post what I find shortly."
+    -> creates something new
+step 3 [write] reply_to — Reply to an existing message in its chat (threaded).
+    message_id   = the message step 2 creates
+    text         = 'Posting the findings in the channel below so everyone can review; will flag any concerns for licensing or maintainers.'
+    -> creates something new
+step 4 [write] send_message — Send a message from the acting user to a chat.
+    chat_id      = c_001 — group 'frontend-team' — members: You @you, Priya Nair @priya_p, Mateo Ruiz @mateo_r, Sarah Kim @sarah_k
+    text         <- must carry what step 1 returned
+    -> creates something new
+step 5 [write, an aside] reply_to — Reply to an existing message in its chat (threaded).
+    message_id   = m_001 — in frontend-team from Priya Nair, unread by you: 'Can someone confirm the license and current maintainers for the GitHub repo loom/widget-lib before we vendor it into our codebase? Priya needs a definitive answer today.'
+    text         = 'FYI — I’ll also paste the same findings into sec-ops so Jamal and Mateo can verify.'
+    -> creates something new
+step 6 [write] add_reaction — Add an emoji reaction from the acting user to a message.
+    message_id   = the message step 3 creates
+    emoji        = ':+1:'
+step 7 [write] send_message — Send a message from the acting user to a chat.
+    chat_id      = c_002 — group 'sec-ops' — members: You @you, Mateo Ruiz @mateo_r, Jamal Brown @jamal_b
+    text         <- must carry what step 1 returned
+    -> creates something new
+
+KEEP REFERRING TO THINGS THIS WAY, AND NEVER BY NAME — each ONCE, then refer back
+  the message about someone confirm the license
+  the conversation where someone confirm the license came up
+  the conversation with exactly 3 people in it
+
+THESE STRINGS MUST NOT APPEAR IN YOUR TEXT
+  add_reaction, ask_question, c_001, c_002, c_003, chat_add_reaction, chat_create_chat, chat_get_user, chat_list_chats, chat_mark_read, chat_read_messages, chat_reply_to, chat_send_message, create_chat, deepwiki_ask_question, deepwiki_read_wiki_contents, deepwiki_read_wiki_structure, frontend-team, get_user, list_chats, m_001, m_002, m_003, m_004, m_005, m_006, m_007, m_008, m_009, m_010, m_011, m_012, m_013, m_014, m_015, mark_read, read_messages, read_wiki_contents, read_wiki_structure, reply_to, sec-ops, send_message, u_alex_p, u_jamal_b, u_mateo_r, u_me, u_priya_p, u_sarah_k
+
+JUDGE ITEMS — REWRITE EACH ONE'S expected AND hint FOR YOUR TEXT
+  carry:c1a0:text
+      requirement (FIXED, do not change): the text of step 4 must carry what step 1 returned
+      must be delivered in (FIXED): the message step 4 posts
+      expected — RESTATE FOR YOUR TEXT: The message sent to the conversation where someone confirm the license came up states that the repository's license is MIT, its primary language is TypeScript, and the maintainers listed are Alex Park (alex_p) and Priya Nair (priya_p).
+      hint     — RESTATE FOR YOUR TEXT: Look in the message posted to the conversation where someone confirm the license came up that contains the findings; it should include the license, primary language, and the maintainer names listed above.
+  carry:c1a2:text
+      requirement (FIXED, do not change): the text of step 7 must carry what step 1 returned
+      must be delivered in (FIXED): the message step 7 posts
+      expected — RESTATE FOR YOUR TEXT: The message sent to the conversation with exactly 3 people in it states that the repository's license is MIT, its primary language is TypeScript, and the maintainers listed are Alex Park (alex_p) and Priya Nair (priya_p).
+      hint     — RESTATE FOR YOUR TEXT: Look in the message posted to the conversation with exactly 3 people in it that contains the findings; it should contain the same license, primary language, and maintainer list as the other findings message.
+
+CURRENT TASK TEXT (rewrite this)
+Please perform these actions in order. First, ask an AI-grounded question about the GitHub repository loom/widget-lib using the exact question "What is the repo's license, primary language, and who are listed as maintainers (from LICENSE, package.json, or GitHub)?" and capture the free-text answer returned. Then post a threaded reply to the message about someone confirm the license with the text: "On it — I'll pull the license file path, primary language, and maintainer list for loom/widget-lib and post what I find shortly." After that, post a reply to that reply with the text: "Posting the findings in the channel below so everyone can review; will flag any concerns for licensing or maintainers." Next, post a message to the conversation where someone confirm the license came up whose body includes the repository license, the primary language, and the full maintainer list exactly as returned by the question you asked. Then post a threaded reply to the message about someone confirm the license that says: "FYI — I’ll also paste the same findings into the conversation with exactly 3 people in it so Jamal and Mateo can verify." After posting that second threaded reply, add the ':+1:' reaction to the reply you made earlier. Finally, post a message to the conversation with exactly 3 people in it whose body includes the repository license, the primary language, and the full maintainer list exactly as returned by the earlier question.
+
+------------------------------------------------------------------------------------------------
+-- REPLY
+------------------------------------------------------------------------------------------------
+{
+  "prompt": "Use the AI-grounded query tool to ask about the GitHub repository loom/widget-lib with the exact question \"What is the repo's license, primary language, and who are listed as maintainers (from LICENSE, package.json, or GitHub)?\" Capture the free-text answer you receive. Reply in-thread to the message about someone confirm the license to say you will pull the license file path, the primary language, and the maintainer list for loom/widget-lib and post the findings shortly. Inside that same thread, post a follow-up reply saying you will post the findings in the channel for everyone to review and that you will flag any licensing or maintainer concerns. Post a message to the conversation where someone confirm the license came up whose body contains the repository license, the primary language, and the full maintainer list exactly as returned by your earlier query. Also post a threaded reply to the message about someone confirm the license noting you will paste the same findings into the conversation with exactly 3 people in it so the people there can verify. Add the ':+1:' reaction to the follow-up reply you posted in the thread. Finally send a message into the conversation with exactly 3 people in it whose body contains the repository license, the primary language, and the full maintainer list exactly as returned by the AI query.",
+  "judge": [
+    {
+      "id": "carry:c1a0:text",
+      "expected": "The message sent to the conversation where someone confirm the license came up states that the repository's license is MIT, its primary language is TypeScript, and the maintainers listed are Alex Park (alex_p) and Priya Nair (priya_p).",
+      "hint": "Look in the message posted to the conversation where someone confirm the license came up that contains the findings; it should include the license, primary language, and the maintainer names listed above."
+    },
+    {
+      "id": "carry:c1a2:text",
+      "expected": "The message sent to the conversation with exactly 3 people in it states that the repository's license is MIT, its primary language is TypeScript, and the maintainers listed are Alex Park (alex_p) and Priya Nair (priya_p).",
+      "hint": "Look in the message posted to the conversation with exactly 3 people in it that contains the findings; it should contain the same license, primary language, and maintainer list as the other findings message."
+    }
+  ]
+}

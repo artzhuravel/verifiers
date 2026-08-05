@@ -1,0 +1,187 @@
+# Stage 10 — rewrite as a goal
+
+NOTE ON FIDELITY — the instruction below is CURRENT; the reply below is HISTORICAL.
+
+These twelve tasks are the evidence that made the rewrite stages change. The system prompt shown
+here is the one now in the code — it asks for a description to be used once and referred back to
+afterwards, and it asks for the judge specification to be restated. The task text shown as the
+reply was produced by the PREVIOUS version of this stage, which asked for per-occurrence
+substitution and left the judge items alone. Reading the two together is the before-and-after.
+
+
+------------------------------------------------------------------------------------------------
+-- SYSTEM PROMPT
+------------------------------------------------------------------------------------------------
+You rewrite a task as the request a person would actually have sent.
+
+You are given the workspace, the underlying plan, and a task written as connected prose. Raise its level of abstraction: say what you are trying to ACHIEVE and let the steps follow from it.
+
+- No enumeration. No numbered or bulleted steps, and no sentence that reads as "and then".
+- Nothing quoted or dictated word for word — except repository names and questions, which must survive exactly, because the expected answers are keyed to them.
+- Individual steps must stop being individually identifiable. Fold them into the goal.
+- Keep every reference resolvable: an agent reading this must still be able to work out which things you mean.
+- Refer to things the way the list below does, and never by name. A description with the answer bolted on — "Alice Rivera (the author of the message about the freeze)" — is worse than either half of it alone: it hands back the very step the description existed to create.
+- A description INTRODUCES a thing. Use it at the first mention only. Every later mention refers back the way a person would — "that conversation", "the same thread", "there", "them", "it", "the one you just read". Pasting a description a second time is the commonest way this rewrite fails: it reads as find-and-replace rather than as writing, and where a description depends on something the task itself changes, every use after that change is simply FALSE. Any description marked below as one the work invalidates must be used early and never again.
+- Never answer your own reference. No parenthetical, no "i.e.", no appositive that supplies the name or id of something you have just described.
+- You are shown the plan so you can check your text still leads to those actions. It is not something to reproduce, and none of it should be recognisable as a list.
+
+The test is simple: a colleague reading this should see a normal ask, and an agent following it should end up doing the same work.
+
+You also rewrite the JUDGE ITEMS. Each tells a grader what a correct answer says and where in the agent's output to look for it. They were written against the PREVIOUS version of this task, so they still speak its language — step numbers, entity ids, names, quoted wording — much of which you are removing. Left alone, they describe a task the agent was never given.
+
+For every item, restate `expected` and `hint` so that a grader reading YOUR text can still check the same thing:
+
+- `expected` — what a correct answer STATES, in substance. Keep every fact in it. Where the previous wording leaned on an id or a step number to say WHICH thing ("the reply to m_004"), say it the way your text says it. Never replace it with a pointer: "the answer to the question above" leaves a grader nothing to compare against.
+- `hint` — where in the agent's output to look, described the way your text describes it.
+
+Do not drop an item, do not merge two, and never change WHAT is required — only how it is said. Copy each `id` exactly.
+
+Respond with ONLY this JSON object:
+{"prompt": "<the rewritten task>",
+ "judge": [{"id": "<copied exactly>", "expected": "...", "hint": "..."}]}
+
+------------------------------------------------------------------------------------------------
+-- USER PROMPT
+------------------------------------------------------------------------------------------------
+ENVIRONMENT
+  chat: Local mock chat app. Read and write tools operate on the rollout's ChatState.
+  deepwiki: Public DeepWiki MCP server: read-only GitHub-repo Q&A. Answers can be nondeterministic; requires the repo to be indexed by DeepWiki.
+  You act as one specific user. The acting user's id. Every write is attributed to this user; reads are scoped to it where noted.
+
+ENTITY TYPES IN THIS TASK
+  user — A person in the workspace. Display names may collide; handles never do.
+      id: string
+      name: string
+      handle: string
+  message — One posted message. `reply_to` threads it under an earlier message in the same chat.
+      id: string
+      chat_id: string (chat id)
+      sender_id: string (user id)
+      text: string
+      ts: int (logical clock, not wall time)
+      reply_to: string | null (parent message id)
+      reactions: object (emoji -> user_id[])
+      read_by: string[] (user ids)
+  chat — A conversation the acting user takes part in. `name` is null for a DM.
+      id: string
+      kind: "dm" | "group"
+      name: string | null
+      member_ids: string[] (user ids)
+
+ACTIONS THIS TASK USES
+  get_user (read) — Look up a user by id.
+      user_id: user to look up
+      returns: {id, name, handle} or {"error": "no such user"}
+  read_wiki_contents (read) — View DeepWiki documentation for a GitHub repository.
+      repoName: GitHub repo in owner/repo form
+      returns: the repo's wiki DOCUMENTATION PROSE. It states what the project is for, how a subsystem works, what a concept means. It does NOT state licence, stars, maintainers or primary language, so a question about those has no obtainable answer here.
+  reply_to (write) — Reply to an existing message in its chat (threaded).
+      message_id: the message being replied to
+      text: reply body
+      returns: the created message view
+  send_message (write) — Send a message from the acting user to a chat.
+      chat_id: destination chat
+      text: message body
+      returns: the created message view
+  list_chats (read) — List the chats the acting user is a member of.
+      returns: array of {id, kind, name, members} for chats where actor is in member_ids
+
+WORKSPACE
+You act as You (id u_me).
+
+People:
+  u_me  You @you
+  u_marco_s  Marco Silva @marco_s
+  u_lina_p  Lina Park @lina_p
+  u_jamal_r  Jamal Reed @jamal_r
+  u_priya_d  Priya Desai @priya_d
+  u_carlos_v  Carlos Vega @carlos_v
+  u_aisha_k  Aisha Khan @aisha_k
+
+group backend-architecture (c_001) — members: You @you, Marco Silva @marco_s, Lina Park @lina_p, Jamal Reed @jamal_r
+  m_001 [Marco Silva @marco_s]: We need to validate which exporter repos Lina owns before we finalize the deployment notes. Can someone enumerate the repos and docs we should cite?  (:+1: x1)
+  m_002 [Lina Park @lina_p]: I can help with that — do you mean the low-level Rust exporter or the JS wrapper the frontend team uses?  (reply to m_001)
+  m_003 [Lina Park @lina_p]: Small aside: anyone up for coffee after the sync? 15 min break?  (UNREAD by you)
+  m_004 [Jamal Reed @jamal_r]: Lina — can you confirm which GitHub repo we should cite in the deployment notes? Also, who's the primary contact on your side (handle) for follow-ups?  (UNREAD by you)
+  m_005 [Jamal Reed @jamal_r]: Quick non-blocking note: I put a comment on the exporter PR about metrics labels; someone should ack it.  (UNREAD by you)
+  m_006 [Marco Silva @marco_s]: We specifically need the repo used in the Docker image and the exporter docs page — both links.  (reply to m_004; :+1: x1)
+  m_009 [Lina Park @lina_p]: Also, fyi the Rust exporter README mentions a sample config in examples/config.toml. I'll paste snippet later.  (UNREAD by you)
+  m_010 [Lina Park @lina_p]: I'll gather the exact repo names and the DeepWiki pages and paste them here in a bit — give me 20 mins.  (reply to m_004; UNREAD by you)
+  m_013 [Marco Silva @marco_s]: I'll need the exact filename paths to add to the Dockerfile; could you include those, u2?  (reply to m_009)
+  m_014 [Jamal Reed @jamal_r]: Thanks — when you post the wiki pages I'll update the deployment notes and the rollback plan.  (reply to m_004; UNREAD by you)
+  m_016 [Lina Park @lina_p]: To be clear: I'll post links to the DeepWiki pages 'Exporter Concepts' and 'Exporter Deployment' and then the exact GitHub repo names.  (reply to m_014; UNREAD by you)
+  m_017 [Jamal Reed @jamal_r]: Also tagging u2 — any ETA on the links? No rush; coordinating timelines.  (reply to m_010; UNREAD by you)
+
+group oncall (c_002) — members: You @you, Marco Silva @marco_s, Priya Desai @priya_d
+  m_008 [Priya Desai @priya_d]: Oncall: heads-up — prod latency spike on /api/orders. It coincides with the new exporter rollout. Jamal, can you take a look?  (UNREAD by you)
+  m_011 [Priya Desai @priya_d]: Thanks — I'm looking at the logs now. The spike seems to start exactly at 14:12 UTC.  (reply to m_008; UNREAD by you)
+  m_012 [Marco Silva @marco_s]: Priya — tagging you for postmortem. If this is the exporter rollout we may need to rollback.  (reply to m_008; :+1: x1)
+  m_015 [Marco Silva @marco_s]: If it's the exporter, prep steps for rollback: disable feature flag then revert image.  (reply to m_011)
+
+group (dm) (c_003) — members: You @you, Marco Silva @marco_s, Carlos Vega @carlos_v
+  m_007 [Carlos Vega @carlos_v]: hey — can you share that docker layering tip again? I keep rebuilding from scratch, u1.  (UNREAD by you)
+
+PLAN YOUR TEXT MUST STILL LEAD TO (do not reproduce it)
+step 1 [read] get_user — Look up a user by id.
+    user_id      = u_lina_p — Lina Park @lina_p
+    -> returns: lina_p
+step 2 [read] read_wiki_contents — View DeepWiki documentation for a GitHub repository.
+    repoName     = 'prometheus/node_exporter'
+    -> returns the repo's wiki DOCUMENTATION PROSE. It states what the project is for, how a subsystem works, what a concept means. It does NOT state licence, stars, maintainers or primary language, so a question about those has no obtainable answer here. (not known until the agent runs it)
+step 3 [read] read_wiki_contents — View DeepWiki documentation for a GitHub repository.
+    repoName     = 'prometheus/prometheus'
+    -> returns the repo's wiki DOCUMENTATION PROSE. It states what the project is for, how a subsystem works, what a concept means. It does NOT state licence, stars, maintainers or primary language, so a question about those has no obtainable answer here. (not known until the agent runs it)
+step 4 [write] reply_to — Reply to an existing message in its chat (threaded).
+    message_id   = m_004 — in backend-architecture from Jamal Reed, unread by you: "Lina — can you confirm which GitHub repo we should cite in the deployment notes? Also, who's the primary contact on your side (handle) for follow-ups?"
+    text         <- must carry what step 1 and step 3 returned
+    -> creates something new
+step 5 [write] send_message — Send a message from the acting user to a chat.
+    chat_id      = c_002 — group 'oncall' — members: You @you, Marco Silva @marco_s, Priya Desai @priya_d
+    text         <- must carry what step 1 returned
+    -> creates something new
+step 6 [write] reply_to — Reply to an existing message in its chat (threaded).
+    message_id   = m_004 — in backend-architecture from Jamal Reed, unread by you: "Lina — can you confirm which GitHub repo we should cite in the deployment notes? Also, who's the primary contact on your side (handle) for follow-ups?"
+    text         <- must carry what step 2 returned
+    -> creates something new
+step 7 [read, an aside] list_chats — List the chats the acting user is a member of.
+    -> returns: [{"id": "c_001", "kind": "group", "name": "backend-architecture", "members": ["u_me", "u_marco_s", "u_lina_p", "u_jamal_r"]}, {"id": "c_002", "kind": "group", "name": "oncall", "members": ["u_me", "u_marco_s", "u_priya_d"]}, {"id": "c_003", "kind": "group", "name": "c_003", "members": ["u_me", "u_marco_s", "u_carlos_v"]}]
+
+KEEP REFERRING TO THINGS THIS WAY, AND NEVER BY NAME — each ONCE, then refer back
+  the person whose handle is @lina_p
+  the message about confirm which GitHub repo
+  the oncall channel
+
+THESE STRINGS MUST NOT APPEAR IN YOUR TEXT
+  Lina Park, add_reaction, ask_question, c_001, c_002, c_003, chat_add_reaction, chat_create_chat, chat_get_user, chat_list_chats, chat_mark_read, chat_read_messages, chat_reply_to, chat_send_message, create_chat, deepwiki_ask_question, deepwiki_read_wiki_contents, deepwiki_read_wiki_structure, get_user, list_chats, m_001, m_002, m_003, m_004, m_005, m_006, m_007, m_008, m_009, m_010, m_011, m_012, m_013, m_014, m_015, m_016, m_017, mark_read, read_messages, read_wiki_contents, read_wiki_structure, reply_to, send_message, u_aisha_k, u_carlos_v, u_jamal_r, u_lina_p, u_marco_s, u_me, u_priya_d
+
+JUDGE ITEMS — REWRITE EACH ONE'S expected AND hint FOR YOUR TEXT
+  carry:c0a1:text
+      requirement (FIXED, do not change): the text of step 4 must carry what step 1 and step 3 returned
+      must be delivered in (FIXED): the message step 4 posts
+      expected — RESTATE FOR YOUR TEXT: The reply posted to message m_004 names Lina Park and her handle (showing the user object for u_lina_p, name 'Lina Park', handle '@lina_p') and also includes the DeepWiki documentation prose for the 'prometheus/prometheus' repository (a descriptive passage from that repo's wiki explaining the project or a subsystem).
+      hint     — RESTATE FOR YOUR TEXT: Look at the body of the threaded reply created by step 4 (the reply to m_004).
+  carry:c0a2:text
+      requirement (FIXED, do not change): the text of step 5 must carry what step 1 returned
+      must be delivered in (FIXED): the message step 5 posts
+      expected — RESTATE FOR YOUR TEXT: The message sent to chat c_002 contains the user lookup result for Lina Park, i.e. the user details for u_lina_p including her name 'Lina Park' and handle '@lina_p'.
+      hint     — RESTATE FOR YOUR TEXT: Look at the message body posted to chat c_002 in step 5.
+  carry:c1a1:text
+      requirement (FIXED, do not change): the text of step 6 must carry what step 2 returned
+      must be delivered in (FIXED): the message step 6 posts
+      expected — RESTATE FOR YOUR TEXT: The reply posted to message m_004 includes the DeepWiki documentation prose for 'prometheus/node_exporter' — a descriptive excerpt or the full prose from that repository's wiki explaining the project or subsystem behavior.
+      hint     — RESTATE FOR YOUR TEXT: Check the body of the second threaded reply to m_004 created in step 6.
+  report:c1a2
+      requirement (FIXED, do not change): step 7 looks something up and no later step posts what it found, so the agent must report it back in its own reply
+      must be delivered in (FIXED): the agent's final reply
+      expected — RESTATE FOR YOUR TEXT: The agent reports the list of chats: c_001 (group, name 'backend-architecture') with members [u_me, u_marco_s, u_lina_p, u_jamal_r]; c_002 (group, name 'oncall') with members [u_me, u_marco_s, u_priya_d]; and c_003 (group, name 'c_003') with members [u_me, u_marco_s, u_carlos_v].
+      hint     — RESTATE FOR YOUR TEXT: Look in the agent's final reply (the summary it returns after performing the actions) for the list_chats result.
+
+CURRENT TASK TEXT (rewrite this)
+Please look up the person whose handle is @lina_p and save the returned user object, then view the DeepWiki documentation prose for 'prometheus/node_exporter' and for 'prometheus/prometheus' and save each returned prose. After that, reply in-thread to the message about confirm which GitHub repo with a reply that includes the saved user object and the 'prometheus/prometheus' documentation prose, addressing Jamal's question about which GitHub repo to cite and who the primary contact is and including the actual values returned by the user lookup and that wiki read. Next, send a message to the oncall channel that includes the saved user object and contains the actual value returned by the user lookup. Then post another in-thread reply to the message about confirm which GitHub repo that includes the 'prometheus/node_exporter' documentation prose and contains the actual value returned by that wiki read. Finally, retrieve the chats the acting user is a member of and include the full returned array of chats in your final reply here after performing the writes above; report back in this thread with those results.
+
+------------------------------------------------------------------------------------------------
+-- WHAT THE MODEL RETURNED (the shipped artifact)
+------------------------------------------------------------------------------------------------
+{
+  "prompt": "Produce and publish the concrete artifacts the team needs: obtain the user object for the person whose handle is @lina_p and fetch the DeepWiki prose for 'prometheus/node_exporter' and 'prometheus/prometheus', then use those actual returned values in the appropriate communications so the work is actionable — post a threaded reply to the message about confirm which GitHub repo that includes the full user object and the actual 'prometheus/prometheus' prose so the question about which GitHub repo to cite and who the primary contact is is directly answered, send a message to the oncall channel that includes the full user object, post a threaded reply to the message about confirm which GitHub repo that includes the actual 'prometheus/node_exporter' prose, and after making those posts retrieve the list of chats the acting user is a member of and include the complete returned array of chats in your final reply here."
+}

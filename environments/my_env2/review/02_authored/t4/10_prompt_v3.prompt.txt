@@ -1,0 +1,166 @@
+# Stage 10 — rewrite as a goal
+
+NOTE ON FIDELITY — the instruction below is CURRENT; the reply below is HISTORICAL.
+
+These twelve tasks are the evidence that made the rewrite stages change. The system prompt shown
+here is the one now in the code — it asks for a description to be used once and referred back to
+afterwards, and it asks for the judge specification to be restated. The task text shown as the
+reply was produced by the PREVIOUS version of this stage, which asked for per-occurrence
+substitution and left the judge items alone. Reading the two together is the before-and-after.
+
+
+------------------------------------------------------------------------------------------------
+-- SYSTEM PROMPT
+------------------------------------------------------------------------------------------------
+You rewrite a task as the request a person would actually have sent.
+
+You are given the workspace, the underlying plan, and a task written as connected prose. Raise its level of abstraction: say what you are trying to ACHIEVE and let the steps follow from it.
+
+- No enumeration. No numbered or bulleted steps, and no sentence that reads as "and then".
+- Nothing quoted or dictated word for word — except repository names and questions, which must survive exactly, because the expected answers are keyed to them.
+- Individual steps must stop being individually identifiable. Fold them into the goal.
+- Keep every reference resolvable: an agent reading this must still be able to work out which things you mean.
+- Refer to things the way the list below does, and never by name. A description with the answer bolted on — "Alice Rivera (the author of the message about the freeze)" — is worse than either half of it alone: it hands back the very step the description existed to create.
+- A description INTRODUCES a thing. Use it at the first mention only. Every later mention refers back the way a person would — "that conversation", "the same thread", "there", "them", "it", "the one you just read". Pasting a description a second time is the commonest way this rewrite fails: it reads as find-and-replace rather than as writing, and where a description depends on something the task itself changes, every use after that change is simply FALSE. Any description marked below as one the work invalidates must be used early and never again.
+- Never answer your own reference. No parenthetical, no "i.e.", no appositive that supplies the name or id of something you have just described.
+- You are shown the plan so you can check your text still leads to those actions. It is not something to reproduce, and none of it should be recognisable as a list.
+
+The test is simple: a colleague reading this should see a normal ask, and an agent following it should end up doing the same work.
+
+You also rewrite the JUDGE ITEMS. Each tells a grader what a correct answer says and where in the agent's output to look for it. They were written against the PREVIOUS version of this task, so they still speak its language — step numbers, entity ids, names, quoted wording — much of which you are removing. Left alone, they describe a task the agent was never given.
+
+For every item, restate `expected` and `hint` so that a grader reading YOUR text can still check the same thing:
+
+- `expected` — what a correct answer STATES, in substance. Keep every fact in it. Where the previous wording leaned on an id or a step number to say WHICH thing ("the reply to m_004"), say it the way your text says it. Never replace it with a pointer: "the answer to the question above" leaves a grader nothing to compare against.
+- `hint` — where in the agent's output to look, described the way your text describes it.
+
+Do not drop an item, do not merge two, and never change WHAT is required — only how it is said. Copy each `id` exactly.
+
+Respond with ONLY this JSON object:
+{"prompt": "<the rewritten task>",
+ "judge": [{"id": "<copied exactly>", "expected": "...", "hint": "..."}]}
+
+------------------------------------------------------------------------------------------------
+-- USER PROMPT
+------------------------------------------------------------------------------------------------
+ENVIRONMENT
+  chat: Local mock chat app. Read and write tools operate on the rollout's ChatState.
+  deepwiki: Public DeepWiki MCP server: read-only GitHub-repo Q&A. Answers can be nondeterministic; requires the repo to be indexed by DeepWiki.
+  You act as one specific user. The acting user's id. Every write is attributed to this user; reads are scoped to it where noted.
+
+ENTITY TYPES IN THIS TASK
+  message — One posted message. `reply_to` threads it under an earlier message in the same chat.
+      id: string
+      chat_id: string (chat id)
+      sender_id: string (user id)
+      text: string
+      ts: int (logical clock, not wall time)
+      reply_to: string | null (parent message id)
+      reactions: object (emoji -> user_id[])
+      read_by: string[] (user ids)
+  chat — A conversation the acting user takes part in. `name` is null for a DM.
+      id: string
+      kind: "dm" | "group"
+      name: string | null
+      member_ids: string[] (user ids)
+
+ACTIONS THIS TASK USES
+  ask_question (read) — Ask an AI-grounded question about a GitHub repository.
+      repoName: GitHub repo in owner/repo form (or a list, max 10)
+      question: the question to ask
+      returns: a free-text answer to any question about the repo — metadata (licence, primary language, maintainers) and prose questions alike. Nondeterministic wording, so only ask things with a stable, unambiguous answer.
+  reply_to (write) — Reply to an existing message in its chat (threaded).
+      message_id: the message being replied to
+      text: reply body
+      returns: the created message view
+  send_message (write) — Send a message from the acting user to a chat.
+      chat_id: destination chat
+      text: message body
+      returns: the created message view
+  add_reaction (write) — Add an emoji reaction from the acting user to a message.
+      message_id: the message to react to
+      emoji: reaction emoji, e.g. ':+1:'
+      returns: the updated message view
+
+WORKSPACE
+You act as Sam Ortiz (id u_me).
+
+People:
+  u_me  Sam Ortiz @you
+  u_alice_m  Alice Morgan @alice_m
+  u_ben_c  Ben Cho @ben_c
+  u_claire_n  Claire Nguyen @claire_n
+  u_dpark  David Park @dpark
+  u_eve_t  Eve Tran @eve_t
+  u_frank_l  Frank Li @frank_l
+
+group infra-team (c_001) — members: Sam Ortiz @you, Alice Morgan @alice_m, Ben Cho @ben_c, Claire Nguyen @claire_n
+  m_001 [Alice Morgan @alice_m]: Security flagged dependency 'belmont/cache' — can someone prepare a short repo summary (license, primary language, active maintainers/contact) and post it here by EOD?  (UNREAD by you)
+  m_002 [Ben Cho @ben_c]: I can take this. Confirm the repo is belmont/cache — and do they want the specific tag (v1.4.1) checked?  (reply to m_001; UNREAD by you)
+  m_003 [Claire Nguyen @claire_n]: Ticket calls out v1.4.1. Short summary only: license, main language, and any active maintainers/contact points.  (reply to m_001; UNREAD by you)
+  m_004 [Alice Morgan @alice_m]: Yes, v1.4.1. Ben — if you start, I'll collate everything and send it to Security.  (reply to m_001; UNREAD by you)
+  m_006 [Ben Cho @ben_c]: I'll check DeepWiki and GitHub. If anyone has the canonical repo URL or owner name, drop it here.  (reply to m_001; UNREAD by you)
+  m_007 [Claire Nguyen @claire_n]: From memory it was MIT, but that could have changed — I'll wait for Ben's check before we finalize.  (reply to m_001; UNREAD by you; :+1: x1)
+
+dm (dm) (c_002) — members: Sam Ortiz @you, David Park @dpark
+  m_005 [David Park @dpark]: Hey Sam — Security pinged me about belmont/cache as well. Can you run a quick repo scan and send back a short summary when you have it?
+  m_008 [David Park @dpark]: Thanks — I need it before the 3pm triage. Ping me when it's ready.  (reply to m_005)
+
+PLAN YOUR TEXT MUST STILL LEAD TO (do not reproduce it)
+step 1 [read] ask_question — Ask an AI-grounded question about a GitHub repository.
+    repoName     = 'rails/rails'
+    question     = "What is this project's purpose and what is its primary programming language?"
+    -> returns a free-text answer to any question about the repo — metadata (licence, primary language, maintainers) and prose questions alike. Nondeterministic wording, so only ask things with a stable, unambiguous answer. (not known until the agent runs it)
+step 2 [write] reply_to — Reply to an existing message in its chat (threaded).
+    message_id   = m_001 — in infra-team from Alice Morgan, unread by you: "Security flagged dependency 'belmont/cache' — can someone prepare a short repo summary (license, primary language, active maintainers/contact) and post it here by EOD?"
+    text         = "I'll take this — I'll scan belmont/cache (v1.4.1) and post a short summary (license, primary language, maintainer/contact) here by EOD."
+    -> creates something new
+step 3 [write] reply_to — Reply to an existing message in its chat (threaded).
+    message_id   = the message step 2 creates
+    text         = "Starting the scan now; will update this thread with the short summary when it's ready."
+    -> creates something new
+step 4 [write] send_message — Send a message from the acting user to a chat.
+    chat_id      = c_001 — group 'infra-team' — members: Sam Ortiz @you, Alice Morgan @alice_m, Ben Cho @ben_c, Claire Nguyen @claire_n
+    text         <- must carry what step 1 returned
+    -> creates something new
+step 5 [write, an aside] reply_to — Reply to an existing message in its chat (threaded).
+    message_id   = m_001 — in infra-team from Alice Morgan, unread by you: "Security flagged dependency 'belmont/cache' — can someone prepare a short repo summary (license, primary language, active maintainers/contact) and post it here by EOD?"
+    text         = "Summary posted in this thread and I DM'd David a copy."
+    -> creates something new
+step 6 [write] add_reaction — Add an emoji reaction from the acting user to a message.
+    message_id   = the message step 3 creates
+    emoji        = ':+1:'
+step 7 [write] send_message — Send a message from the acting user to a chat.
+    chat_id      = c_002 — dm (unnamed dm) — members: Sam Ortiz @you, David Park @dpark
+    text         <- must carry what step 1 returned
+    -> creates something new
+
+KEEP REFERRING TO THINGS THIS WAY, AND NEVER BY NAME — each ONCE, then refer back
+  the message about Security flagged dependency 'belmont/cache
+  the infra-team channel
+  the conversation where Security pinged me about came up
+
+THESE STRINGS MUST NOT APPEAR IN YOUR TEXT
+  add_reaction, ask_question, c_001, c_002, chat_add_reaction, chat_create_chat, chat_get_user, chat_list_chats, chat_mark_read, chat_read_messages, chat_reply_to, chat_send_message, create_chat, deepwiki_ask_question, deepwiki_read_wiki_contents, deepwiki_read_wiki_structure, get_user, list_chats, m_001, m_002, m_003, m_004, m_005, m_006, m_007, m_008, mark_read, read_messages, read_wiki_contents, read_wiki_structure, reply_to, send_message, u_alice_m, u_ben_c, u_claire_n, u_dpark, u_eve_t, u_frank_l, u_me
+
+JUDGE ITEMS — REWRITE EACH ONE'S expected AND hint FOR YOUR TEXT
+  carry:c1a0:text
+      requirement (FIXED, do not change): the text of step 4 must carry what step 1 returned
+      must be delivered in (FIXED): the message step 4 posts
+      expected — RESTATE FOR YOUR TEXT: The Ruby on Rails project is a server-side web application framework for building web applications, and its primary programming language is Ruby.
+      hint     — RESTATE FOR YOUR TEXT: Look in the message you send to chat c_001 in step 4; the message body should contain this information.
+  carry:c1a2:text
+      requirement (FIXED, do not change): the text of step 7 must carry what step 1 returned
+      must be delivered in (FIXED): the message step 7 posts
+      expected — RESTATE FOR YOUR TEXT: The Ruby on Rails project is a server-side web application framework for building web applications, and its primary programming language is Ruby.
+      hint     — RESTATE FOR YOUR TEXT: Look in the message you send to chat c_002 (the DM to David) in step 7; the message body should contain this information.
+
+CURRENT TASK TEXT (rewrite this)
+First, ask an AI-grounded question about the GitHub repository 'rails/rails' with the question: "What is this project's purpose and what is its primary programming language?". Then reply to the message about Security flagged dependency 'belmont/cache in the infra-team channel with the text: "I'll take this — I'll scan belmont/cache (v1.4.1) and post a short summary (license, primary programming language, maintainer/contact) here by EOD." Then reply to the message you created with the text: "Starting the scan now; will update this thread with the short summary when it's ready." Then send a message to the infra-team channel whose message text includes the exact answer returned by the first action; include that answer verbatim in the message body so the thread contains the result of the AI-grounded question. Then reply to the message about Security flagged dependency 'belmont/cache in the infra-team channel with the text: "Summary posted in this thread and I DM'd David a copy." Then add the ':+1:' reaction to the message you posted that reads "Starting the scan now; will update this thread with the short summary when it's ready." Finally, send a message to the conversation where Security pinged me about came up whose message text includes the exact answer returned by the first action; include that answer verbatim so David receives the same result.
+
+------------------------------------------------------------------------------------------------
+-- WHAT THE MODEL RETURNED (the shipped artifact)
+------------------------------------------------------------------------------------------------
+{
+  "prompt": "Obtain a concise, authoritative description of the repository rails/rails by asking the AI-grounded question \"What is this project's purpose and what is its primary programming language?\" and keep the returned text verbatim for sharing. While that query runs, take responsibility in the infra-team channel under the message about Security flagged dependency 'belmont/cache by saying you will scan belmont/cache at v1.4.1 and produce a short summary covering license, primary programming language, and maintainer/contact by EOD. Post a follow-up in that same thread indicating you are starting the scan and will update the thread with the short summary when it’s ready. When the AI answer arrives, post it exactly as returned into the infra-team channel so the thread contains the verbatim result, reply in the original thread that the summary is posted and that you DM'd a copy to David, add a ':+1:' reaction to your starting-the-scan message, and send the AI’s answer verbatim to the conversation where Security pinged me about came up so David receives the same result."
+}

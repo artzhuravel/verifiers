@@ -1,0 +1,125 @@
+# Stage 4 — choose a reference mode per entity
+
+NOTE ON FIDELITY — read this before trusting the WORKSPACE block below.
+
+This stage ran against the CORE world, before Stage 5 padded it, and only the padded world is
+shipped in the task record. The prompt below is therefore rebuilt in the right shape, with the
+right blocks in the right order, but the workspace inside it is the LATER one: it contains
+filler that was not present when the model actually saw this. The instructions, the block
+structure and the derived lines are real; the world is a stand-in.
+
+
+------------------------------------------------------------------------------------------------
+-- SYSTEM PROMPT
+------------------------------------------------------------------------------------------------
+You decide how a task will refer to things without naming their ids.
+
+You are given a workspace and, for each entity the task is about, the ways it could be picked out by description. Pick the ONE that suits that entity best, and say only which. What goes into it is worked out from the workspace afterwards, so you do not have to supply or check anything.
+
+Judge it on how the finished sentence would read and on how much work it makes the reader do. Describing what someone did, or what a conversation is about, is better than restating a name or a handle — those tell the reader nothing they could not have been handed. Some modes will not fit the entity in front of you at all; say so by choosing a different one.
+
+Respond with ONLY this JSON object, one entry per entity:
+{"references": [{"symbol": "$chat_0", "mode": "<mode id>"}]}
+
+------------------------------------------------------------------------------------------------
+-- USER PROMPT
+------------------------------------------------------------------------------------------------
+ENVIRONMENT
+  chat: Local mock chat app. Read and write tools operate on the rollout's ChatState.
+  deepwiki: Public DeepWiki MCP server: read-only GitHub-repo Q&A. Answers can be nondeterministic; requires the repo to be indexed by DeepWiki.
+  You act as one specific user. The acting user's id. Every write is attributed to this user; reads are scoped to it where noted.
+
+ENTITY TYPES IN THIS TASK
+  message — One posted message. `reply_to` threads it under an earlier message in the same chat.
+      id: string
+      chat_id: string (chat id)
+      sender_id: string (user id)
+      text: string
+      ts: int (logical clock, not wall time)
+      reply_to: string | null (parent message id)
+      reactions: object (emoji -> user_id[])
+      read_by: string[] (user ids)
+  chat — A conversation the acting user takes part in. `name` is null for a DM.
+      id: string
+      kind: "dm" | "group"
+      name: string | null
+      member_ids: string[] (user ids)
+
+ACTIONS THIS TASK USES
+  ask_question (read) — Ask an AI-grounded question about a GitHub repository.
+      repoName: GitHub repo in owner/repo form (or a list, max 10)
+      question: the question to ask
+      returns: a free-text answer to any question about the repo — metadata (licence, primary language, maintainers) and prose questions alike. Nondeterministic wording, so only ask things with a stable, unambiguous answer.
+  reply_to (write) — Reply to an existing message in its chat (threaded).
+      message_id: the message being replied to
+      text: reply body
+      returns: the created message view
+  send_message (write) — Send a message from the acting user to a chat.
+      chat_id: destination chat
+      text: message body
+      returns: the created message view
+  add_reaction (write) — Add an emoji reaction from the acting user to a message.
+      message_id: the message to react to
+      emoji: reaction emoji, e.g. ':+1:'
+      returns: the updated message view
+
+WORKSPACE
+You act as Sam Ortiz (id u_me).
+
+People:
+  u_me  Sam Ortiz @you
+  u_alice_m  Alice Morgan @alice_m
+  u_ben_c  Ben Cho @ben_c
+  u_claire_n  Claire Nguyen @claire_n
+  u_dpark  David Park @dpark
+  u_eve_t  Eve Tran @eve_t
+  u_frank_l  Frank Li @frank_l
+
+group infra-team (c_001) — members: Sam Ortiz @you, Alice Morgan @alice_m, Ben Cho @ben_c, Claire Nguyen @claire_n
+  m_001 [Alice Morgan @alice_m]: Security flagged dependency 'belmont/cache' — can someone prepare a short repo summary (license, primary language, active maintainers/contact) and post it here by EOD?  (UNREAD by you)
+  m_002 [Ben Cho @ben_c]: I can take this. Confirm the repo is belmont/cache — and do they want the specific tag (v1.4.1) checked?  (reply to m_001; UNREAD by you)
+  m_003 [Claire Nguyen @claire_n]: Ticket calls out v1.4.1. Short summary only: license, main language, and any active maintainers/contact points.  (reply to m_001; UNREAD by you)
+  m_004 [Alice Morgan @alice_m]: Yes, v1.4.1. Ben — if you start, I'll collate everything and send it to Security.  (reply to m_001; UNREAD by you)
+  m_006 [Ben Cho @ben_c]: I'll check DeepWiki and GitHub. If anyone has the canonical repo URL or owner name, drop it here.  (reply to m_001; UNREAD by you)
+  m_007 [Claire Nguyen @claire_n]: From memory it was MIT, but that could have changed — I'll wait for Ben's check before we finalize.  (reply to m_001; UNREAD by you; :+1: x1)
+
+dm (dm) (c_002) — members: Sam Ortiz @you, David Park @dpark
+  m_005 [David Park @dpark]: Hey Sam — Security pinged me about belmont/cache as well. Can you run a quick repo scan and send back a short summary when you have it?
+  m_008 [David Park @dpark]: Thanks — I need it before the 3pm triage. Ping me when it's ready.  (reply to m_005)
+
+ENTITIES TO DESCRIBE, AND THE MODES AVAILABLE FOR EACH
+  $message_0 = m_001 (in infra-team from Alice Morgan, unread by you: "Security flagged dependency 'belmont/cache' — can someone prepare a short repo summary (license, primary language, active maintainers/contact) and post it here by EOD?")
+      mode message_reply_to_text: reads as "the reply to the message about {text}" — the single reply to the one message whose text contains {text}
+      mode message_most_reacted: reads as "the message that has drawn the most reactions" — the message with strictly more distinct reactors than any other in the workspace
+      mode message_newest_by_handle: reads as "the latest thing @{handle} posted" — the most recent message written by the user whose handle is {handle}
+      mode message_by_text: reads as "the message about {text}" — the one message whose text contains {text}
+  $chat_0 = c_001 (group 'infra-team' — members: Sam Ortiz @you, Alice Morgan @alice_m, Ben Cho @ben_c, Claire Nguyen @claire_n)
+      mode chat_containing_text: reads as "the conversation where {text} came up" — the chat containing a message whose text contains {text}
+      mode chat_only_with_unread: reads as "the one conversation you still have not caught up on" — the only chat holding at least one message the acting user has not read
+      mode chat_by_member_count: reads as "the conversation with exactly {count} people in it" — the chat that has exactly {count} members, and is the only chat with that many
+      mode chat_by_name: reads as "the {name} channel" — the chat whose title is exactly {name}
+  $chat_1 = c_002 (dm (unnamed dm) — members: Sam Ortiz @you, David Park @dpark)
+      mode chat_containing_text: reads as "the conversation where {text} came up" — the chat containing a message whose text contains {text}
+      mode chat_only_with_unread: reads as "the one conversation you still have not caught up on" — the only chat holding at least one message the acting user has not read
+      mode chat_by_member_count: reads as "the conversation with exactly {count} people in it" — the chat that has exactly {count} members, and is the only chat with that many
+      mode chat_by_name: reads as "the {name} channel" — the chat whose title is exactly {name}
+
+------------------------------------------------------------------------------------------------
+-- WHAT THE MODEL RETURNED (the shipped artifact)
+------------------------------------------------------------------------------------------------
+{
+  "references": [
+    {
+      "symbol": "$message_0",
+      "mode": "message_by_text"
+    },
+    {
+      "symbol": "$chat_0",
+      "mode": "chat_by_name"
+    },
+    {
+      "symbol": "$chat_1",
+      "mode": "chat_containing_text"
+    }
+  ]
+}

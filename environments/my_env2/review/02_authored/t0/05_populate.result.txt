@@ -1,0 +1,13 @@
+Stage 5 result. Filler is folded in ONE ENTITY AT A TIME and each addition kept only if
+every reference condition still resolves to exactly its own entity. Rejections are
+recorded, never silently dropped, and Stage 5 cannot fail the task.
+
+4 addition(s) rejected:
+  stage 5 dropped: chat n2: chat 'n2' names an undeclared member 'you'
+  stage 5 dropped: message n8: message 'n8' is in undeclared chat 'n2'
+  stage 5 dropped: message n9: message 'n9' is from undeclared sender 'you'
+  stage 5 dropped: message n10: message 'n10' replies to 'n9', which is not an earlier message
+
+CONDITIONS EVERY ADDITION HAD TO PRESERVE
+  the single reply to the one message whose text contains audit the payment integration  -> must keep matching exactly one message
+  the chat containing a message whose text contains DeepWiki about owner/billing to  -> must keep matching exactly one chat

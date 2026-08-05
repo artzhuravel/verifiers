@@ -1,0 +1,198 @@
+# Stage 10 — rewrite as a goal
+
+1 model call(s).
+
+================================================================================================
+== call 1 of 1
+================================================================================================
+
+------------------------------------------------------------------------------------------------
+-- SYSTEM PROMPT
+------------------------------------------------------------------------------------------------
+You rewrite a task as the request a person would actually have sent.
+
+You are given the workspace, the underlying plan, and a task written as connected prose. Raise its level of abstraction: say what you are trying to ACHIEVE and let the steps follow from it.
+
+- No enumeration. No numbered or bulleted steps, and no sentence that reads as "and then".
+- Nothing quoted or dictated word for word — except repository names and questions, which must survive exactly, because the expected answers are keyed to them.
+- Individual steps must stop being individually identifiable. Fold them into the goal.
+- Keep every reference resolvable: an agent reading this must still be able to work out which things you mean.
+- Refer to things the way the list below does, and never by name. A description with the answer bolted on — "Alice Rivera (the author of the message about the freeze)" — is worse than either half of it alone: it hands back the very step the description existed to create.
+- A description INTRODUCES a thing. Use it at the first mention only. Every later mention refers back the way a person would — "that conversation", "the same thread", "there", "them", "it", "the one you just read". Pasting a description a second time is the commonest way this rewrite fails: it reads as find-and-replace rather than as writing, and where a description depends on something the task itself changes, every use after that change is simply FALSE. Any description marked below as one the work invalidates must be used early and never again.
+- Never answer your own reference. No parenthetical, no "i.e.", no appositive that supplies the name or id of something you have just described.
+- You are shown the plan so you can check your text still leads to those actions. It is not something to reproduce, and none of it should be recognisable as a list.
+
+The test is simple: a colleague reading this should see a normal ask, and an agent following it should end up doing the same work.
+
+You also rewrite the JUDGE ITEMS. Each tells a grader what a correct answer says and where in the agent's output to look for it. They were written against the PREVIOUS version of this task, so they still speak its language — step numbers, entity ids, names, quoted wording — much of which you are removing. Left alone, they describe a task the agent was never given.
+
+For every item, restate `expected` and `hint` so that a grader reading YOUR text can still check the same thing:
+
+- `expected` — what a correct answer STATES, in substance. Keep every fact in it. Where the previous wording leaned on an id or a step number to say WHICH thing ("the reply to m_004"), say it the way your text says it. Never replace it with a pointer: "the answer to the question above" leaves a grader nothing to compare against.
+- `hint` — where in the agent's output to look, described the way your text describes it.
+
+Do not drop an item, do not merge two, and never change WHAT is required — only how it is said. Copy each `id` exactly.
+
+Respond with ONLY this JSON object:
+{"prompt": "<the rewritten task>",
+ "judge": [{"id": "<copied exactly>", "expected": "...", "hint": "..."}]}
+
+------------------------------------------------------------------------------------------------
+-- USER PROMPT
+------------------------------------------------------------------------------------------------
+ENVIRONMENT
+  chat: Local mock chat app. Read and write tools operate on the rollout's ChatState.
+  deepwiki: Public DeepWiki MCP server: read-only GitHub-repo Q&A. Answers can be nondeterministic; requires the repo to be indexed by DeepWiki.
+  You act as one specific user. The acting user's id. Every write is attributed to this user; reads are scoped to it where noted.
+
+ENTITY TYPES IN THIS TASK
+  user — A person in the workspace. Display names may collide; handles never do.
+      id: string
+      name: string
+      handle: string
+  message — One posted message. `reply_to` threads it under an earlier message in the same chat.
+      id: string
+      chat_id: string (chat id)
+      sender_id: string (user id)
+      text: string
+      ts: int (logical clock, not wall time)
+      reply_to: string | null (parent message id)
+      reactions: object (emoji -> user_id[])
+      read_by: string[] (user ids)
+  chat — A conversation the acting user takes part in. `name` is null for a DM.
+      id: string
+      kind: "dm" | "group"
+      name: string | null
+      member_ids: string[] (user ids)
+
+ACTIONS THIS TASK USES
+  get_user (read) — Look up a user by id.
+      user_id: user to look up
+      returns: {id, name, handle} or {"error": "no such user"}
+  read_wiki_contents (read) — View DeepWiki documentation for a GitHub repository.
+      repoName: GitHub repo in owner/repo form
+      returns: the repo's wiki DOCUMENTATION PROSE. It states what the project is for, how a subsystem works, what a concept means. It does NOT state licence, stars, maintainers or primary language, so a question about those has no obtainable answer here.
+  reply_to (write) — Reply to an existing message in its chat (threaded).
+      message_id: the message being replied to
+      text: reply body
+      returns: the created message view
+  send_message (write) — Send a message from the acting user to a chat.
+      chat_id: destination chat
+      text: message body
+      returns: the created message view
+  list_chats (read) — List the chats the acting user is a member of.
+      returns: array of {id, kind, name, members} for chats where actor is in member_ids
+
+WORKSPACE
+You act as Alex Rivera (id u_me).
+
+People:
+  u_me  Alex Rivera @you
+  u_liam  Liam Chen @liam
+  u_devon  Devon Park @devon
+  u_sofia  Sofia Morales @sofia
+  u_priya  Priya Singh @priya
+  u_marcus  Marcus Lee @marcus
+
+group docs-sync (c_001) — members: Alex Rivera @you, Liam Chen @liam, Sofia Morales @sofia, Priya Singh @priya
+  m_001 [Liam Chen @liam]: I've started a mapping doc for DeepWiki pages that we need to sync with product docs. See the spreadsheet link in the drive. Which repos should we prioritize?
+  m_002 [Sofia Morales @sofia]: I'd prioritize analytics-intel and data-exporter first — they affect reporting. I can grab analytics-intel.  (reply to m_001)
+  m_004 [Priya Singh @priya]: Can someone collect the exact GitHub repo names and DeepWiki repo wikis for the plugins we listed? I need them to start reading. Please list them in this thread.  (reply to m_001)
+  m_005 [Liam Chen @liam]: I think @devon might have a list of repo slugs — Devon's been touching the git hooks and repo ownership.  (reply to m_004)
+  m_006 [Sofia Morales @sofia]: Also, does anyone know where the DeepWiki page that explains the 'indexer' concept lives? I remember a doc but can't find it in deepwiki/deepwiki.  (reply to m_004; UNREAD by you)
+  m_008 [Liam Chen @liam]: Also, I have a quick question about the indexer: is the glossary term 'indexer' scoped to repos or to the whole DeepWiki instance?  (reply to m_006)
+  m_009 [Liam Chen @liam]: I think it's linked from the dev-ops onboarding, but I can't point to the exact page right now — someone who used DeepWiki recently should know.  (reply to m_006; UNREAD by you)
+  m_010 [Priya Singh @priya]: I'll start with deepwiki/deepwiki and plugin-team/data-exporter. If you add repo names here I'll follow up by reading the corresponding wikis.  (reply to m_004; UNREAD by you)
+
+dm (dm) (c_002) — members: Alex Rivera @you, Devon Park @devon
+  m_007 [Devon Park @devon]: Quick note: I put a CSV of repo names and owners into /team/docs/repo-list.csv. If you want me to paste the specific slugs here I can, but it's a bit messy. Ping me if you need an extract.  (UNREAD by you)
+
+group (dm) (c_003) — members: Alex Rivera @you, Liam Chen @liam, Marcus Lee @marcus
+  m_003 [Marcus Lee @marcus]: Hey Liam, want to grab coffee after the sync?
+
+PLAN YOUR TEXT MUST STILL LEAD TO (do not reproduce it)
+step 1 [read] get_user — Look up a user by id.
+    user_id      = u_devon — Devon Park @devon
+    -> returns: devon
+step 2 [read] read_wiki_contents — View DeepWiki documentation for a GitHub repository.
+    repoName     = 'facebook/react'
+    -> returns the repo's wiki DOCUMENTATION PROSE. It states what the project is for, how a subsystem works, what a concept means. It does NOT state licence, stars, maintainers or primary language, so a question about those has no obtainable answer here. (not known until the agent runs it)
+step 3 [read] read_wiki_contents — View DeepWiki documentation for a GitHub repository.
+    repoName     = 'kubernetes/kubernetes'
+    -> returns the repo's wiki DOCUMENTATION PROSE. It states what the project is for, how a subsystem works, what a concept means. It does NOT state licence, stars, maintainers or primary language, so a question about those has no obtainable answer here. (not known until the agent runs it)
+step 4 [write] reply_to — Reply to an existing message in its chat (threaded).
+    message_id   = m_004 — in docs-sync from Priya Singh, replying to m_001: 'Can someone collect the exact GitHub repo names and DeepWiki repo wikis for the plugins we listed? I need them to start reading. Please list them in this thread.'
+    text         <- must carry what step 1 and step 3 returned
+    -> creates something new
+step 5 [write] send_message — Send a message from the acting user to a chat.
+    chat_id      = c_002 — dm (unnamed dm) — members: Alex Rivera @you, Devon Park @devon
+    text         <- must carry what step 1 returned
+    -> creates something new
+step 6 [write] reply_to — Reply to an existing message in its chat (threaded).
+    message_id   = m_004 — in docs-sync from Priya Singh, replying to m_001: 'Can someone collect the exact GitHub repo names and DeepWiki repo wikis for the plugins we listed? I need them to start reading. Please list them in this thread.'
+    text         <- must carry what step 2 returned
+    -> creates something new
+step 7 [read, an aside] list_chats — List the chats the acting user is a member of.
+    -> returns: [{"id": "c_001", "kind": "group", "name": "docs-sync", "members": ["u_me", "u_liam", "u_sofia", "u_priya"]}, {"id": "c_002", "kind": "dm", "name": "c_002", "members": ["u_me", "u_devon"]}, {"id": "c_003", "kind": "group", "name": "c_003", "members": ["u_me", "u_liam", "u_marcus"]}]
+
+KEEP REFERRING TO THINGS THIS WAY, AND NEVER BY NAME — each ONCE, then refer back
+  whoever wrote the message about names and owners into
+  the message about someone collect the exact
+  the conversation where names and owners into came up
+
+THESE STRINGS MUST NOT APPEAR IN YOUR TEXT
+  Devon Park, add_reaction, ask_question, c_001, c_002, c_003, chat_add_reaction, chat_create_chat, chat_get_user, chat_list_chats, chat_mark_read, chat_read_messages, chat_reply_to, chat_send_message, create_chat, deepwiki_ask_question, deepwiki_read_wiki_contents, deepwiki_read_wiki_structure, devon, get_user, list_chats, m_001, m_002, m_003, m_004, m_005, m_006, m_007, m_008, m_009, m_010, mark_read, read_messages, read_wiki_contents, read_wiki_structure, reply_to, send_message, u_devon, u_liam, u_marcus, u_me, u_priya, u_sofia
+
+JUDGE ITEMS — REWRITE EACH ONE'S expected AND hint FOR YOUR TEXT
+  carry:c0a1:text
+      requirement (FIXED, do not change): the text of step 4 must carry what step 1 and step 3 returned
+      must be delivered in (FIXED): the message step 4 posts
+      expected — RESTATE FOR YOUR TEXT: The reply posted under the message about someone collect the exact includes the user information returned for whoever wrote the message about names and owners into (identifying that person, e.g., name and/or handle or id) and also includes the DeepWiki wiki documentation prose retrieved for the 'kubernetes/kubernetes' repository.
+      hint     — RESTATE FOR YOUR TEXT: Look at the text of the reply message created by the reply to the message about someone collect the exact in the docs-sync thread.
+  carry:c0a2:text
+      requirement (FIXED, do not change): the text of step 5 must carry what step 1 returned
+      must be delivered in (FIXED): the message step 5 posts
+      expected — RESTATE FOR YOUR TEXT: The direct message sent in the conversation where names and owners into came up contains the user information returned for whoever wrote the message about names and owners into (identifying that person, e.g., name and/or handle or id).
+      hint     — RESTATE FOR YOUR TEXT: Look at the text of the direct message posted in the conversation where names and owners into came up.
+  carry:c1a1:text
+      requirement (FIXED, do not change): the text of step 6 must carry what step 2 returned
+      must be delivered in (FIXED): the message step 6 posts
+      expected — RESTATE FOR YOUR TEXT: The reply posted under the message about someone collect the exact includes the DeepWiki wiki documentation prose retrieved for the 'facebook/react' repository.
+      hint     — RESTATE FOR YOUR TEXT: Look at the text of the reply message created by the reply to the message about someone collect the exact in the docs-sync thread.
+  report:c1a2
+      requirement (FIXED, do not change): step 7 looks something up and no later step posts what it found, so the agent must report it back in its own reply
+      must be delivered in (FIXED): the agent's final reply
+      expected — RESTATE FOR YOUR TEXT: The agent's final reply lists the chats returned by list_chats: the group whose name is 'docs-sync' with members Alex Rivera @you, Liam Chen @liam, Sofia Morales @sofia, and Priya Singh @priya; the direct-message conversation where names and owners into came up with members Alex Rivera @you and whoever wrote the message about names and owners into; and the group whose name is 'c_003' with members Alex Rivera @you, Liam Chen @liam, and Marcus Lee @marcus. The array structure and these entries should appear in the agent's final reply exactly as the list_chats output.
+      hint     — RESTATE FOR YOUR TEXT: Check the agent's final reply for the reported list_chats output (the array the agent was asked to include).
+
+CURRENT TASK TEXT (rewrite this)
+Look up whoever wrote the message about names and owners into to obtain their user object, then fetch the DeepWiki wiki documentation prose for the repositories 'facebook/react' and 'kubernetes/kubernetes'. After that, reply in-thread to the message about someone collect the exact by posting a reply whose text includes the user information you retrieved and the wiki documentation prose you fetched for 'kubernetes/kubernetes'. Send a direct message in the conversation where names and owners into came up containing the user information you retrieved. Then post another reply under that same message whose text includes the wiki documentation prose you fetched for 'facebook/react'. Finally, call list_chats to get the list of chats the acting user is a member of and include that list (the array returned by list_chats) in your final reply to me.
+
+------------------------------------------------------------------------------------------------
+-- REPLY
+------------------------------------------------------------------------------------------------
+{
+  "prompt": "Locate the user object for whoever wrote the message about names and owners into — the direct note in the DM that said a CSV of repo names and owners was placed at /team/docs/repo-list.csv. Fetch the DeepWiki wiki documentation prose for 'facebook/react' and 'kubernetes/kubernetes'. In the docs-sync thread, reply to the message about someone collect the exact — \"Can someone collect the exact GitHub repo names and DeepWiki repo wikis for the plugins we listed? I need them to start reading. Please list them in this thread.\" — by posting a reply whose text contains the user information you retrieved and the wiki prose for 'kubernetes/kubernetes'. Send a direct message in the conversation where names and owners into came up — the DM that announced the CSV — containing the same user information. Post another reply under that same message about someone collect the exact whose text contains the wiki prose for 'facebook/react'. Finally, retrieve the list of chats the acting user belongs to and include the returned array exactly as the call returns in your final reply to me.",
+  "judge": [
+    {
+      "id": "carry:c0a1:text",
+      "expected": "The reply posted under the message about someone collect the exact includes the user information returned for whoever wrote the message about names and owners into (identifying that person, e.g., name and/or handle or id) and also includes the DeepWiki wiki documentation prose retrieved for the 'kubernetes/kubernetes' repository.",
+      "hint": "Look at the text of the reply message created by replying to the message about someone collect the exact in the docs-sync thread."
+    },
+    {
+      "id": "carry:c0a2:text",
+      "expected": "The direct message sent in the conversation where names and owners into came up contains the user information returned for whoever wrote the message about names and owners into (identifying that person, e.g., name and/or handle or id).",
+      "hint": "Look at the text of the direct message posted in the conversation where names and owners into came up."
+    },
+    {
+      "id": "carry:c1a1:text",
+      "expected": "The reply posted under the message about someone collect the exact includes the DeepWiki wiki documentation prose retrieved for the 'facebook/react' repository.",
+      "hint": "Look at the text of the reply message created by replying to the message about someone collect the exact in the docs-sync thread."
+    },
+    {
+      "id": "report:c1a2",
+      "expected": "The agent's final reply includes the array returned by the list_chats call: an entry for the group named 'docs-sync' with members Alex Rivera @you, Liam Chen @liam, Sofia Morales @sofia, and Priya Singh @priya; an entry for the direct-message conversation where names and owners into came up with members Alex Rivera @you and whoever wrote the message about names and owners into; and an entry for the group with members Alex Rivera @you, Liam Chen @liam, and Marcus Lee @marcus. The array structure and these entries should appear in the agent's final reply exactly as the list_chats output.",
+      "hint": "Check the agent's final reply for the reported array (the list_chats output) showing the docs-sync group, the direct-message conversation where names and owners into came up, and the other group with Alex Rivera @you, Liam Chen @liam, and Marcus Lee @marcus."
+    }
+  ]
+}

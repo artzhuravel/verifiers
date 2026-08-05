@@ -1,0 +1,202 @@
+# The delivery judge (eval time — after a rollout)
+
+Not part of authoring. This is the one model call made while *scoring*, and it is the
+whole of the `delivery` component (0.4 of the reward). One call per task, however many
+items. The judge grades over the WHOLE rollout — every tool call and every result — so
+that a retrieved answer can be told from an invented one, and so that information landing
+in a message partway through counts. It is not graded off the final reply alone.
+
+The items differ per level: each rung restates them for its own text, since the higher
+rungs remove the step numbers and ids the lower ones lean on. One section per level below.
+
+================================================================================================
+== LEVEL 1
+================================================================================================
+
+------------------------------------------------------------------------------------------------
+-- PROMPT (verify._JUDGE_PROMPT, filled in)
+------------------------------------------------------------------------------------------------
+You grade whether an agent delivered specific pieces of information.
+
+Each numbered item is something the agent had to find out and then put somewhere. You are given the requirement, what a correct answer says, and where in the agent's output to look for it.
+
+You are given the WHOLE ROLLOUT: every tool call the agent made, every result that came back, every message it sent, and its final reply. Use all of it. Do not grade off the final reply alone — most of these items are about information landing in a message partway through, and a rollout that did the work correctly and said little at the end is not a failure.
+
+Two things to hold together for each item:
+
+- **It has to be where the item says.** The hint names the place. Information that only ever appears in a tool result, and was never passed on, is not delivered — no matter how clearly the agent retrieved it.
+- **It has to be the same information.** That is a question about the whole trace: compare what the agent said against what the tools actually returned. A value the agent invented rather than retrieved is wrong even when it looks plausible, and a correct answer worded differently is right.
+
+Match on substance. Never judge style, length, or phrasing. An item is correct when a reader of the place the hint names would come away with the facts the expected answer states.
+
+Items:
+1. step 2 looks something up and no later step posts what it found, so the agent must report it back in its own reply
+   A correct answer says: A concise summary stating the recent messages read from the Launch Planning chat: m_001 from Samir asking to pick the time window (22:00 or 02:00); m_002 from Leah saying 02:00 is safer for international traffic and to flag the CS team; m_003 from Maria asking someone to draft a clear rollback plan with triggers; and m_006 from Samir noting external stakeholders asked for a one-pager.
+   Where to look: Look in the agent's final reply where it summarizes or lists the messages returned by reading chat c_001 (Launch Planning).
+2. the text of step 4 must carry what step 1 returned
+   A correct answer says: The message posted to c_001 (Launch Planning) includes the full list of chats returned by step 1, naming each chat id and name: c_001 "Launch Planning" (group), c_002 (dm), c_003 "Ops Room" (group), and c_004 "Watercooler" (group).
+   Where to look: Find this in the text of the message the agent sent to chat c_001 in step 4.
+3. the text of step 5 must carry what step 1 returned
+   A correct answer says: The message posted to c_003 (Ops Room) includes the full list of chats returned by step 1, naming each chat id and name: c_001 "Launch Planning" (group), c_002 (dm), c_003 "Ops Room" (group), and c_004 "Watercooler" (group).
+   Where to look: Find this in the text of the message the agent sent to chat c_003 in step 5.
+4. the text of step 6 must carry what step 1 returned
+   A correct answer says: The threaded reply to m_007 in Ops Room includes the full list of chats returned by step 1, naming each chat id and name: c_001 "Launch Planning" (group), c_002 (dm), c_003 "Ops Room" (group), and c_004 "Watercooler" (group).
+   Where to look: Find this in the text of the reply the agent posted to message m_007 in step 6.
+
+The rollout:
+=== FULL ROLLOUT — every tool call the agent made and every result that came back ===
+    <<< the agent's transcript — only exists once a rollout has run >>>
+
+=== WHAT THE AGENT DELIVERED — the same messages, collected for convenience ===
+Messages the agent sent during this rollout:
+    <<< every message the acting user sent during the rollout, seeded history excluded >>>
+
+Agent's final reply:
+    <<< the agent's last reply >>>
+
+Respond with ONLY a JSON array of booleans, one per item in order (true = correct).
+Example for two items: [true, false]
+
+================================================================================================
+== LEVEL 2
+================================================================================================
+
+------------------------------------------------------------------------------------------------
+-- PROMPT (verify._JUDGE_PROMPT, filled in)
+------------------------------------------------------------------------------------------------
+You grade whether an agent delivered specific pieces of information.
+
+Each numbered item is something the agent had to find out and then put somewhere. You are given the requirement, what a correct answer says, and where in the agent's output to look for it.
+
+You are given the WHOLE ROLLOUT: every tool call the agent made, every result that came back, every message it sent, and its final reply. Use all of it. Do not grade off the final reply alone — most of these items are about information landing in a message partway through, and a rollout that did the work correctly and said little at the end is not a failure.
+
+Two things to hold together for each item:
+
+- **It has to be where the item says.** The hint names the place. Information that only ever appears in a tool result, and was never passed on, is not delivered — no matter how clearly the agent retrieved it.
+- **It has to be the same information.** That is a question about the whole trace: compare what the agent said against what the tools actually returned. A value the agent invented rather than retrieved is wrong even when it looks plausible, and a correct answer worded differently is right.
+
+Match on substance. Never judge style, length, or phrasing. An item is correct when a reader of the place the hint names would come away with the facts the expected answer states.
+
+Items:
+1. step 2 looks something up and no later step posts what it found, so the agent must report it back in its own reply
+   A correct answer says: A concise summary stating the recent messages read from the Launch Planning channel: the initial message asking to pick the time window (22:00 or 02:00); a reply saying 02:00 is safer for international traffic and to flag the CS team; a reply from whoever wrote the message about 02:00 I'll be on asking someone to draft a clear rollback plan with triggers; and a reply noting that external stakeholders asked for a one-pager.
+   Where to look: Look in the agent's final reply where it summarizes or lists the messages returned by reading the Launch Planning channel.
+2. the text of step 4 must carry what step 1 returned
+   A correct answer says: The message posted to the Launch Planning channel includes the complete list of chats the agent retrieved, with each chat shown by its id, its displayed name (if any), and whether it is a group or a dm — specifically the Launch Planning channel (group), the dm chat, the Ops Room channel (group), and the Watercooler channel (group).
+   Where to look: Find this in the text of the message the agent sent to the Launch Planning channel.
+3. the text of step 5 must carry what step 1 returned
+   A correct answer says: The message posted to the Ops Room channel includes the complete list of chats the agent retrieved, with each chat shown by its id, its displayed name (if any), and whether it is a group or a dm — specifically the Launch Planning channel (group), the dm chat, the Ops Room channel (group), and the Watercooler channel (group).
+   Where to look: Find this in the text of the message the agent sent to the Ops Room channel.
+4. the text of step 6 must carry what step 1 returned
+   A correct answer says: The threaded reply posted in response to the message about canary shows increased latencies includes the complete list of chats the agent retrieved, with each chat shown by its id, its displayed name (if any), and whether it is a group or a dm — specifically the Launch Planning channel (group), the dm chat, the Ops Room channel (group), and the Watercooler channel (group).
+   Where to look: Find this in the text of the threaded reply the agent posted to the message about canary shows increased latencies in the Ops Room channel.
+
+The rollout:
+=== FULL ROLLOUT — every tool call the agent made and every result that came back ===
+    <<< the agent's transcript — only exists once a rollout has run >>>
+
+=== WHAT THE AGENT DELIVERED — the same messages, collected for convenience ===
+Messages the agent sent during this rollout:
+    <<< every message the acting user sent during the rollout, seeded history excluded >>>
+
+Agent's final reply:
+    <<< the agent's last reply >>>
+
+Respond with ONLY a JSON array of booleans, one per item in order (true = correct).
+Example for two items: [true, false]
+
+================================================================================================
+== LEVEL 3
+================================================================================================
+
+------------------------------------------------------------------------------------------------
+-- PROMPT (verify._JUDGE_PROMPT, filled in)
+------------------------------------------------------------------------------------------------
+You grade whether an agent delivered specific pieces of information.
+
+Each numbered item is something the agent had to find out and then put somewhere. You are given the requirement, what a correct answer says, and where in the agent's output to look for it.
+
+You are given the WHOLE ROLLOUT: every tool call the agent made, every result that came back, every message it sent, and its final reply. Use all of it. Do not grade off the final reply alone — most of these items are about information landing in a message partway through, and a rollout that did the work correctly and said little at the end is not a failure.
+
+Two things to hold together for each item:
+
+- **It has to be where the item says.** The hint names the place. Information that only ever appears in a tool result, and was never passed on, is not delivered — no matter how clearly the agent retrieved it.
+- **It has to be the same information.** That is a question about the whole trace: compare what the agent said against what the tools actually returned. A value the agent invented rather than retrieved is wrong even when it looks plausible, and a correct answer worded differently is right.
+
+Match on substance. Never judge style, length, or phrasing. An item is correct when a reader of the place the hint names would come away with the facts the expected answer states.
+
+Items:
+1. step 2 looks something up and no later step posts what it found, so the agent must report it back in its own reply
+   A correct answer says: A concise summary of the recent messages read from the Launch Planning channel that includes: the original request asking to pick the time window for the feature-flag flip (22:00 or 02:00); a reply arguing 02:00 is safer for international traffic and asking to flag the CS team; a reply from whoever wrote the message about 02:00 I'll be on asking someone to draft a clear rollback plan with triggers; and a reply noting that external stakeholders asked for a one-pager.
+   Where to look: Look in the agent's final reply where it summarizes or lists the messages returned by reading the Launch Planning channel.
+2. the text of step 4 must carry what step 1 returned
+   A correct answer says: The message the agent posted to the Launch Planning channel contains the complete list of chats returned by the agent's initial chat listing, with each chat shown by its id, its displayed name if any, and whether it is a group or a dm — specifically listing the Launch Planning channel (group), the dm chat, the Ops Room channel (group), and the Watercooler channel (group).
+   Where to look: Find this content in the text of the message the agent sent to the Launch Planning channel.
+3. the text of step 5 must carry what step 1 returned
+   A correct answer says: The message the agent posted to the Ops Room channel contains the complete list of chats returned by the agent's initial chat listing, with each chat shown by its id, its displayed name if any, and whether it is a group or a dm — specifically listing the Launch Planning channel (group), the dm chat, the Ops Room channel (group), and the Watercooler channel (group).
+   Where to look: Find this content in the text of the message the agent sent to the Ops Room channel.
+4. the text of step 6 must carry what step 1 returned
+   A correct answer says: The threaded reply the agent posted in response to the message about canary shows increased latencies contains the complete list of chats returned by the agent's initial chat listing, with each chat shown by its id, its displayed name if any, and whether it is a group or a dm — specifically listing the Launch Planning channel (group), the dm chat, the Ops Room channel (group), and the Watercooler channel (group).
+   Where to look: Find this content in the text of the threaded reply the agent posted to the message about canary shows increased latencies in the Ops Room channel.
+
+The rollout:
+=== FULL ROLLOUT — every tool call the agent made and every result that came back ===
+    <<< the agent's transcript — only exists once a rollout has run >>>
+
+=== WHAT THE AGENT DELIVERED — the same messages, collected for convenience ===
+Messages the agent sent during this rollout:
+    <<< every message the acting user sent during the rollout, seeded history excluded >>>
+
+Agent's final reply:
+    <<< the agent's last reply >>>
+
+Respond with ONLY a JSON array of booleans, one per item in order (true = correct).
+Example for two items: [true, false]
+
+================================================================================================
+== LEVEL 4
+================================================================================================
+
+------------------------------------------------------------------------------------------------
+-- PROMPT (verify._JUDGE_PROMPT, filled in)
+------------------------------------------------------------------------------------------------
+You grade whether an agent delivered specific pieces of information.
+
+Each numbered item is something the agent had to find out and then put somewhere. You are given the requirement, what a correct answer says, and where in the agent's output to look for it.
+
+You are given the WHOLE ROLLOUT: every tool call the agent made, every result that came back, every message it sent, and its final reply. Use all of it. Do not grade off the final reply alone — most of these items are about information landing in a message partway through, and a rollout that did the work correctly and said little at the end is not a failure.
+
+Two things to hold together for each item:
+
+- **It has to be where the item says.** The hint names the place. Information that only ever appears in a tool result, and was never passed on, is not delivered — no matter how clearly the agent retrieved it.
+- **It has to be the same information.** That is a question about the whole trace: compare what the agent said against what the tools actually returned. A value the agent invented rather than retrieved is wrong even when it looks plausible, and a correct answer worded differently is right.
+
+Match on substance. Never judge style, length, or phrasing. An item is correct when a reader of the place the hint names would come away with the facts the expected answer states.
+
+Items:
+1. step 2 looks something up and no later step posts what it found, so the agent must report it back in its own reply
+   A correct answer says: A concise summary of the recent messages read from the Launch Planning channel that includes: the original request asking to pick the time window for the feature-flag flip (22:00 or 02:00); a reply arguing 02:00 is safer for international traffic and asking to flag the CS team; a reply from the person who said they'd be on call if we flip at 02:00 asking someone to draft a clear rollback plan with triggers; and a reply noting that external stakeholders asked for a one-pager.
+   Where to look: Look in the agent's final reply where it summarizes or lists the messages read from the Launch Planning channel.
+2. the text of step 4 must carry what step 1 returned
+   A correct answer says: The message posted to the Launch Planning channel contains the complete list of chats returned by the initial chat listing, with each chat shown by its id, its displayed name if any, and whether it is a group or a dm — specifically listing the Launch Planning channel (group), the dm chat, the Ops Room channel (group), and the Watercooler channel (group).
+   Where to look: Find this content in the text of the message the agent sent to the Launch Planning channel.
+3. the text of step 5 must carry what step 1 returned
+   A correct answer says: The message posted to the Ops Room channel contains the complete list of chats returned by the initial chat listing, with each chat shown by its id, its displayed name if any, and whether it is a group or a dm — specifically listing the Launch Planning channel (group), the dm chat, the Ops Room channel (group), and the Watercooler channel (group).
+   Where to look: Find this content in the text of the message the agent sent to the Ops Room channel.
+4. the text of step 6 must carry what step 1 returned
+   A correct answer says: The threaded reply posted in response to the Ops Room canary-latency message contains the complete list of chats returned by the initial chat listing, with each chat shown by its id, its displayed name if any, and whether it is a group or a dm — specifically listing the Launch Planning channel (group), the dm chat, the Ops Room channel (group), and the Watercooler channel (group).
+   Where to look: Find this content in the text of the threaded reply the agent posted to the canary-latency message in the Ops Room channel.
+
+The rollout:
+=== FULL ROLLOUT — every tool call the agent made and every result that came back ===
+    <<< the agent's transcript — only exists once a rollout has run >>>
+
+=== WHAT THE AGENT DELIVERED — the same messages, collected for convenience ===
+Messages the agent sent during this rollout:
+    <<< every message the acting user sent during the rollout, seeded history excluded >>>
+
+Agent's final reply:
+    <<< the agent's last reply >>>
+
+Respond with ONLY a JSON array of booleans, one per item in order (true = correct).
+Example for two items: [true, false]

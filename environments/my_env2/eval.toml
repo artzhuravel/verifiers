@@ -3,8 +3,10 @@
 #     uv run eval @ environments/my_env2/eval.toml
 #
 # Change `level` to compare rungs: 1 explicit and numbered, 2 prose with described references,
-# 3 goal-level. The seed, the expected state and the judge items are identical at every level, so
-# a score gap between two runs of this file is attributable to the wording and to nothing else.
+# 3 goal-level, 4 folded. The seed and the expected state are identical at every level, and the
+# judge items require the same things — they are restated per level so that a grader is not told to
+# look at "step 4" in a prompt that has no steps. So a score gap between two runs of this file is
+# attributable to the wording and to nothing else.
 #
 # `subprocess` runtimes are for local debugging; use `docker` or `prime` for an isolated run.
 model = "openai/gpt-5-nano"

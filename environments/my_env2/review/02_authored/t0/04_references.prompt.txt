@@ -1,0 +1,120 @@
+# Stage 4 — choose a reference mode per entity
+
+NOTE ON FIDELITY — read this before trusting the WORKSPACE block below.
+
+This stage ran against the CORE world, before Stage 5 padded it, and only the padded world is
+shipped in the task record. The prompt below is therefore rebuilt in the right shape, with the
+right blocks in the right order, but the workspace inside it is the LATER one: it contains
+filler that was not present when the model actually saw this. The instructions, the block
+structure and the derived lines are real; the world is a stand-in.
+
+
+------------------------------------------------------------------------------------------------
+-- SYSTEM PROMPT
+------------------------------------------------------------------------------------------------
+You decide how a task will refer to things without naming their ids.
+
+You are given a workspace and, for each entity the task is about, the ways it could be picked out by description. Pick the ONE that suits that entity best, and say only which. What goes into it is worked out from the workspace afterwards, so you do not have to supply or check anything.
+
+Judge it on how the finished sentence would read and on how much work it makes the reader do. Describing what someone did, or what a conversation is about, is better than restating a name or a handle — those tell the reader nothing they could not have been handed. Some modes will not fit the entity in front of you at all; say so by choosing a different one.
+
+Respond with ONLY this JSON object, one entry per entity:
+{"references": [{"symbol": "$chat_0", "mode": "<mode id>"}]}
+
+------------------------------------------------------------------------------------------------
+-- USER PROMPT
+------------------------------------------------------------------------------------------------
+ENVIRONMENT
+  chat: Local mock chat app. Read and write tools operate on the rollout's ChatState.
+  deepwiki: Public DeepWiki MCP server: read-only GitHub-repo Q&A. Answers can be nondeterministic; requires the repo to be indexed by DeepWiki.
+  You act as one specific user. The acting user's id. Every write is attributed to this user; reads are scoped to it where noted.
+
+ENTITY TYPES IN THIS TASK
+  message — One posted message. `reply_to` threads it under an earlier message in the same chat.
+      id: string
+      chat_id: string (chat id)
+      sender_id: string (user id)
+      text: string
+      ts: int (logical clock, not wall time)
+      reply_to: string | null (parent message id)
+      reactions: object (emoji -> user_id[])
+      read_by: string[] (user ids)
+  chat — A conversation the acting user takes part in. `name` is null for a DM.
+      id: string
+      kind: "dm" | "group"
+      name: string | null
+      member_ids: string[] (user ids)
+
+ACTIONS THIS TASK USES
+  ask_question (read) — Ask an AI-grounded question about a GitHub repository.
+      repoName: GitHub repo in owner/repo form (or a list, max 10)
+      question: the question to ask
+      returns: a free-text answer to any question about the repo — metadata (licence, primary language, maintainers) and prose questions alike. Nondeterministic wording, so only ask things with a stable, unambiguous answer.
+  reply_to (write) — Reply to an existing message in its chat (threaded).
+      message_id: the message being replied to
+      text: reply body
+      returns: the created message view
+  send_message (write) — Send a message from the acting user to a chat.
+      chat_id: destination chat
+      text: message body
+      returns: the created message view
+  add_reaction (write) — Add an emoji reaction from the acting user to a message.
+      message_id: the message to react to
+      emoji: reaction emoji, e.g. ':+1:'
+      returns: the updated message view
+
+WORKSPACE
+You act as Sam Li (id u_me).
+
+People:
+  u_me  Sam Li @you
+  u_alice  Alice Nguyen @alice
+  u_benc  Ben Carter @benc
+  u_carla  Carla Ruiz @carla
+  u_devpatel  Dev Patel @devpatel
+  u_evankim  Evan Kim @evankim
+  u_priya  Priya Shah @priya
+
+group backend-sprint (c_001) — members: Sam Li @you, Alice Nguyen @alice, Ben Carter @benc, Carla Ruiz @carla, Dev Patel @devpatel
+  m_001 [Alice Nguyen @alice]: We need to audit the payment integration before the sprint review. Which GitHub repo tracks the payment service code?
+  m_002 [Ben Carter @benc]: Is it owner/payments-service or owner/billing? I can't remember which repo contains the connector. Anyone confirm?  (reply to m_001; UNREAD by you)
+  m_003 [Alice Nguyen @alice]: Lunch run in 20 — @u2 you in?
+  m_004 [Carla Ruiz @carla]: I think payments-service was archived last month. The billing repo might have the connector. Can someone check the repo metadata—license and primary language?  (reply to m_002; UNREAD by you)
+  m_005 [Dev Patel @devpatel]: Heads-up: I'll be OOO Friday — might be slow on billing threads this week.
+  m_006 [Dev Patel @devpatel]: If billing has the connector, we need to know maintainers to CC. I can look later unless someone already knows.  (reply to m_002)
+  m_007 [Ben Carter @benc]: Posted a stub issue with the repo links. Will ping infra when I have grep results.  (reply to m_002)
+  m_009 [Alice Nguyen @alice]: Legal needs licence details, and infra wants the list of maintainers. If DeepWiki can summarize, that'd be great.  (reply to m_004)
+  m_012 [Ben Carter @benc]: I can try to run a quick grep after lunch. Meanwhile, could someone run a repo metadata check? DeepWiki might have it indexed.  (reply to m_006; UNREAD by you)
+
+dm (dm) (c_002) — members: Sam Li @you, Carla Ruiz @carla
+  m_008 [Carla Ruiz @carla]: Quick Q: can you ping DeepWiki about owner/billing to get the license and main language? Legal wants license before Monday.  (UNREAD by you)
+  m_010 [Carla Ruiz @carla]: Thanks — I'll forward whatever you get to Legal so they have it before Monday.  (reply to m_008; UNREAD by you)
+  m_011 [Carla Ruiz @carla]: If you can, include a link or the repo name in the reply so I can forward to legal.  (reply to m_008; UNREAD by you)
+
+ENTITIES TO DESCRIBE, AND THE MODES AVAILABLE FOR EACH
+  $message_0 = m_002 (in backend-sprint from Ben Carter, replying to m_001, unread by you: "Is it owner/payments-service or owner/billing? I can't remember which repo contains the connector. Anyone confirm?")
+      mode message_reply_to_text: reads as "the reply to the message about {text}" — the single reply to the one message whose text contains {text}
+      mode message_most_reacted: reads as "the message that has drawn the most reactions" — the message with strictly more distinct reactors than any other in the workspace
+      mode message_newest_by_handle: reads as "the latest thing @{handle} posted" — the most recent message written by the user whose handle is {handle}
+      mode message_by_text: reads as "the message about {text}" — the one message whose text contains {text}
+  $chat_0 = c_002 (dm (unnamed dm) — members: Sam Li @you, Carla Ruiz @carla)
+      mode chat_containing_text: reads as "the conversation where {text} came up" — the chat containing a message whose text contains {text}
+      mode chat_only_with_unread: reads as "the one conversation you still have not caught up on" — the only chat holding at least one message the acting user has not read
+      mode chat_by_member_count: reads as "the conversation with exactly {count} people in it" — the chat that has exactly {count} members, and is the only chat with that many
+      mode chat_by_name: reads as "the {name} channel" — the chat whose title is exactly {name}
+
+------------------------------------------------------------------------------------------------
+-- WHAT THE MODEL RETURNED (the shipped artifact)
+------------------------------------------------------------------------------------------------
+{
+  "references": [
+    {
+      "symbol": "$message_0",
+      "mode": "message_reply_to_text"
+    },
+    {
+      "symbol": "$chat_0",
+      "mode": "chat_containing_text"
+    }
+  ]
+}

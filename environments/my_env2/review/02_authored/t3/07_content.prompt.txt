@@ -1,0 +1,143 @@
+# Stage 7 — write the free text
+
+This is EXACTLY the prompt the authoring model received. Every input to it is stored
+in the task record, so it is a reconstruction only in the sense that it was rebuilt rather
+than logged.
+
+------------------------------------------------------------------------------------------------
+-- SYSTEM PROMPT
+------------------------------------------------------------------------------------------------
+You write the text a task's steps carry.
+
+You are given a workspace, a plan of what the agent will do in it, and a list of PLACEHOLDERS for the free text in that plan. Fill each one so that the whole thing reads like one errand a colleague actually asked for.
+
+- A message body should sound like the person you act as, addressed to the people in that conversation, and should belong to what is being discussed there.
+- Where a step says its text must CARRY what an earlier step returned, there is no placeholder for it — the agent supplies that itself. Write the surrounding placeholders so they fit alongside it.
+- For a repository question, name a real, well-known public GitHub repo in owner/repo form and ask something specific whose answer does not change: what the project is for, how a named component works, what a term in it means. NEVER ask about maintainers, contributors, stars, versions or anything else a release could move — a stored expectation for those goes stale and the task starts marking correct answers wrong. Read the step's `returns` line too: each tool answers a different range of things, and a question outside its range has no obtainable answer at all.
+- Keep every value short. A message is a sentence or two, not a paragraph.
+
+Respond with ONLY this JSON object, one entry per placeholder, keyed by placeholder:
+{"content": {"$text_0": "...", "$name_1": "..."}}
+
+------------------------------------------------------------------------------------------------
+-- USER PROMPT
+------------------------------------------------------------------------------------------------
+ENVIRONMENT
+  chat: Local mock chat app. Read and write tools operate on the rollout's ChatState.
+  deepwiki: Public DeepWiki MCP server: read-only GitHub-repo Q&A. Answers can be nondeterministic; requires the repo to be indexed by DeepWiki.
+  You act as one specific user. The acting user's id. Every write is attributed to this user; reads are scoped to it where noted.
+
+ENTITY TYPES IN THIS TASK
+  user — A person in the workspace. Display names may collide; handles never do.
+      id: string
+      name: string
+      handle: string
+  chat — A conversation the acting user takes part in. `name` is null for a DM.
+      id: string
+      kind: "dm" | "group"
+      name: string | null
+      member_ids: string[] (user ids)
+  message — One posted message. `reply_to` threads it under an earlier message in the same chat.
+      id: string
+      chat_id: string (chat id)
+      sender_id: string (user id)
+      text: string
+      ts: int (logical clock, not wall time)
+      reply_to: string | null (parent message id)
+      reactions: object (emoji -> user_id[])
+      read_by: string[] (user ids)
+
+ACTIONS THIS TASK USES
+  create_chat (write) — Create a new chat; the acting user is always included as a member.
+      member_ids: user ids to include (actor added automatically)
+      name: chat name; if set (or >2 members) the chat is a group, else a dm (optional)
+      returns: {id, kind, name, members}
+  send_message (write) — Send a message from the acting user to a chat.
+      chat_id: destination chat
+      text: message body
+      returns: the created message view
+  add_reaction (write) — Add an emoji reaction from the acting user to a message.
+      message_id: the message to react to
+      emoji: reaction emoji, e.g. ':+1:'
+      returns: the updated message view
+  reply_to (write) — Reply to an existing message in its chat (threaded).
+      message_id: the message being replied to
+      text: reply body
+      returns: the created message view
+
+WORKSPACE
+You act as You (id u_me).
+
+People:
+  u_me  You @you
+  u_lina  Lina Park @lina
+  u_ravi  Ravi Patel @ravi
+  u_mae  Mae Chen @mae
+  u_owen  Owen Brooks @owen
+  u_alex  Alex Kim @alex
+
+group ingest-pipeline (c_001) — members: You @you, Lina Park @lina, Mae Chen @mae, Owen Brooks @owen
+  m_001 [Lina Park @lina]: We're planning to run the new S3->warehouse ingest nightly at 02:00 UTC. Is everyone okay with that?  (UNREAD by you; :+1: x1)
+  m_002 [Mae Chen @mae]: 02:00 is fine in principle, but we should offset from other heavy jobs. Can we move to 03:30 to avoid overlap with the backup window?  (reply to m_001; UNREAD by you)
+  m_003 [Owen Brooks @owen]: Also flagging that the retention policy convo from last sprint might bump the on-disk usage — we should include that in the estimate.
+  m_004 [Owen Brooks @owen]: I prefer 02:00 to keep it earlier; 03:30 will push downstream jobs later and might break SLAs.  (reply to m_001; :-1: x1)
+  m_007 [Mae Chen @mae]: Totally — also, can we table the docs export until after the ingest decision? It affects downstream storage.  (reply to m_004; UNREAD by you)
+  m_009 [Lina Park @lina]: We need to decide by EOD so we can schedule the deploy. @mae can you bring hourly load numbers and peak overlap?  (reply to m_002; UNREAD by you)
+  m_012 [Mae Chen @mae]: I'll pull the hourly metrics and post them in this thread in about an hour — will include overlap with backups.  (reply to m_009)
+  m_014 [Mae Chen @mae]: If we move forward at 02:00 we should also coordinate with ops to throttle noncritical retries during the window.  (reply to m_009; UNREAD by you)
+
+dm (dm) (c_002) — members: You @you, Ravi Patel @ravi
+  m_006 [Ravi Patel @ravi]: Hey — did you get the final schema for customer records? I attached a draft in the repo.  (UNREAD by you)
+  m_010 [Ravi Patel @ravi]: Quick follow-up: I pushed another commit to the draft that relaxes the phone field to optional — see the diff.  (reply to m_006; UNREAD by you)
+  m_011 [Ravi Patel @ravi]: Also, one quick question: should the 'phone' field be optional in the schema? The draft marks it required.  (reply to m_006; UNREAD by you)
+  m_013 [Ravi Patel @ravi]: I'm heading to lunch in 10; if you need the draft merged before then, ping me here.  (UNREAD by you)
+
+group design-ideas (c_003) — members: You @you, Lina Park @lina, Alex Kim @alex
+  m_005 [Alex Kim @alex]: Figured I'd start a thread for brainstorming features — short bikeshed welcome.
+  m_008 [Lina Park @lina]: Love this — can we include a quick sketch section so folks can drop PNGs?  (reply to m_005)
+
+PLAN
+step 1 [write] create_chat — Create a new chat; the acting user is always included as a member.
+    member_ids   = u_lina — Lina Park @lina, u_ravi — Ravi Patel @ravi
+    name         = $name_0 (free text: chat name; if set (or >2 members) the chat is a group, else a dm)
+    -> creates something new
+step 2 [write] send_message — Send a message from the acting user to a chat.
+    chat_id      = c_001 — group 'ingest-pipeline' — members: You @you, Lina Park @lina, Mae Chen @mae, Owen Brooks @owen
+    text         = $text_0 (free text: message body)
+    -> creates something new
+step 3 [write] send_message — Send a message from the acting user to a chat.
+    chat_id      = the chat step 1 creates
+    text         = $text_1 (free text: message body)
+    -> creates something new
+step 4 [write] add_reaction — Add an emoji reaction from the acting user to a message.
+    message_id   = the message step 3 creates
+    emoji        = $emoji_0 (free text: reaction emoji, e.g. ':+1:')
+step 5 [write] add_reaction — Add an emoji reaction from the acting user to a message.
+    message_id   = the message step 2 creates
+    emoji        = $emoji_1 (free text: reaction emoji, e.g. ':+1:')
+step 6 [write] reply_to — Reply to an existing message in its chat (threaded).
+    message_id   = the message step 3 creates
+    text         = $text_2 (free text: reply body)
+    -> creates something new
+
+PLACEHOLDERS TO FILL
+  $name_0 — step 1 (create_chat.name): chat name; if set (or >2 members) the chat is a group, else a dm
+  $text_0 — step 2 (send_message.text): message body
+  $text_1 — step 3 (send_message.text): message body
+  $emoji_0 — step 4 (add_reaction.emoji): reaction emoji, e.g. ':+1:'
+  $emoji_1 — step 5 (add_reaction.emoji): reaction emoji, e.g. ':+1:'
+  $text_2 — step 6 (reply_to.text): reply body
+
+------------------------------------------------------------------------------------------------
+-- WHAT THE MODEL RETURNED (the shipped artifact)
+------------------------------------------------------------------------------------------------
+{
+  "content": {
+    "$name_0": "ingest-schedule-sync",
+    "$text_0": "Thanks — 02:00 works for me if ops can throttle noncritical retries during the window. @mae please post the hourly load so we can decide by EOD.",
+    "$text_1": "Quick sync: can you both weigh in on 02:00 vs 03:30 for the S3→warehouse ingest? We need to decide by EOD.",
+    "$emoji_0": "+1:",
+    "$emoji_1": ":eyes:",
+    "$text_2": "Lina, can you confirm there are no conflicts at 02:00? Ravi, any downstream SLA concerns if we keep it then?"
+  }
+}

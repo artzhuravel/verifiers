@@ -1,0 +1,32 @@
+Stage 3 result: the authored draft, built into a state.
+`seed.build` validates and never repairs — an undeclared sender, a reply across chats
+or an unbound placeholder rejects the whole draft and costs a correction round.
+
+topic: Coordinating DeepWiki reads for acme backend repos
+
+You act as Sam Harper (id u_me).
+
+People:
+  u_me  Sam Harper @you
+  u_pri  Priya Sinha @pri
+  u_marco  Marco Li @marco
+  u_dana  Dana Ortiz @dana
+  u_owen  Owen Brooks @owen
+
+group backend-team (c_001) — members: Sam Harper @you, Priya Sinha @pri, Marco Li @marco, Dana Ortiz @dana
+  m_001 [Priya Sinha @pri]: Heads-up: We need to sync the payment-service runbook with the DeepWiki architecture page before Friday. Who can pull the current docs for owner/acme/payment-service?  (UNREAD by you)
+  m_002 [Dana Ortiz @dana]: I can fetch it and paste the main sections here. Any specific pages to prioritize (architecture, runbook, or API)?  (reply to m_001; UNREAD by you)
+  m_003 [Marco Li @marco]: I'll do a repo-wide structure check; interested in architecture and the API topics first. I can post the list of topics once I have it.  (reply to m_001; UNREAD by you; :+1: x1)
+
+dm (dm) (c_002) — members: Sam Harper @you, Owen Brooks @owen
+  m_006 [Owen Brooks @owen]: I pushed a small update to the runbook branch but didn't touch DeepWiki. If someone needs the topic list for acme/payment-service, ping me and I'll point them to the pages I checked locally.  (UNREAD by you)
+
+group deploy-ops (c_003) — members: Sam Harper @you, Marco Li @marco, Dana Ortiz @dana
+  m_004 [Marco Li @marco]: Deployment checklist needs the list of doc topics for owner/acme/deploy-scripts—does the repo have a wiki section for 'rollback' or 'hotfix'?
+  m_005 [Dana Ortiz @dana]: I couldn't find that in the repo; Owen might have the last edit on deploy-scripts doc and could confirm.  (reply to m_004)
+
+PLACEHOLDERS BOUND
+  $user_0              -> u_pri
+  $user_1              -> u_marco
+  $chat_0              -> c_002
+  $message_0           -> m_001

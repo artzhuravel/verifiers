@@ -1,0 +1,173 @@
+# Stage 10 — rewrite as a goal
+
+1 model call(s).
+
+================================================================================================
+== call 1 of 1
+================================================================================================
+
+------------------------------------------------------------------------------------------------
+-- SYSTEM PROMPT
+------------------------------------------------------------------------------------------------
+You rewrite a task as the request a person would actually have sent.
+
+You are given the workspace, the underlying plan, and a task written as connected prose. Raise its level of abstraction: say what you are trying to ACHIEVE and let the steps follow from it.
+
+- No enumeration. No numbered or bulleted steps, and no sentence that reads as "and then".
+- Nothing quoted or dictated word for word — except repository names and questions, which must survive exactly, because the expected answers are keyed to them.
+- Individual steps must stop being individually identifiable. Fold them into the goal.
+- Keep every reference resolvable: an agent reading this must still be able to work out which things you mean.
+- Refer to things the way the list below does, and never by name. A description with the answer bolted on — "Alice Rivera (the author of the message about the freeze)" — is worse than either half of it alone: it hands back the very step the description existed to create.
+- A description INTRODUCES a thing. Use it at the first mention only. Every later mention refers back the way a person would — "that conversation", "the same thread", "there", "them", "it", "the one you just read". Pasting a description a second time is the commonest way this rewrite fails: it reads as find-and-replace rather than as writing, and where a description depends on something the task itself changes, every use after that change is simply FALSE. Any description marked below as one the work invalidates must be used early and never again.
+- Never answer your own reference. No parenthetical, no "i.e.", no appositive that supplies the name or id of something you have just described.
+- You are shown the plan so you can check your text still leads to those actions. It is not something to reproduce, and none of it should be recognisable as a list.
+
+The test is simple: a colleague reading this should see a normal ask, and an agent following it should end up doing the same work.
+
+You also rewrite the JUDGE ITEMS. Each tells a grader what a correct answer says and where in the agent's output to look for it. They were written against the PREVIOUS version of this task, so they still speak its language — step numbers, entity ids, names, quoted wording — much of which you are removing. Left alone, they describe a task the agent was never given.
+
+For every item, restate `expected` and `hint` so that a grader reading YOUR text can still check the same thing:
+
+- `expected` — what a correct answer STATES, in substance. Keep every fact in it. Where the previous wording leaned on an id or a step number to say WHICH thing ("the reply to m_004"), say it the way your text says it. Never replace it with a pointer: "the answer to the question above" leaves a grader nothing to compare against.
+- `hint` — where in the agent's output to look, described the way your text describes it.
+
+Do not drop an item, do not merge two, and never change WHAT is required — only how it is said. Copy each `id` exactly.
+
+Respond with ONLY this JSON object:
+{"prompt": "<the rewritten task>",
+ "judge": [{"id": "<copied exactly>", "expected": "...", "hint": "..."}]}
+
+------------------------------------------------------------------------------------------------
+-- USER PROMPT
+------------------------------------------------------------------------------------------------
+ENVIRONMENT
+  chat: Local mock chat app. Read and write tools operate on the rollout's ChatState.
+  deepwiki: Public DeepWiki MCP server: read-only GitHub-repo Q&A. Answers can be nondeterministic; requires the repo to be indexed by DeepWiki.
+  You act as one specific user. The acting user's id. Every write is attributed to this user; reads are scoped to it where noted.
+
+ENTITY TYPES IN THIS TASK
+  message — One posted message. `reply_to` threads it under an earlier message in the same chat.
+      id: string
+      chat_id: string (chat id)
+      sender_id: string (user id)
+      text: string
+      ts: int (logical clock, not wall time)
+      reply_to: string | null (parent message id)
+      reactions: object (emoji -> user_id[])
+      read_by: string[] (user ids)
+  chat — A conversation the acting user takes part in. `name` is null for a DM.
+      id: string
+      kind: "dm" | "group"
+      name: string | null
+      member_ids: string[] (user ids)
+
+ACTIONS THIS TASK USES
+  read_wiki_contents (read) — View DeepWiki documentation for a GitHub repository.
+      repoName: GitHub repo in owner/repo form
+      returns: the repo's wiki DOCUMENTATION PROSE. It states what the project is for, how a subsystem works, what a concept means. It does NOT state licence, stars, maintainers or primary language, so a question about those has no obtainable answer here.
+  add_reaction (write) — Add an emoji reaction from the acting user to a message.
+      message_id: the message to react to
+      emoji: reaction emoji, e.g. ':+1:'
+      returns: the updated message view
+  send_message (write) — Send a message from the acting user to a chat.
+      chat_id: destination chat
+      text: message body
+      returns: the created message view
+  reply_to (write) — Reply to an existing message in its chat (threaded).
+      message_id: the message being replied to
+      text: reply body
+      returns: the created message view
+
+WORKSPACE
+You act as You (id u_me).
+
+People:
+  u_me  You @you
+  u_alicec  Alice Chen @alicec
+  u_benr  Ben Rosario @benr
+  u_carom  Caro Martínez @carom
+  u_dpatel  Diego Patel @dpatel
+
+group telemetry (c_001) — members: You @you, Alice Chen @alicec, Ben Rosario @benr, Caro Martínez @carom
+  m_001 [Alice Chen @alicec]: Draft API surfaces: /export/start, /export/status and /export/chunk. I'm worried about bursts if chunk size defaults to something tiny.
+  m_002 [Ben Rosario @benr]: I skimmed the DeepWiki docs on exporter chunking; they recommend ~64MB chunks and explain retry semantics. Might be relevant for our throttling design.  (reply to m_001; UNREAD by you; :+1: x1)
+  m_003 [Alice Chen @alicec]: Also saw some logs showing repeated retries yesterday — might be from a misconfigured client.
+  m_004 [Caro Martínez @carom]: Opened issue #88 to track client-side backoff and idempotency for exports. Link in the issue references the docs Ben mentioned.  (:+1: x1)
+  m_005 [Ben Rosario @benr]: Good catch. Can you paste any sample request IDs here?  (reply to m_002)
+  m_010 [Ben Rosario @benr]: Also worth noting: the docs call out idempotency tokens and suggested retry windows — we'll need to reflect that in the API surface.  (reply to m_002; UNREAD by you)
+
+dm (dm) (c_002) — members: You @you, Alice Chen @alicec
+  m_006 [Alice Chen @alicec]: Quick ask: can you pull the DeepWiki export docs and forward the key recommendations to Infra? They want concrete chunk/timeout numbers.  (UNREAD by you)
+  m_009 [Alice Chen @alicec]: Forwarded to Infra. I included estimated chunk/timeout numbers in the note.  (reply to m_006)
+
+group infra (c_003) — members: You @you, Ben Rosario @benr, Diego Patel @dpatel
+  m_007 [Ben Rosario @benr]: For infra: what's the latency profile for our storage? That affects ideal chunk size too.
+  m_008 [Diego Patel @dpatel]: Infra question: what chunk size should we bake into the pipeline? We've heard 64MB from telemetry but need confirmation.  (UNREAD by you)
+  m_011 [Diego Patel @dpatel]: We have 95th percentile at ~120ms; large chunks reduce overhead but increase retransmit cost.  (reply to m_008)
+
+PLAN YOUR TEXT MUST STILL LEAD TO (do not reproduce it)
+step 1 [read] read_wiki_contents — View DeepWiki documentation for a GitHub repository.
+    repoName     = 'kubernetes/kubernetes'
+    -> returns the repo's wiki DOCUMENTATION PROSE. It states what the project is for, how a subsystem works, what a concept means. It does NOT state licence, stars, maintainers or primary language, so a question about those has no obtainable answer here. (not known until the agent runs it)
+step 2 [write] add_reaction — Add an emoji reaction from the acting user to a message.
+    message_id   = m_002 — in telemetry from Ben Rosario, replying to m_001, unread by you: 'I skimmed the DeepWiki docs on exporter chunking; they recommend ~64MB chunks and explain retry semantics. Might be relevant for our throttling design.'
+    emoji        = ':+1:'
+step 3 [write] send_message — Send a message from the acting user to a chat.
+    chat_id      = c_002 — dm (unnamed dm) — members: You @you, Alice Chen @alicec
+    text         <- must carry what step 1 returned
+    -> creates something new
+step 4 [write] reply_to — Reply to an existing message in its chat (threaded).
+    message_id   = m_008 — in infra from Diego Patel, unread by you: "Infra question: what chunk size should we bake into the pipeline? We've heard 64MB from telemetry but need confirmation."
+    text         = 'Default to ~64MB chunks and require client exponential backoff plus idempotency tokens to avoid repeated retries.'
+    -> creates something new
+step 5 [write] send_message — Send a message from the acting user to a chat.
+    chat_id      = c_003 — group 'infra' — members: You @you, Ben Rosario @benr, Diego Patel @dpatel
+    text         <- must carry what step 1 returned
+    -> creates something new
+step 6 [write] reply_to — Reply to an existing message in its chat (threaded).
+    message_id   = the message step 5 creates
+    text         = 'If we lock 64MB + client backoff, I can update the pipeline defaults and add a retransmit test.'
+    -> creates something new
+
+KEEP REFERRING TO THINGS THIS WAY, AND NEVER BY NAME — each ONCE, then refer back
+  the reply to the message about worried about bursts if
+  the conversation where DeepWiki export docs and came up
+  the message about chunk size should we
+  the infra channel
+
+THESE STRINGS MUST NOT APPEAR IN YOUR TEXT
+  add_reaction, ask_question, c_001, c_002, c_003, chat_add_reaction, chat_create_chat, chat_get_user, chat_list_chats, chat_mark_read, chat_read_messages, chat_reply_to, chat_send_message, create_chat, deepwiki_ask_question, deepwiki_read_wiki_contents, deepwiki_read_wiki_structure, get_user, list_chats, m_001, m_002, m_003, m_004, m_005, m_006, m_007, m_008, m_009, m_010, m_011, mark_read, read_messages, read_wiki_contents, read_wiki_structure, reply_to, send_message, u_alicec, u_benr, u_carom, u_dpatel, u_me
+
+JUDGE ITEMS — REWRITE EACH ONE'S expected AND hint FOR YOUR TEXT
+  carry:c0a1:text
+      requirement (FIXED, do not change): the text of step 3 must carry what step 1 returned
+      must be delivered in (FIXED): the message step 3 posts
+      expected — RESTATE FOR YOUR TEXT: The message the agent posts in the conversation where DeepWiki export docs and came up contains the repository's wiki documentation prose describing what the kubernetes project is for and explaining how a subsystem works and what the concept means.
+      hint     — RESTATE FOR YOUR TEXT: Check the body text of the message the agent sends to the conversation where DeepWiki export docs and came up (the DM) that carries the wiki documentation prose.
+  carry:c0a2:text
+      requirement (FIXED, do not change): the text of step 5 must carry what step 1 returned
+      must be delivered in (FIXED): the message step 5 posts
+      expected — RESTATE FOR YOUR TEXT: The message posted to the infra channel contains the repository's wiki documentation prose describing what the kubernetes project is for and explaining how a subsystem works and what the concept means.
+      hint     — RESTATE FOR YOUR TEXT: Check the body text of the message the agent sends to the infra channel that carries the wiki documentation prose.
+
+CURRENT TASK TEXT (rewrite this)
+Pull the DeepWiki wiki documentation prose for the repository 'kubernetes/kubernetes' and keep that prose available for use in later posts; it should be the text that states what the project is for, how a subsystem works, and what a concept means. Then add a ':+1:' emoji reaction from you to the reply to the message about worried about bursts if. Next, send a message in the conversation where DeepWiki export docs and came up; the body of that message must carry the wiki documentation prose you retrieved (include it verbatim or quoted). After that, reply in the infra channel to the message about chunk size should we with the exact text: "Default to ~64MB chunks and require client exponential backoff plus idempotency tokens to avoid repeated retries." Then post to that same infra channel a message whose body must carry the same wiki documentation prose you retrieved. Finally, reply to the message you just posted in that channel with the exact text: "If we lock 64MB + client backoff, I can update the pipeline defaults and add a retransmit test."
+
+------------------------------------------------------------------------------------------------
+-- REPLY
+------------------------------------------------------------------------------------------------
+{
+  "prompt": "Retrieve the DeepWiki wiki documentation prose for kubernetes/kubernetes and keep that prose ready to paste verbatim into messages you will send. Add a :+1: reaction from me to the reply to the message about worried about bursts if. Post the retrieved wiki prose into the conversation where DeepWiki export docs and came up; that conversation is the DM with Alice, so send a new message there whose body contains the wiki documentation prose you fetched. In the infra channel, reply to the message about chunk size should we with this exact line: Default to ~64MB chunks and require client exponential backoff plus idempotency tokens to avoid repeated retries. After that, post a new message in the infra channel whose body contains the same wiki documentation prose you fetched, and reply to that newly created message with this exact line: If we lock 64MB + client backoff, I can update the pipeline defaults and add a retransmit test.",
+  "judge": [
+    {
+      "id": "carry:c0a1:text",
+      "expected": "The DM sent to the conversation where DeepWiki export docs and came up contains the repository kubernetes/kubernetes wiki documentation prose that describes what the project is for and explains how a subsystem works and what the concept means.",
+      "hint": "Look at the body text of the new message posted to the conversation where DeepWiki export docs and came up (the DM) and verify it contains the kubernetes/kubernetes wiki documentation prose that explains the project's purpose and describes subsystem and concept details."
+    },
+    {
+      "id": "carry:c0a2:text",
+      "expected": "The message posted to the infra channel contains the repository kubernetes/kubernetes wiki documentation prose that describes what the project is for and explains how a subsystem works and what the concept means.",
+      "hint": "Check the body text of the new message posted in the infra channel and verify it contains the kubernetes/kubernetes wiki documentation prose describing the project's purpose and explaining subsystem and concept details."
+    }
+  ]
+}

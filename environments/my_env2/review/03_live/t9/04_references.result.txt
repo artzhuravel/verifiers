@@ -1,0 +1,29 @@
+Stage 4. Each seed entity gets ONE way of being described instead of named.
+The model picks only WHICH mode; the adapter derives the params from the world and
+proves resolve(state, mode, params) == [that entity]. A mode that cannot be made to fit
+is skipped and the next tried, so the stage is total — an entity with no working
+reference raises, because v2 strips ids out and the task would be unanswerable.
+
+  $user_0  ->  u_devon
+      the entity      Devon Park @devon
+      mode chosen     user_authored_text  (the model's pick)
+      params derived  {"text": "names and owners into"}
+      reads as        "whoever wrote the message about names and owners into"
+      predicate       the user who wrote the one message whose text contains names and owners into
+      PROOF           resolve() -> ['u_devon']   unique, and it is the target
+
+  $message_0  ->  m_003
+      the entity      in docs-sync from Priya Singh, replying to m_001: 'Can someone collect the exact GitHub repo names and DeepWiki repo wikis for the plugins we listed? I need them to start reading. Please list them in this thread.'
+      mode chosen     message_by_text  (model proposed 'message_reply_to_text'; it did not fit, this is the fallback)
+      params derived  {"text": "someone collect the exact"}
+      reads as        "the message about someone collect the exact"
+      predicate       the one message whose text contains someone collect the exact
+      PROOF           resolve() -> ['m_003']   unique, and it is the target
+
+  $chat_0  ->  c_002
+      the entity      dm (unnamed dm) — members: Alex Rivera @you, Devon Park @devon
+      mode chosen     chat_containing_text  (the model's pick)
+      params derived  {"text": "names and owners into"}
+      reads as        "the conversation where names and owners into came up"
+      predicate       the chat containing a message whose text contains names and owners into
+      PROOF           resolve() -> ['c_002']   unique, and it is the target

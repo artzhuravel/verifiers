@@ -1,0 +1,182 @@
+# Stage 5 — pad the world with filler
+
+1 model call(s).
+
+================================================================================================
+== call 1 of 1
+================================================================================================
+
+------------------------------------------------------------------------------------------------
+-- SYSTEM PROMPT
+------------------------------------------------------------------------------------------------
+You pad out a workspace so it looks lived-in.
+
+You are given a workspace that was built around one specific task. It is too tidy: everything in it is there for a reason, which is itself a giveaway. Add ordinary, unrelated traffic — a few more colleagues, another conversation or two, and messages that have nothing to do with anything.
+
+Put most of the new messages in the conversations that already exist, from the people already in them. A separate room full of strangers hides nothing; unrelated chatter alongside the real thing does.
+
+Three hard rules:
+- Do NOT touch or restate what is already there. You are only adding.
+- Refer to existing people, conversations and messages by the SHORT KEY shown on the left of each line (`u2`, `c1`, `m4`) — never by a name or by anything else. New entries you add get their own new keys.
+- Each CONDITION listed below must still pick out exactly the entity it picks out now. If adding a person whose handle collides, or a message repeating a distinctive phrase, would make a condition match two things, do not add it. Anything that breaks a condition is discarded, so being careless here just wastes your work.
+
+Give messages `order` values spread across the existing range so the new history interleaves with the old rather than piling up after it. A reply must have a higher `order` than the message it replies to.
+
+Every entry you return is a NEW one and needs a key nothing else uses — start them all with "n". Do not return an entry for anything already in the workspace; it is already there, and repeating it is the one thing that makes this call useless.
+
+Respond with ONLY this JSON object:
+{"new_users": [{"ref": "n1", "name": "...", "handle": "..."}],
+ "new_chats": [{"ref": "n2", "name": "...", "members": ["u1", "n1"]}],
+ "new_messages": [{"ref": "n3", "chat": "c1", "sender": "u2", "text": "...", "order": 4,
+                   "reply_to": null, "read_by_actor": true, "reactors": []}]}
+
+------------------------------------------------------------------------------------------------
+-- USER PROMPT
+------------------------------------------------------------------------------------------------
+ENVIRONMENT
+  chat: Local mock chat app. Read and write tools operate on the rollout's ChatState.
+  deepwiki: Public DeepWiki MCP server: read-only GitHub-repo Q&A. Answers can be nondeterministic; requires the repo to be indexed by DeepWiki.
+  You act as one specific user. The acting user's id. Every write is attributed to this user; reads are scoped to it where noted.
+
+ENTITY TYPES IN THIS TASK
+  chat — A conversation the acting user takes part in. `name` is null for a DM.
+      id: string
+      kind: "dm" | "group"
+      name: string | null
+      member_ids: string[] (user ids)
+  message — One posted message. `reply_to` threads it under an earlier message in the same chat.
+      id: string
+      chat_id: string (chat id)
+      sender_id: string (user id)
+      text: string
+      ts: int (logical clock, not wall time)
+      reply_to: string | null (parent message id)
+      reactions: object (emoji -> user_id[])
+      read_by: string[] (user ids)
+
+ACTIONS THIS TASK USES
+  read_messages (read) — Read the most recent messages in a chat, oldest to newest.
+      chat_id: chat to read
+      limit: max messages, most recent (optional)
+      returns: array of message views {id, chat_id, from, sender_id, text, ts, reply_to, reactions, read_by}
+  ask_question (read) — Ask an AI-grounded question about a GitHub repository.
+      repoName: GitHub repo in owner/repo form (or a list, max 10)
+      question: the question to ask
+      returns: a free-text answer to any question about the repo — metadata (licence, primary language, maintainers) and prose questions alike. Nondeterministic wording, so only ask things with a stable, unambiguous answer.
+  mark_read (write) — Mark every message in a chat as read by the acting user.
+      chat_id: chat to mark read
+      returns: {chat_id, marked_read: <count>}
+  send_message (write) — Send a message from the acting user to a chat.
+      chat_id: destination chat
+      text: message body
+      returns: the created message view
+  reply_to (write) — Reply to an existing message in its chat (threaded).
+      message_id: the message being replied to
+      text: reply body
+      returns: the created message view
+
+WORKSPACE SO FAR
+You are Sam Park @you, and a member of every chat.
+
+People (refer to them by the key on the left):
+  u1     Alice Nguyen @alice
+  u2     Ben Ortiz @ben
+  u3     Carlos Reyes @carlos
+  u4     Dina Patel @dina
+
+Chat c1     infra — members: u1, u2, u3, u4
+  m1     order 1   [u1]: FYI: The DeepWiki integration PR references acme/deepwiki-bot but maintainers weren't sure about the repo license. Flagging here so legal isn't surprised.  (UNREAD by you)
+  m3     order 3   [u2]: Repo is acme/deepwiki-bot. @dina, can you confirm whether it's MIT or Apache (or something else)?  (reply to m1; UNREAD by you)
+  m4     order 4   [u4]: I remember we looked at this a while back and thought it was MIT, but the README has been edited since. I'll pull the repo and check the LICENSE file.  (reply to m3; UNREAD by you)
+  m6     order 6   [u3]: If it turns out to be MIT we're fine to proceed. If it's something incompatible we'll need legal sign-off — heads up.  (reply to m1; UNREAD by you)
+  m7     order 7   [u1]: Can someone run a quick license-check on acme/deepwiki-bot and paste the output here? That would save time.  (UNREAD by you)
+
+Chat c2     (a dm) — members: u2
+  m2     order 2   [u2]: Do you have the repo URL for that bot? I want to check the license quickly before we merge.
+  m5     order 5   [actor]: Got it — I'll ping the infra channel and ask Dina to paste the license output when she has it.  (reply to m2)
+  m8     order 8   [u2]: Thanks — I'll hold off merging until we have that confirmation in infra.
+
+CONDITIONS
+  the only chat holding at least one message the acting user has not read  -> must keep matching exactly one chat
+  the one message whose text contains confirm whether it's MIT  -> must keep matching exactly one message
+
+------------------------------------------------------------------------------------------------
+-- REPLY
+------------------------------------------------------------------------------------------------
+{
+  "new_users": [
+    {
+      "ref": "n1",
+      "name": "Eve Morris",
+      "handle": "evem"
+    },
+    {
+      "ref": "n9",
+      "name": "Frank Li",
+      "handle": "frankl"
+    }
+  ],
+  "new_chats": [
+    {
+      "ref": "n2",
+      "name": "watercooler",
+      "members": [
+        "u1",
+        "n1",
+        "u3"
+      ]
+    }
+  ],
+  "new_messages": [
+    {
+      "ref": "n3",
+      "chat": "c1",
+      "sender": "u3",
+      "text": "Also, FYI I bumped into @dina in the hall; she said she'll take a look this afternoon.",
+      "order": 2,
+      "reply_to": "m1",
+      "read_by_actor": false,
+      "reactors": []
+    },
+    {
+      "ref": "n4",
+      "chat": "c2",
+      "sender": "u2",
+      "text": "Link: https://github.com/acme/deepwiki-bot — sending it here so it's easy to copy.",
+      "order": 3,
+      "reply_to": "m2",
+      "read_by_actor": true,
+      "reactors": []
+    },
+    {
+      "ref": "n5",
+      "chat": "c1",
+      "sender": "u1",
+      "text": "Also, unrelated — does anyone want to join a trivia night tonight?",
+      "order": 5,
+      "reply_to": null,
+      "read_by_actor": false,
+      "reactors": []
+    },
+    {
+      "ref": "n6",
+      "chat": "c1",
+      "sender": "u2",
+      "text": "The CI flaked on me this morning, unrelated to the PR — I'll rerun.",
+      "order": 7,
+      "reply_to": "m6",
+      "read_by_actor": false,
+      "reactors": []
+    },
+    {
+      "ref": "n7",
+      "chat": "n2",
+      "sender": "n1",
+      "text": "Who's bringing snacks for Friday's gathering?",
+      "order": 4,
+      "reply_to": null,
+      "read_by_actor": true,
+      "reactors": []
+    }
+  ]
+}

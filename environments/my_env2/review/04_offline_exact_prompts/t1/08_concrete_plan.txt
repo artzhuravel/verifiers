@@ -1,0 +1,24 @@
+The plan once the world exists: real entities described, authored content inlined.
+This is what every rung is held to.
+
+step 1 [read] read_messages — Read the most recent messages in a chat, oldest to newest.
+    chat_id      = c_001 — group 'room-0' — members: You @you, Extra 0 @extra0, Extra 1 @extra1
+    -> returns: [{"id": "m_001", "chat_id": "c_001", "from": "Extra 0", "sender_id": "u_extra0", "text": "note 0 concerns widget 0 and nothing else", "ts": 1, "reply_to": null, "reactions": {}, "read_by": ["u_extra0"]}, {"id": "m_002", "chat_id": "c_001", "from": "Extra 0", "sender_id": "u_extra0", "text": "padding 0 mentions gadget 0 in passing", "ts": 2, "reply_to": null, "reactions": {}, "read_by": ["u_extra0"]}, {"id": "m_003", "chat_id": "c_001", "from": "Extra 1", "sender_id": "u_extra1", "text": "padding 1 mentions gadget 1 in passing", "ts": 3, "reply_to": null, "reactions": {}, "read_by": ["u_extra1"]}, {"id": "m_004", "chat_id": "c_001", "from": "Extra 0", "sender_id": "u_extra0", "text": "padding 2 mentions gadget 2 in passing", "ts": 4, "reply_to": null, "reactions": {}, "read_by": ["u_extra0"]}, {"id": "m_005", "chat_id": "c_001", "from": "Extra 1", "sender_id": "u_extra1", "text": "padding …(truncated)
+step 2 [read] ask_question — Ask an AI-grounded question about a GitHub repository.
+    repoName     = 'canned text for $repoName_0'
+    question     = 'canned text for $question_0'
+    -> returns a free-text answer to any question about the repo — metadata (licence, primary language, maintainers) and prose questions alike. Nondeterministic wording, so only ask things with a stable, unambiguous answer. (not known until the agent runs it)
+step 3 [write] mark_read — Mark every message in a chat as read by the acting user.
+    chat_id      = c_001 — group 'room-0' — members: You @you, Extra 0 @extra0, Extra 1 @extra1
+step 4 [write] send_message — Send a message from the acting user to a chat.
+    chat_id      = c_001 — group 'room-0' — members: You @you, Extra 0 @extra0, Extra 1 @extra1
+    text         <- must carry what step 1 returned
+    -> creates something new
+step 5 [write] reply_to — Reply to an existing message in its chat (threaded).
+    message_id   = m_001 — in room-0 from Extra 0, unread by you: 'note 0 concerns widget 0 and nothing else'
+    text         <- must carry what step 2 returned
+    -> creates something new
+step 6 [write] reply_to — Reply to an existing message in its chat (threaded).
+    message_id   = the message step 4 creates
+    text         = 'canned text for $text_0'
+    -> creates something new

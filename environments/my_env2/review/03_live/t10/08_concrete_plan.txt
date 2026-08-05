@@ -1,0 +1,27 @@
+The plan once the world exists: real entities described, authored content inlined.
+This is what every rung is held to.
+
+step 1 [read] list_chats — List the chats the acting user is a member of.
+    -> returns: [{"id": "c_001", "kind": "group", "name": "product-team", "members": ["u_me", "u_maya_r", "u_luis_h", "u_priya_k", "u_ben_z"]}, {"id": "c_002", "kind": "dm", "name": "c_002", "members": ["u_me", "u_maya_r"]}, {"id": "c_003", "kind": "group", "name": "c_003", "members": ["u_me", "u_maya_r", "u_evelyn_c"]}]
+step 2 [write] send_message — Send a message from the acting user to a chat.
+    chat_id      = c_001 — group 'product-team' — members: You @you, Maya Singh @maya_r, Luis Hernández @luis_h, Priya Kapoor @priya_k, Ben Zhao @ben_z
+    text         = "On it — I'll check acme/cli-helper on DeepWiki for the license and primary language and paste the excerpt here shortly; assembling the release notes tonight."
+    -> creates something new
+step 3 [read, an aside] ask_question — Ask an AI-grounded question about a GitHub repository.
+    repoName     = 'aws/aws-cli'
+    question     = "What is this repository's license and primary programming language?"
+    -> returns a free-text answer to any question about the repo — metadata (licence, primary language, maintainers) and prose questions alike. Nondeterministic wording, so only ask things with a stable, unambiguous answer. (not known until the agent runs it)
+step 4 [write] mark_read — Mark every message in a chat as read by the acting user.
+    chat_id      = c_001 — group 'product-team' — members: You @you, Maya Singh @maya_r, Luis Hernández @luis_h, Priya Kapoor @priya_k, Ben Zhao @ben_z
+step 5 [write] reply_to — Reply to an existing message in its chat (threaded).
+    message_id   = the message step 2 creates
+    text         = "Following up — I'll paste the DeepWiki excerpt into this thread as soon as I have it."
+    -> creates something new
+step 6 [write] reply_to — Reply to an existing message in its chat (threaded).
+    message_id   = m_004 — in c_002 from Maya Singh, unread by you: "Can you paste the full list of our current chats (names and members)? I'm updating the onboarding doc and want the exact strings."
+    text         <- must carry what step 1 returned
+    -> creates something new
+step 7 [write] reply_to — Reply to an existing message in its chat (threaded).
+    message_id   = m_009 — in product-team from Priya Kapoor, unread by you: "Could someone check acme/cli-helper on DeepWiki and paste what it says about the license and main language? We'll include that in notes."
+    text         <- must carry what step 3 returned
+    -> creates something new

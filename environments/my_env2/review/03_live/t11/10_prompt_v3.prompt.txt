@@ -1,0 +1,185 @@
+# Stage 10 — rewrite as a goal
+
+1 model call(s).
+
+================================================================================================
+== call 1 of 1
+================================================================================================
+
+------------------------------------------------------------------------------------------------
+-- SYSTEM PROMPT
+------------------------------------------------------------------------------------------------
+You rewrite a task as the request a person would actually have sent.
+
+You are given the workspace, the underlying plan, and a task written as connected prose. Raise its level of abstraction: say what you are trying to ACHIEVE and let the steps follow from it.
+
+- No enumeration. No numbered or bulleted steps, and no sentence that reads as "and then".
+- Nothing quoted or dictated word for word — except repository names and questions, which must survive exactly, because the expected answers are keyed to them.
+- Individual steps must stop being individually identifiable. Fold them into the goal.
+- Keep every reference resolvable: an agent reading this must still be able to work out which things you mean.
+- Refer to things the way the list below does, and never by name. A description with the answer bolted on — "Alice Rivera (the author of the message about the freeze)" — is worse than either half of it alone: it hands back the very step the description existed to create.
+- A description INTRODUCES a thing. Use it at the first mention only. Every later mention refers back the way a person would — "that conversation", "the same thread", "there", "them", "it", "the one you just read". Pasting a description a second time is the commonest way this rewrite fails: it reads as find-and-replace rather than as writing, and where a description depends on something the task itself changes, every use after that change is simply FALSE. Any description marked below as one the work invalidates must be used early and never again.
+- Never answer your own reference. No parenthetical, no "i.e.", no appositive that supplies the name or id of something you have just described.
+- You are shown the plan so you can check your text still leads to those actions. It is not something to reproduce, and none of it should be recognisable as a list.
+
+The test is simple: a colleague reading this should see a normal ask, and an agent following it should end up doing the same work.
+
+You also rewrite the JUDGE ITEMS. Each tells a grader what a correct answer says and where in the agent's output to look for it. They were written against the PREVIOUS version of this task, so they still speak its language — step numbers, entity ids, names, quoted wording — much of which you are removing. Left alone, they describe a task the agent was never given.
+
+For every item, restate `expected` and `hint` so that a grader reading YOUR text can still check the same thing:
+
+- `expected` — what a correct answer STATES, in substance. Keep every fact in it. Where the previous wording leaned on an id or a step number to say WHICH thing ("the reply to m_004"), say it the way your text says it. Never replace it with a pointer: "the answer to the question above" leaves a grader nothing to compare against.
+- `hint` — where in the agent's output to look, described the way your text describes it.
+
+Do not drop an item, do not merge two, and never change WHAT is required — only how it is said. Copy each `id` exactly.
+
+Respond with ONLY this JSON object:
+{"prompt": "<the rewritten task>",
+ "judge": [{"id": "<copied exactly>", "expected": "...", "hint": "..."}]}
+
+------------------------------------------------------------------------------------------------
+-- USER PROMPT
+------------------------------------------------------------------------------------------------
+ENVIRONMENT
+  chat: Local mock chat app. Read and write tools operate on the rollout's ChatState.
+  deepwiki: Public DeepWiki MCP server: read-only GitHub-repo Q&A. Answers can be nondeterministic; requires the repo to be indexed by DeepWiki.
+  You act as one specific user. The acting user's id. Every write is attributed to this user; reads are scoped to it where noted.
+
+ENTITY TYPES IN THIS TASK
+  user — A person in the workspace. Display names may collide; handles never do.
+      id: string
+      name: string
+      handle: string
+  chat — A conversation the acting user takes part in. `name` is null for a DM.
+      id: string
+      kind: "dm" | "group"
+      name: string | null
+      member_ids: string[] (user ids)
+  message — One posted message. `reply_to` threads it under an earlier message in the same chat.
+      id: string
+      chat_id: string (chat id)
+      sender_id: string (user id)
+      text: string
+      ts: int (logical clock, not wall time)
+      reply_to: string | null (parent message id)
+      reactions: object (emoji -> user_id[])
+      read_by: string[] (user ids)
+
+ACTIONS THIS TASK USES
+  read_wiki_contents (read) — View DeepWiki documentation for a GitHub repository.
+      repoName: GitHub repo in owner/repo form
+      returns: the repo's wiki DOCUMENTATION PROSE. It states what the project is for, how a subsystem works, what a concept means. It does NOT state licence, stars, maintainers or primary language, so a question about those has no obtainable answer here.
+  read_wiki_structure (read) — List the DeepWiki documentation topics for a GitHub repository.
+      repoName: GitHub repo in owner/repo form
+      returns: only the LIST OF DOCUMENTATION TOPIC TITLES. It can answer which areas the documentation covers, and nothing about repo metadata or the content of any page.
+  create_chat (write) — Create a new chat; the acting user is always included as a member.
+      member_ids: user ids to include (actor added automatically)
+      name: chat name; if set (or >2 members) the chat is a group, else a dm (optional)
+      returns: {id, kind, name, members}
+  reply_to (write) — Reply to an existing message in its chat (threaded).
+      message_id: the message being replied to
+      text: reply body
+      returns: the created message view
+  send_message (write) — Send a message from the acting user to a chat.
+      chat_id: destination chat
+      text: message body
+      returns: the created message view
+
+WORKSPACE
+You act as Sam Harper (id u_me).
+
+People:
+  u_me  Sam Harper @you
+  u_pri  Priya Sinha @pri
+  u_marco  Marco Li @marco
+  u_dana  Dana Ortiz @dana
+  u_owen  Owen Brooks @owen
+  u_lina  Lina Park @lina
+  u_elliot  Elliot Kim @elliot
+
+group backend-team (c_001) — members: Sam Harper @you, Priya Sinha @pri, Marco Li @marco, Dana Ortiz @dana
+  m_001 [Priya Sinha @pri]: Heads-up: We need to sync the payment-service runbook with the DeepWiki architecture page before Friday. Who can pull the current docs for owner/acme/payment-service?  (UNREAD by you)
+  m_002 [Dana Ortiz @dana]: I can fetch it and paste the main sections here. Any specific pages to prioritize (architecture, runbook, or API)?  (reply to m_001; UNREAD by you)
+  m_004 [Marco Li @marco]: I'll do a repo-wide structure check; interested in architecture and the API topics first. I can post the list of topics once I have it.  (reply to m_001; UNREAD by you; :+1: x1)
+  m_005 [Dana Ortiz @dana]: I'll grab the API topic list tonight and drop links here, plus a short summary.  (reply to m_002; UNREAD by you)
+  m_008 [Priya Sinha @pri]: Also, does anyone know if the staging env has the same hooks for webhooks? I had a failed delivery yesterday.
+  m_010 [Marco Li @marco]: Staging does mirror prod for hooks, but the delivery logs rotate faster. I can pull them if you point me to the timeframe.  (reply to m_008; UNREAD by you)
+
+dm (dm) (c_002) — members: Sam Harper @you, Owen Brooks @owen
+  m_012 [Owen Brooks @owen]: I pushed a small update to the runbook branch but didn't touch DeepWiki. If someone needs the topic list for acme/payment-service, ping me and I'll point them to the pages I checked locally.  (UNREAD by you)
+
+group deploy-ops (c_003) — members: Sam Harper @you, Marco Li @marco, Dana Ortiz @dana
+  m_006 [Marco Li @marco]: Also ran into an unexpected permission error on the CI runner this morning — filing a ticket.  (UNREAD by you)
+  m_007 [Marco Li @marco]: Deployment checklist needs the list of doc topics for owner/acme/deploy-scripts—does the repo have a wiki section for 'rollback' or 'hotfix'?
+  m_009 [Dana Ortiz @dana]: I couldn't find that in the repo; Owen might have the last edit on deploy-scripts doc and could confirm.  (reply to m_007)
+  m_011 [Dana Ortiz @dana]: Ticket number? I'll attach it to the deploy-scripts issue so we track it.  (reply to m_006)
+  m_013 [Marco Li @marco]: T-1023. Also can someone confirm if rollback mentions a db migration step? I couldn't find 'rollback' doc.  (reply to m_007; UNREAD by you)
+
+group lunch-plans (c_004) — members: Sam Harper @you, Priya Sinha @pri, Lina Park @lina
+  m_003 [Lina Park @lina]: Who wants dumplings Friday? I can reserve a table for 6.  (UNREAD by you)
+
+PLAN YOUR TEXT MUST STILL LEAD TO (do not reproduce it)
+step 1 [read] read_wiki_contents — View DeepWiki documentation for a GitHub repository.
+    repoName     = 'owner/acme/payment-service'
+    -> returns the repo's wiki DOCUMENTATION PROSE. It states what the project is for, how a subsystem works, what a concept means. It does NOT state licence, stars, maintainers or primary language, so a question about those has no obtainable answer here. (not known until the agent runs it)
+step 2 [read] read_wiki_structure — List the DeepWiki documentation topics for a GitHub repository.
+    repoName     = 'owner/acme/payment-service'
+    -> returns only the LIST OF DOCUMENTATION TOPIC TITLES. It can answer which areas the documentation covers, and nothing about repo metadata or the content of any page. (not known until the agent runs it)
+step 3 [write] create_chat — Create a new chat; the acting user is always included as a member.
+    member_ids   = u_pri — Priya Sinha @pri, u_marco — Marco Li @marco
+    -> creates something new
+step 4 [write] reply_to — Reply to an existing message in its chat (threaded).
+    message_id   = m_001 — in backend-team from Priya Sinha, unread by you: 'Heads-up: We need to sync the payment-service runbook with the DeepWiki architecture page before Friday. Who can pull the current docs for owner/acme/payment-service?'
+    text         <- must carry what step 1 returned
+    -> creates something new
+step 5 [write] send_message — Send a message from the acting user to a chat.
+    chat_id      = c_002 — dm (unnamed dm) — members: Sam Harper @you, Owen Brooks @owen
+    text         <- must carry what step 2 returned
+    -> creates something new
+step 6 [write] send_message — Send a message from the acting user to a chat.
+    chat_id      = the chat step 3 creates
+    text         = "Thanks — I pasted the docs into Priya's thread. Priya, can you lead the runbook review; Marco, can you check architecture and API and flag any issues by Thursday?"
+    -> creates something new
+
+KEEP REFERRING TO THINGS THIS WAY, AND NEVER BY NAME — each ONCE, then refer back
+  whoever wrote the message about payment-service runbook with the
+  whoever wrote the message about interested in architecture and
+  the message about payment-service runbook with the
+  the conversation where pushed a small update came up
+
+THESE STRINGS MUST NOT APPEAR IN YOUR TEXT
+  Marco Li, Priya Sinha, add_reaction, ask_question, c_001, c_002, c_003, c_004, chat_add_reaction, chat_create_chat, chat_get_user, chat_list_chats, chat_mark_read, chat_read_messages, chat_reply_to, chat_send_message, create_chat, deepwiki_ask_question, deepwiki_read_wiki_contents, deepwiki_read_wiki_structure, get_user, list_chats, m_001, m_002, m_003, m_004, m_005, m_006, m_007, m_008, m_009, m_010, m_011, m_012, m_013, marco, mark_read, pri, read_messages, read_wiki_contents, read_wiki_structure, reply_to, send_message, u_dana, u_elliot, u_lina, u_marco, u_me, u_owen, u_pri
+
+JUDGE ITEMS — REWRITE EACH ONE'S expected AND hint FOR YOUR TEXT
+  carry:c0a1:text
+      requirement (FIXED, do not change): the text of step 4 must carry what step 1 returned
+      must be delivered in (FIXED): the message step 4 posts
+      expected — RESTATE FOR YOUR TEXT: The reply to the message about payment-service runbook with the summarizes the payment-service wiki documentation prose, stating what the owner/acme/payment-service project is for, explaining how at least one subsystem works, and defining or explaining key concepts from the docs.
+      hint     — RESTATE FOR YOUR TEXT: Look in the reply message you post as a reply to the message about payment-service runbook with the in the backend-team chat (the reply created in that thread).
+  carry:c1a1:text
+      requirement (FIXED, do not change): the text of step 5 must carry what step 2 returned
+      must be delivered in (FIXED): the message step 5 posts
+      expected — RESTATE FOR YOUR TEXT: The DM you send to the conversation where pushed a small update came up lists the repository's documentation topic titles as a clear list of topic names (for example: Architecture, Runbook, API).
+      hint     — RESTATE FOR YOUR TEXT: Look in the message you send to the conversation where pushed a small update came up (the direct message you create).
+
+CURRENT TASK TEXT (rewrite this)
+Fetch the DeepWiki documentation prose for owner/acme/payment-service and keep it available for use; also fetch the list of documentation topic titles for owner/acme/payment-service and keep that available. Create a new chat that includes whoever wrote the message about payment-service runbook with the, whoever wrote the message about interested in architecture and, and me. Post a reply in the backend-team thread to the message that is the message about payment-service runbook with the; that reply must carry the main points from the documentation prose you fetched, summarizing what the owner/acme/payment-service project is for, explaining how at least one relevant subsystem works, and including any key concept definitions from the docs. Send a direct message into the conversation where pushed a small update came up that lists the repository's documentation topic titles as a clear list of topic names so the other participant there can see which wiki topics exist for owner/acme/payment-service. Finally, send a message to the chat you created with the exact text: "Thanks — I pasted the docs into Priya's thread. Priya, can you lead the runbook review; Marco, can you check architecture and API and flag any issues by Thursday?"
+
+------------------------------------------------------------------------------------------------
+-- REPLY
+------------------------------------------------------------------------------------------------
+{
+  "prompt": "Goal: bring the DeepWiki content for 'owner/acme/payment-service' into our team conversations so the runbook sync can proceed. Fetch the wiki documentation prose for 'owner/acme/payment-service' and fetch the list of documentation topic titles for the same repo. Create a new chat that includes whoever wrote the message about payment-service runbook with the, whoever wrote the message about interested in architecture and, and me. In the backend-team thread, post a reply to the message identified as the message about payment-service runbook with the that carries the main points from the documentation prose you fetched: state what the 'owner/acme/payment-service' project is for, explain how at least one relevant subsystem works, and include definitions or explanations of key concepts the docs define. Send a direct message into the conversation where pushed a small update came up that lists the repository's documentation topic titles as a clear list of topic names (for example: Architecture, Runbook, API). Finally, send a message to the chat you created with this exact text: \"Thanks — I pasted the docs into Priya's thread. Priya, can you lead the runbook review; Marco, can you check architecture and API and flag any issues by Thursday?\"",
+  "judge": [
+    {
+      "id": "carry:c0a1:text",
+      "expected": "The reply posted in the backend-team thread in response to the message about payment-service runbook with the summarizes the payment-service wiki documentation prose: it states what the owner/acme/payment-service project is for, explains how at least one subsystem works, and defines or explains key concepts appearing in the docs.",
+      "hint": "Check the reply message you post in that backend-team thread in response to the message about payment-service runbook with the (the threaded reply you create)."
+    },
+    {
+      "id": "carry:c1a1:text",
+      "expected": "The direct message you send to the conversation where pushed a small update came up contains a clear list of the repository's documentation topic titles (the wiki topic names for owner/acme/payment-service, e.g. Architecture, Runbook, API).",
+      "hint": "Look at the message you send to the conversation where pushed a small update came up (the DM you create) to find the listed topic titles."
+    }
+  ]
+}

@@ -1,0 +1,300 @@
+{
+  "me": "u_me",
+  "users": {
+    "u_me": {
+      "id": "u_me",
+      "name": "Sam Park",
+      "handle": "you"
+    },
+    "u_alice": {
+      "id": "u_alice",
+      "name": "Alice Rivera",
+      "handle": "alice"
+    },
+    "u_ben": {
+      "id": "u_ben",
+      "name": "Ben Turner",
+      "handle": "ben"
+    },
+    "u_cara": {
+      "id": "u_cara",
+      "name": "Cara Malik",
+      "handle": "cara"
+    },
+    "u_diego": {
+      "id": "u_diego",
+      "name": "Diego Ramos",
+      "handle": "diego"
+    },
+    "u_evan": {
+      "id": "u_evan",
+      "name": "Evan Stone",
+      "handle": "evan"
+    }
+  },
+  "chats": {
+    "c_001": {
+      "id": "c_001",
+      "kind": "group",
+      "name": "launch-planning",
+      "member_ids": [
+        "u_me",
+        "u_alice",
+        "u_cara",
+        "u_diego"
+      ]
+    },
+    "c_002": {
+      "id": "c_002",
+      "kind": "dm",
+      "name": null,
+      "member_ids": [
+        "u_me",
+        "u_ben"
+      ]
+    },
+    "c_003": {
+      "id": "c_003",
+      "kind": "group",
+      "name": "reading-club",
+      "member_ids": [
+        "u_me",
+        "u_alice",
+        "u_evan"
+      ]
+    },
+    "c_004": {
+      "id": "c_004",
+      "kind": "group",
+      "name": "$name_0",
+      "member_ids": [
+        "u_me",
+        "u_alice",
+        "u_ben"
+      ]
+    },
+    "c_005": {
+      "id": "c_005",
+      "kind": "group",
+      "name": "$name_1",
+      "member_ids": [
+        "u_me",
+        "u_cara",
+        "u_diego"
+      ]
+    }
+  },
+  "messages": [
+    {
+      "id": "m_001",
+      "chat_id": "c_001",
+      "sender_id": "u_alice",
+      "text": "Draft timeline: feature freeze Aug 10, beta Aug 24, public Aug 31. Thoughts?",
+      "ts": 1,
+      "reply_to": null,
+      "reactions": {
+        ":thinking:": [
+          "u_cara"
+        ]
+      },
+      "read_by": [
+        "u_alice"
+      ]
+    },
+    {
+      "id": "m_002",
+      "chat_id": "c_001",
+      "sender_id": "u_cara",
+      "text": "Heads-up: I'll be OOO Friday but will join the async notes thread.",
+      "ts": 2,
+      "reply_to": null,
+      "reactions": {},
+      "read_by": [
+        "u_cara"
+      ]
+    },
+    {
+      "id": "m_003",
+      "chat_id": "c_001",
+      "sender_id": "u_cara",
+      "text": "Freeze is tight; could we shift beta to Aug 31? That gives QA more runway.",
+      "ts": 3,
+      "reply_to": "m_001",
+      "reactions": {},
+      "read_by": [
+        "u_cara"
+      ]
+    },
+    {
+      "id": "m_004",
+      "chat_id": "c_001",
+      "sender_id": "u_alice",
+      "text": "Also, can someone confirm the vendor deliverable dates? I have a call Wed.",
+      "ts": 4,
+      "reply_to": null,
+      "reactions": {},
+      "read_by": [
+        "u_alice",
+        "u_me"
+      ]
+    },
+    {
+      "id": "m_005",
+      "chat_id": "c_001",
+      "sender_id": "u_diego",
+      "text": "If we shift beta, it will clash with marketing deadlines. I suggest we keep the current dates and add contingency work.",
+      "ts": 5,
+      "reply_to": "m_001",
+      "reactions": {
+        ":+1:": [
+          "u_alice"
+        ]
+      },
+      "read_by": [
+        "u_diego"
+      ]
+    },
+    {
+      "id": "m_006",
+      "chat_id": "c_002",
+      "sender_id": "u_ben",
+      "text": "Quick Q: can you push the DB migration to next week? I'm tied up with client fixes on Mon/Tue.",
+      "ts": 6,
+      "reply_to": null,
+      "reactions": {},
+      "read_by": [
+        "u_ben",
+        "u_me"
+      ]
+    },
+    {
+      "id": "m_007",
+      "chat_id": "c_002",
+      "sender_id": "u_ben",
+      "text": "P.S. if you want, I can pair on the migration review Thursday evening.",
+      "ts": 7,
+      "reply_to": null,
+      "reactions": {},
+      "read_by": [
+        "u_ben",
+        "u_me"
+      ]
+    },
+    {
+      "id": "m_008",
+      "chat_id": "c_002",
+      "sender_id": "u_ben",
+      "text": "Also, I'll need a review on the migration PR by Tuesday so we don't block deployment.",
+      "ts": 8,
+      "reply_to": "m_006",
+      "reactions": {},
+      "read_by": [
+        "u_ben"
+      ]
+    },
+    {
+      "id": "m_009",
+      "chat_id": "c_001",
+      "sender_id": "u_alice",
+      "text": "Marketing would rather we don't move beta. Diego, can you draft a short risk list we can show them?",
+      "ts": 9,
+      "reply_to": "m_005",
+      "reactions": {
+        ":+1:": [
+          "u_diego"
+        ]
+      },
+      "read_by": [
+        "u_alice"
+      ]
+    },
+    {
+      "id": "m_010",
+      "chat_id": "c_001",
+      "sender_id": "u_cara",
+      "text": "Random note: the conference hotel blocks filled up fast. Book if you need to.",
+      "ts": 10,
+      "reply_to": null,
+      "reactions": {},
+      "read_by": [
+        "u_cara",
+        "u_me"
+      ]
+    },
+    {
+      "id": "m_011",
+      "chat_id": "c_001",
+      "sender_id": "u_me",
+      "text": "I can take the risk list and coordinate with Legal once Diego posts it.",
+      "ts": 11,
+      "reply_to": "m_009",
+      "reactions": {},
+      "read_by": [
+        "u_me"
+      ]
+    },
+    {
+      "id": "m_012",
+      "chat_id": "c_003",
+      "sender_id": "u_alice",
+      "text": "Welcome to the group! Coffee run tomorrow?",
+      "ts": 12,
+      "reply_to": null,
+      "reactions": {},
+      "read_by": [
+        "u_alice",
+        "u_me"
+      ]
+    },
+    {
+      "id": "m_013",
+      "chat_id": "c_002",
+      "sender_id": "u_me",
+      "text": "I saw your note; I can postpone the migration to next Thursday. I'll also update the rollback plan and ping you for a review.",
+      "ts": 13,
+      "reply_to": "m_008",
+      "reactions": {},
+      "read_by": [
+        "u_me"
+      ]
+    },
+    {
+      "id": "m_014",
+      "chat_id": "c_002",
+      "sender_id": "u_me",
+      "text": "$carried_c0a1_text",
+      "ts": 14,
+      "reply_to": null,
+      "reactions": {},
+      "read_by": [
+        "u_me"
+      ]
+    },
+    {
+      "id": "m_015",
+      "chat_id": "c_001",
+      "sender_id": "u_me",
+      "text": "$carried_c1a1_text",
+      "ts": 15,
+      "reply_to": "m_005",
+      "reactions": {},
+      "read_by": [
+        "u_me"
+      ]
+    },
+    {
+      "id": "m_016",
+      "chat_id": "c_002",
+      "sender_id": "u_me",
+      "text": "$carried_c0a2_text",
+      "ts": 16,
+      "reply_to": "m_008",
+      "reactions": {},
+      "read_by": [
+        "u_me"
+      ]
+    }
+  ],
+  "next_message_id": 17,
+  "next_chat_id": 6
+}

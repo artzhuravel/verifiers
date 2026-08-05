@@ -1,0 +1,29 @@
+Stage 4. Each seed entity gets ONE way of being described instead of named.
+The model picks only WHICH mode; the adapter derives the params from the world and
+proves resolve(state, mode, params) == [that entity]. A mode that cannot be made to fit
+is skipped and the next tried, so the stage is total — an entity with no working
+reference raises, because v2 strips ids out and the task would be unanswerable.
+
+  $chat_0  ->  c_001
+      the entity      group 'frontend-sprint' — members: Sam Ortiz @you, Alice Chen @alice, Ben Park @ben, Priya Singh @priya, Marco Ruiz @marco
+      mode chosen     chat_by_name  (the model's pick)
+      params derived  {"name": "frontend-sprint"}
+      reads as        "the frontend-sprint channel"
+      predicate       the chat whose title is exactly frontend-sprint
+      PROOF           resolve() -> ['c_001']   unique, and it is the target
+
+  $message_0  ->  m_004
+      the entity      in frontend-sprint from Marco Ruiz: "Quick request: could someone paste the list of chats you're in? I'm mapping who needs access to the performance dashboard and it would help to see overlap."
+      mode chosen     message_by_text  (the model's pick)
+      params derived  {"text": "could someone paste the"}
+      reads as        "the message about could someone paste the"
+      predicate       the one message whose text contains could someone paste the
+      PROOF           resolve() -> ['m_004']   unique, and it is the target
+
+  $message_1  ->  m_009
+      the entity      in c_002 from Priya Singh, unread by you: 'Can you ask DeepWiki what license and primary language acme/frontend-utils uses? We need that for the upcoming audit.'
+      mode chosen     message_by_text  (the model's pick)
+      params derived  {"text": "DeepWiki what license and"}
+      reads as        "the message about DeepWiki what license and"
+      predicate       the one message whose text contains DeepWiki what license and
+      PROOF           resolve() -> ['m_009']   unique, and it is the target

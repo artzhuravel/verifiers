@@ -1,0 +1,255 @@
+{
+  "me": "u_me",
+  "users": {
+    "u_me": {
+      "id": "u_me",
+      "name": "Alex Chen",
+      "handle": "you"
+    },
+    "u_sam_o": {
+      "id": "u_sam_o",
+      "name": "Sam Ortega",
+      "handle": "sam_o"
+    },
+    "u_lina_w": {
+      "id": "u_lina_w",
+      "name": "Lina Wu",
+      "handle": "lina_w"
+    },
+    "u_raj_k": {
+      "id": "u_raj_k",
+      "name": "Raj Kapoor",
+      "handle": "raj_k"
+    },
+    "u_marisa_g": {
+      "id": "u_marisa_g",
+      "name": "Marisa Gómez",
+      "handle": "marisa_g"
+    },
+    "u_priya_a": {
+      "id": "u_priya_a",
+      "name": "Priya Anand",
+      "handle": "priya_a"
+    },
+    "u_devops_bot": {
+      "id": "u_devops_bot",
+      "name": "DevOps Bot",
+      "handle": "devops_bot"
+    }
+  },
+  "chats": {
+    "c_001": {
+      "id": "c_001",
+      "kind": "dm",
+      "name": null,
+      "member_ids": [
+        "u_me",
+        "u_sam_o"
+      ]
+    },
+    "c_002": {
+      "id": "c_002",
+      "kind": "group",
+      "name": "infra-team",
+      "member_ids": [
+        "u_me",
+        "u_sam_o",
+        "u_lina_w",
+        "u_raj_k",
+        "u_marisa_g"
+      ]
+    },
+    "c_003": {
+      "id": "c_003",
+      "kind": "group",
+      "name": "lunch-club",
+      "member_ids": [
+        "u_me",
+        "u_raj_k",
+        "u_priya_a"
+      ]
+    }
+  },
+  "messages": [
+    {
+      "id": "m_001",
+      "chat_id": "c_002",
+      "sender_id": "u_sam_o",
+      "text": "Heads-up: security audit scheduled next Tue. We need to collect license, primary language, and maintainer list for the repos we're scanning. Lina, which repo did you want checked first?",
+      "ts": 1,
+      "reply_to": null,
+      "reactions": {},
+      "read_by": [
+        "u_sam_o",
+        "u_me"
+      ]
+    },
+    {
+      "id": "m_002",
+      "chat_id": "c_001",
+      "sender_id": "u_sam_o",
+      "text": "Quick: when you have a minute, can you run DeepWiki on whichever repo Lina picks? Copy the results into the audit doc.",
+      "ts": 2,
+      "reply_to": null,
+      "reactions": {},
+      "read_by": [
+        "u_sam_o",
+        "u_me"
+      ]
+    },
+    {
+      "id": "m_003",
+      "chat_id": "c_002",
+      "sender_id": "u_marisa_g",
+      "text": "I can take a look at the license files later today.",
+      "ts": 3,
+      "reply_to": "m_001",
+      "reactions": {},
+      "read_by": [
+        "u_marisa_g",
+        "u_me"
+      ]
+    },
+    {
+      "id": "m_004",
+      "chat_id": "c_002",
+      "sender_id": "u_lina_w",
+      "text": "Proposed repo: apache/cool-db. Can someone confirm its license and primary language? Also who the listed maintainers are.",
+      "ts": 4,
+      "reply_to": "m_001",
+      "reactions": {},
+      "read_by": [
+        "u_lina_w",
+        "u_me"
+      ]
+    },
+    {
+      "id": "m_005",
+      "chat_id": "c_001",
+      "sender_id": "u_sam_o",
+      "text": "I saw u2's proposed repo and left a note in the audit doc.",
+      "ts": 5,
+      "reply_to": "m_002",
+      "reactions": {},
+      "read_by": [
+        "u_sam_o",
+        "u_me"
+      ]
+    },
+    {
+      "id": "m_006",
+      "chat_id": "c_002",
+      "sender_id": "u_raj_k",
+      "text": "I think it's Apache-2.0 and mostly Java, but I'd rather have a source-confirmed answer.",
+      "ts": 6,
+      "reply_to": "m_004",
+      "reactions": {},
+      "read_by": [
+        "u_raj_k",
+        "u_me"
+      ]
+    },
+    {
+      "id": "m_007",
+      "chat_id": "c_003",
+      "sender_id": "u_raj_k",
+      "text": "Quick poll: lunch run at 12:15?",
+      "ts": 7,
+      "reply_to": null,
+      "reactions": {},
+      "read_by": [
+        "u_raj_k",
+        "u_me"
+      ]
+    },
+    {
+      "id": "m_008",
+      "chat_id": "c_002",
+      "sender_id": "u_marisa_g",
+      "text": "Added a checklist in the audit doc. @alex, can you run DeepWiki for apache/cool-db and paste the findings here?",
+      "ts": 8,
+      "reply_to": "m_004",
+      "reactions": {},
+      "read_by": [
+        "u_marisa_g",
+        "u_me"
+      ]
+    },
+    {
+      "id": "m_009",
+      "chat_id": "c_002",
+      "sender_id": "u_raj_k",
+      "text": "Also looping in u2 — can you check the maintainer list on the GH page when you have a sec?",
+      "ts": 9,
+      "reply_to": "m_006",
+      "reactions": {},
+      "read_by": [
+        "u_raj_k",
+        "u_me"
+      ]
+    },
+    {
+      "id": "m_010",
+      "chat_id": "c_002",
+      "sender_id": "u_sam_o",
+      "text": "If DeepWiki can list maintainers from the repo's GitHub info, that'd be perfect.",
+      "ts": 10,
+      "reply_to": "m_008",
+      "reactions": {},
+      "read_by": [
+        "u_sam_o",
+        "u_me"
+      ]
+    },
+    {
+      "id": "m_011",
+      "chat_id": "c_001",
+      "sender_id": "u_me",
+      "text": "Sure — ping me when you confirm which repo. I'll do the query and add results to the doc.",
+      "ts": 11,
+      "reply_to": "m_002",
+      "reactions": {},
+      "read_by": [
+        "u_me"
+      ]
+    },
+    {
+      "id": "m_012",
+      "chat_id": "c_002",
+      "sender_id": "u_me",
+      "text": "$carried_c0a1_text",
+      "ts": 12,
+      "reply_to": null,
+      "reactions": {},
+      "read_by": [
+        "u_me"
+      ]
+    },
+    {
+      "id": "m_013",
+      "chat_id": "c_002",
+      "sender_id": "u_me",
+      "text": "$carried_c1a1_text",
+      "ts": 13,
+      "reply_to": "m_004",
+      "reactions": {},
+      "read_by": [
+        "u_me"
+      ]
+    },
+    {
+      "id": "m_014",
+      "chat_id": "c_002",
+      "sender_id": "u_me",
+      "text": "$text_0",
+      "ts": 14,
+      "reply_to": "m_012",
+      "reactions": {},
+      "read_by": [
+        "u_me"
+      ]
+    }
+  ],
+  "next_message_id": 15,
+  "next_chat_id": 4
+}

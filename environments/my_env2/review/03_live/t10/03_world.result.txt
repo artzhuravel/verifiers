@@ -1,0 +1,32 @@
+Stage 3 result: the authored draft, built into a state.
+`seed.build` validates and never repairs — an undeclared sender, a reply across chats
+or an unbound placeholder rejects the whole draft and costs a correction round.
+
+topic: Release prep and repo lookup for the upcoming feature release
+
+You act as You (id u_me).
+
+People:
+  u_me  You @you
+  u_maya_r  Maya Singh @maya_r
+  u_luis_h  Luis Hernández @luis_h
+  u_priya_k  Priya Kapoor @priya_k
+  u_ben_z  Ben Zhao @ben_z
+
+group product-team (c_001) — members: You @you, Maya Singh @maya_r, Luis Hernández @luis_h, Priya Kapoor @priya_k, Ben Zhao @ben_z
+  m_001 [Luis Hernández @luis_h]: Deploy is still scheduled for 15:00. Do we have sign-off from security? If not, we should push to EOD.  (UNREAD by you)
+  m_002 [Priya Kapoor @priya_k]: Security sent a short list of issues; Ben is on the fixes. Also: we need the exact repo metadata (license, primary language) for the release notes.
+  m_004 [Ben Zhao @ben_z]: Fixed the CI matrix failure — pushing a patch now. Will run another smoke before the deploy.
+  m_005 [Priya Kapoor @priya_k]: Could someone check acme/cli-helper on DeepWiki and paste what it says about the license and main language? We'll include that in notes.  (UNREAD by you)
+  m_006 [You @you]: I'll assemble the release note draft tonight and share for review.  (reply to m_002)
+  m_008 [Luis Hernández @luis_h]: Quick FYI numbers for the release notes: expected DAU ~12k, peak ~60k. Not final but helpful for comms.
+  m_009 [Priya Kapoor @priya_k]: Ben — when you paste that DeepWiki excerpt, could you bold or point out the exact license line so legal can review quickly?  (reply to m_005; UNREAD by you)
+
+dm (dm) (c_002) — members: You @you, Maya Singh @maya_r
+  m_003 [Maya Singh @maya_r]: Can you paste the full list of our current chats (names and members)? I'm updating the onboarding doc and want the exact strings.  (UNREAD by you)
+  m_007 [Maya Singh @maya_r]: Also—are we still using the pinned #product-team resources? New hires are asking where to find specs.  (reply to m_003; UNREAD by you)
+
+PLACEHOLDERS BOUND
+  $chat_0              -> c_001
+  $message_0           -> m_003
+  $message_1           -> m_005

@@ -1,0 +1,61 @@
+Stage 4. Each seed entity gets ONE way of being described instead of named.
+The model picks only WHICH mode; the adapter derives the params from the world and
+proves resolve(state, mode, params) == [that entity]. A mode that cannot be made to fit
+is skipped and the next tried, so the stage is total — an entity with no working
+reference raises, because v2 strips ids out and the task would be unanswerable.
+
+  $user_0  ->  u_mg_singh
+      the entity      Maya Singh @mg_singh
+      mode chosen     user_authored_text  (the model's pick)
+      params derived  {"text": "finalize the beta list"}
+      reads as        "whoever wrote the message about finalize the beta list"
+      predicate       the user who wrote the one message whose text contains finalize the beta list
+      PROOF           resolve() -> ['u_mg_singh']   unique, and it is the target
+
+  $user_1  ->  u_crivera
+      the entity      Carlos Rivera @crivera
+      mode chosen     user_authored_text  (the model's pick)
+      params derived  {"text": "worried about capacity for"}
+      reads as        "whoever wrote the message about worried about capacity for"
+      predicate       the user who wrote the one message whose text contains worried about capacity for
+      PROOF           resolve() -> ['u_crivera']   unique, and it is the target
+
+  $user_2  ->  u_jpark
+      the entity      Jen Park @jpark
+      mode chosen     user_authored_text  (the model's pick)
+      params derived  {"text": "final assets from design"}
+      reads as        "whoever wrote the message about final assets from design"
+      predicate       the user who wrote the one message whose text contains final assets from design
+      PROOF           resolve() -> ['u_jpark']   unique, and it is the target
+
+  $user_3  ->  u_amirq
+      the entity      Amir Qureshi @amirq
+      mode chosen     user_authored_text  (the model's pick)
+      params derived  {"text": "Pushed the revised hero"}
+      reads as        "whoever wrote the message about Pushed the revised hero"
+      predicate       the user who wrote the one message whose text contains Pushed the revised hero
+      PROOF           resolve() -> ['u_amirq']   unique, and it is the target
+
+  $chat_0  ->  c_001
+      the entity      group 'launch-team' — members: Alex Morgan @you, Maya Singh @mg_singh, Carlos Rivera @crivera
+      mode chosen     chat_containing_text  (the model's pick)
+      params derived  {"text": "finalize the beta list"}
+      reads as        "the conversation where finalize the beta list came up"
+      predicate       the chat containing a message whose text contains finalize the beta list
+      PROOF           resolve() -> ['c_001']   unique, and it is the target
+
+  $message_0  ->  m_003
+      the entity      in launch-team from Carlos Rivera, unread by you: "I'm worried about capacity for tier B; we should cap at 30 unless ops can extend."
+      mode chosen     message_by_text  (the model's pick)
+      params derived  {"text": "worried about capacity for"}
+      reads as        "the message about worried about capacity for"
+      predicate       the one message whose text contains worried about capacity for
+      PROOF           resolve() -> ['m_003']   unique, and it is the target
+
+  $message_1  ->  m_006
+      the entity      in design-queue from Amir Qureshi, unread by you: 'Pushed the revised hero banner to /design-assets/banner_v3 — feedback welcome.'
+      mode chosen     message_by_text  (the model's pick)
+      params derived  {"text": "Pushed the revised hero"}
+      reads as        "the message about Pushed the revised hero"
+      predicate       the one message whose text contains Pushed the revised hero
+      PROOF           resolve() -> ['m_006']   unique, and it is the target

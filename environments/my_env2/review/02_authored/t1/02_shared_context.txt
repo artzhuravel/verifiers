@@ -1,0 +1,46 @@
+Stage 2. Built once and prepended to EVERY authoring call below, so all seven decide
+against the same account of what the environment means. Every word of it comes from the
+spec — an action's description, a param's description, an entity type's description, an
+action's `returns`. Nothing in the renderer knows this is a chat app.
+
+ENVIRONMENT
+  chat: Local mock chat app. Read and write tools operate on the rollout's ChatState.
+  deepwiki: Public DeepWiki MCP server: read-only GitHub-repo Q&A. Answers can be nondeterministic; requires the repo to be indexed by DeepWiki.
+  You act as one specific user. The acting user's id. Every write is attributed to this user; reads are scoped to it where noted.
+
+ENTITY TYPES IN THIS TASK
+  chat — A conversation the acting user takes part in. `name` is null for a DM.
+      id: string
+      kind: "dm" | "group"
+      name: string | null
+      member_ids: string[] (user ids)
+  message — One posted message. `reply_to` threads it under an earlier message in the same chat.
+      id: string
+      chat_id: string (chat id)
+      sender_id: string (user id)
+      text: string
+      ts: int (logical clock, not wall time)
+      reply_to: string | null (parent message id)
+      reactions: object (emoji -> user_id[])
+      read_by: string[] (user ids)
+
+ACTIONS THIS TASK USES
+  read_messages (read) — Read the most recent messages in a chat, oldest to newest.
+      chat_id: chat to read
+      limit: max messages, most recent (optional)
+      returns: array of message views {id, chat_id, from, sender_id, text, ts, reply_to, reactions, read_by}
+  ask_question (read) — Ask an AI-grounded question about a GitHub repository.
+      repoName: GitHub repo in owner/repo form (or a list, max 10)
+      question: the question to ask
+      returns: a free-text answer to any question about the repo — metadata (licence, primary language, maintainers) and prose questions alike. Nondeterministic wording, so only ask things with a stable, unambiguous answer.
+  mark_read (write) — Mark every message in a chat as read by the acting user.
+      chat_id: chat to mark read
+      returns: {chat_id, marked_read: <count>}
+  send_message (write) — Send a message from the acting user to a chat.
+      chat_id: destination chat
+      text: message body
+      returns: the created message view
+  reply_to (write) — Reply to an existing message in its chat (threaded).
+      message_id: the message being replied to
+      text: reply body
+      returns: the created message view

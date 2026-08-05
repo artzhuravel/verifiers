@@ -1,0 +1,37 @@
+Stage 4. Each seed entity gets ONE way of being described instead of named.
+The model picks only WHICH mode; the adapter derives the params from the world and
+proves resolve(state, mode, params) == [that entity]. A mode that cannot be made to fit
+is skipped and the next tried, so the stage is total — an entity with no working
+reference raises, because v2 strips ids out and the task would be unanswerable.
+
+  $message_0  ->  m_002
+      the entity      in telemetry from Ben Rosario, replying to m_001, unread by you: 'I skimmed the DeepWiki docs on exporter chunking; they recommend ~64MB chunks and explain retry semantics. Might be relevant for our throttling design.'
+      mode chosen     message_reply_to_text  (the model's pick)
+      params derived  {"text": "worried about bursts if"}
+      reads as        "the reply to the message about worried about bursts if"
+      predicate       the single reply to the one message whose text contains worried about bursts if
+      PROOF           resolve() -> ['m_002']   unique, and it is the target
+
+  $chat_0  ->  c_002
+      the entity      dm (unnamed dm) — members: You @you, Alice Chen @alicec
+      mode chosen     chat_containing_text  (the model's pick)
+      params derived  {"text": "DeepWiki export docs and"}
+      reads as        "the conversation where DeepWiki export docs and came up"
+      predicate       the chat containing a message whose text contains DeepWiki export docs and
+      PROOF           resolve() -> ['c_002']   unique, and it is the target
+
+  $message_1  ->  m_005
+      the entity      in infra from Diego Patel, unread by you: "Infra question: what chunk size should we bake into the pipeline? We've heard 64MB from telemetry but need confirmation."
+      mode chosen     message_by_text  (the model's pick)
+      params derived  {"text": "chunk size should we"}
+      reads as        "the message about chunk size should we"
+      predicate       the one message whose text contains chunk size should we
+      PROOF           resolve() -> ['m_005']   unique, and it is the target
+
+  $chat_1  ->  c_003
+      the entity      group 'infra' — members: You @you, Ben Rosario @benr, Diego Patel @dpatel
+      mode chosen     chat_by_name  (the model's pick)
+      params derived  {"name": "infra"}
+      reads as        "the infra channel"
+      predicate       the chat whose title is exactly infra
+      PROOF           resolve() -> ['c_003']   unique, and it is the target

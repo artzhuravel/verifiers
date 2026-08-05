@@ -1,0 +1,25 @@
+The plan once the world exists: real entities described, authored content inlined.
+This is what every rung is held to.
+
+step 1 [read] read_wiki_contents — View DeepWiki documentation for a GitHub repository.
+    repoName     = 'kubernetes/kubernetes'
+    -> returns the repo's wiki DOCUMENTATION PROSE. It states what the project is for, how a subsystem works, what a concept means. It does NOT state licence, stars, maintainers or primary language, so a question about those has no obtainable answer here. (not known until the agent runs it)
+step 2 [write] add_reaction — Add an emoji reaction from the acting user to a message.
+    message_id   = m_002 — in telemetry from Ben Rosario, replying to m_001, unread by you: 'I skimmed the DeepWiki docs on exporter chunking; they recommend ~64MB chunks and explain retry semantics. Might be relevant for our throttling design.'
+    emoji        = ':+1:'
+step 3 [write] send_message — Send a message from the acting user to a chat.
+    chat_id      = c_002 — dm (unnamed dm) — members: You @you, Alice Chen @alicec
+    text         <- must carry what step 1 returned
+    -> creates something new
+step 4 [write] reply_to — Reply to an existing message in its chat (threaded).
+    message_id   = m_008 — in infra from Diego Patel, unread by you: "Infra question: what chunk size should we bake into the pipeline? We've heard 64MB from telemetry but need confirmation."
+    text         = 'Default to ~64MB chunks and require client exponential backoff plus idempotency tokens to avoid repeated retries.'
+    -> creates something new
+step 5 [write] send_message — Send a message from the acting user to a chat.
+    chat_id      = c_003 — group 'infra' — members: You @you, Ben Rosario @benr, Diego Patel @dpatel
+    text         <- must carry what step 1 returned
+    -> creates something new
+step 6 [write] reply_to — Reply to an existing message in its chat (threaded).
+    message_id   = the message step 5 creates
+    text         = 'If we lock 64MB + client backoff, I can update the pipeline defaults and add a retransmit test.'
+    -> creates something new

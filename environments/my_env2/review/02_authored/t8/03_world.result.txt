@@ -1,0 +1,45 @@
+Stage 3 result (as shipped, after Stage 5 padding).
+
+topic: Preparing release for acme/telemetry-lib — need GitHub metadata
+
+You act as Sam Ortega (id u_me).
+
+People:
+  u_me  Sam Ortega @you
+  u_alice  Alice Monroe @alice
+  u_ben  Benjamin Ortiz @ben
+  u_carla  Carla Ruiz @carla
+  u_dan  Daniel Park @dan
+  u_kzhang  Kevin Zhang @kzhang
+  u_linac  Lina Chen @linac
+
+group backend-team (c_001) — members: Sam Ortega @you, Alice Monroe @alice, Benjamin Ortiz @ben, Carla Ruiz @carla, Daniel Park @dan
+  m_001 [Alice Monroe @alice]: Quick ask: before we cut the release, can someone check acme/telemetry-lib on GitHub — we need the license, primary language, and current maintainers listed.
+  m_002 [Benjamin Ortiz @ben]: I can check this, but can someone confirm my GitHub handle? I use a couple of variants ('benort' vs company handle).  (reply to m_001; UNREAD by you)
+  m_003 [Alice Monroe @alice]: Small heads-up: spilled coffee but all good here. Also tagging u2 in case you want to confirm which handle you're using publicly.
+  m_004 [Carla Ruiz @carla]: Ben — if you look, also confirm whether it's under acme-org or a personal repo. Infra needs that for permissions.  (reply to m_002)
+  m_006 [Daniel Park @dan]: FYI I pushed a tiny fix to the pipeline; shouldn't affect the release but ping me if anything flakey shows up.  (reply to m_001)
+  m_008 [Carla Ruiz @carla]: Totally unrelated: did anyone else have audio glitches on the standup stream this morning?  (reply to m_004)
+  m_010 [Daniel Park @dan]: If it's under acme-org, the maintainers list should be in CODEOWNERS. Could someone fetch that file and check the entries?  (reply to m_001)
+  m_012 [Benjamin Ortiz @ben]: Also, if anyone's checking, confirm whether the license permits redistribution — Legal will block the release otherwise.  (reply to m_002; UNREAD by you)
+  m_013 [Benjamin Ortiz @ben]: I can take the CODEOWNERS check now and report back — heads up that I have a hard stop at 6pm for a kid thing.  (reply to m_010)
+  m_014 [Alice Monroe @alice]: Let's collect the results in the thread on the release checklist. Ping me once you have the GitHub metadata so I can update the release notes.  (reply to m_001)
+
+dm (dm) (c_002) — members: Sam Ortega @you, Carla Ruiz @carla
+  m_007 [Carla Ruiz @carla]: Hey — can you look up Ben's GitHub ID? I need to @-mention him in the repo issue about the security advisory.  (UNREAD by you)
+  m_011 [Carla Ruiz @carla]: Found it — u2 appears on GitHub as 'benort-company'. Sending the exact ID in this DM thread.  (reply to m_007)
+  m_015 [Carla Ruiz @carla]: And send the GitHub handle back here if you find it, so I can message him privately about timing.  (reply to m_007; UNREAD by you)
+
+group coffee-break (c_003) — members: Sam Ortega @you, Alice Monroe @alice, Kevin Zhang @kzhang, Lina Chen @linac
+  m_005 [Kevin Zhang @kzhang]: Morning — who's up for grabbing coffee after standup? I can swing by the lobby at 10:15.
+  m_009 [Alice Monroe @alice]: I'll join — meet you by the coffee machine after standup.  (reply to m_005)
+
+PLACEHOLDERS BOUND
+  $user_0                -> u_ben        (seed)
+  $chat_0                -> c_001        (seed)
+  $message_0             -> m_002        (seed)
+  $message_1             -> m_007        (seed)
+  $new_message_0         -> m_016        (rollout)
+  $new_message_1         -> m_017        (rollout)
+  $new_message_2         -> m_018        (rollout)
+  $new_message_3         -> m_019        (rollout)

@@ -1,0 +1,178 @@
+# The delivery judge (eval time — after a rollout)
+
+Not part of authoring. This is the one model call made while *scoring*, and it is the
+whole of the `delivery` component (0.4 of the reward). One call per task, however many
+items. The judge grades over the WHOLE rollout — every tool call and every result — so
+that a retrieved answer can be told from an invented one, and so that information landing
+in a message partway through counts. It is not graded off the final reply alone.
+
+The items differ per level: each rung restates them for its own text, since the higher
+rungs remove the step numbers and ids the lower ones lean on. One section per level below.
+
+================================================================================================
+== LEVEL 1
+================================================================================================
+
+------------------------------------------------------------------------------------------------
+-- PROMPT (verify._JUDGE_PROMPT, filled in)
+------------------------------------------------------------------------------------------------
+You grade whether an agent delivered specific pieces of information.
+
+Each numbered item is something the agent had to find out and then put somewhere. You are given the requirement, what a correct answer says, and where in the agent's output to look for it.
+
+You are given the WHOLE ROLLOUT: every tool call the agent made, every result that came back, every message it sent, and its final reply. Use all of it. Do not grade off the final reply alone — most of these items are about information landing in a message partway through, and a rollout that did the work correctly and said little at the end is not a failure.
+
+Two things to hold together for each item:
+
+- **It has to be where the item says.** The hint names the place. Information that only ever appears in a tool result, and was never passed on, is not delivered — no matter how clearly the agent retrieved it.
+- **It has to be the same information.** That is a question about the whole trace: compare what the agent said against what the tools actually returned. A value the agent invented rather than retrieved is wrong even when it looks plausible, and a correct answer worded differently is right.
+
+Match on substance. Never judge style, length, or phrasing. An item is correct when a reader of the place the hint names would come away with the facts the expected answer states.
+
+Items:
+1. the text of step 4 must carry what step 1 returned
+   A correct answer says: The message posted to chat c_001 summarizes the infra thread by saying that the DeepWiki integration PR references acme/deepwiki-bot and maintainers were unsure about the repository license; that Carlos said Dina would take a look this afternoon; that Ben asked Dina to confirm whether the license is MIT, Apache, or something else; that Dina said she would pull the repo and check the LICENSE file; that Alice asked someone to run a quick license-check and paste the output here; and that Ben also mentioned the CI flaked this morning.
+   Where to look: Look at the text of the message the agent sends to chat c_001 in step 4 (the send_message result).
+2. the text of step 5 must carry what step 2 returned
+   A correct answer says: The reply to message m_004 states that TensorFlow's primary purpose is to provide an open-source platform/framework for building, training, and deploying machine learning models (including tools for defining and training neural networks and running inference).
+   Where to look: Look at the text of the reply the agent posts to message m_004 in step 5 (the reply_to result).
+
+The rollout:
+=== FULL ROLLOUT — every tool call the agent made and every result that came back ===
+    <<< the agent's transcript — only exists once a rollout has run >>>
+
+=== WHAT THE AGENT DELIVERED — the same messages, collected for convenience ===
+Messages the agent sent during this rollout:
+    <<< every message the acting user sent during the rollout, seeded history excluded >>>
+
+Agent's final reply:
+    <<< the agent's last reply >>>
+
+Respond with ONLY a JSON array of booleans, one per item in order (true = correct).
+Example for two items: [true, false]
+
+================================================================================================
+== LEVEL 2
+================================================================================================
+
+------------------------------------------------------------------------------------------------
+-- PROMPT (verify._JUDGE_PROMPT, filled in)
+------------------------------------------------------------------------------------------------
+You grade whether an agent delivered specific pieces of information.
+
+Each numbered item is something the agent had to find out and then put somewhere. You are given the requirement, what a correct answer says, and where in the agent's output to look for it.
+
+You are given the WHOLE ROLLOUT: every tool call the agent made, every result that came back, every message it sent, and its final reply. Use all of it. Do not grade off the final reply alone — most of these items are about information landing in a message partway through, and a rollout that did the work correctly and said little at the end is not a failure.
+
+Two things to hold together for each item:
+
+- **It has to be where the item says.** The hint names the place. Information that only ever appears in a tool result, and was never passed on, is not delivered — no matter how clearly the agent retrieved it.
+- **It has to be the same information.** That is a question about the whole trace: compare what the agent said against what the tools actually returned. A value the agent invented rather than retrieved is wrong even when it looks plausible, and a correct answer worded differently is right.
+
+Match on substance. Never judge style, length, or phrasing. An item is correct when a reader of the place the hint names would come away with the facts the expected answer states.
+
+Items:
+1. the text of step 4 must carry what step 1 returned
+   A correct answer says: The message posted to the one conversation you still have not caught up on summarizes the thread by saying that the DeepWiki integration PR references acme/deepwiki-bot and maintainers were unsure about the repository license; that Carlos said Dina would take a look this afternoon; that Ben asked Dina to confirm whether the license is MIT, Apache, or something else; that Dina said she would pull the repo and check the LICENSE file; that Alice asked someone to run a quick license-check and paste the output here; and that Ben also mentioned the CI flaked this morning.
+   Where to look: Look at the text of the message the agent sends to that conversation in the step that posts the summary (the created message view returned by that action).
+2. the text of step 5 must carry what step 2 returned
+   A correct answer says: The reply to the message about confirm whether it's MIT states that TensorFlow's primary purpose is to provide an open-source platform/framework for building, training, and deploying machine learning models (including tools for defining and training neural networks and running inference).
+   Where to look: Look at the text of the reply the agent posts to that message about confirm whether it's MIT (the created reply view returned by that action).
+
+The rollout:
+=== FULL ROLLOUT — every tool call the agent made and every result that came back ===
+    <<< the agent's transcript — only exists once a rollout has run >>>
+
+=== WHAT THE AGENT DELIVERED — the same messages, collected for convenience ===
+Messages the agent sent during this rollout:
+    <<< every message the acting user sent during the rollout, seeded history excluded >>>
+
+Agent's final reply:
+    <<< the agent's last reply >>>
+
+Respond with ONLY a JSON array of booleans, one per item in order (true = correct).
+Example for two items: [true, false]
+
+================================================================================================
+== LEVEL 3
+================================================================================================
+
+------------------------------------------------------------------------------------------------
+-- PROMPT (verify._JUDGE_PROMPT, filled in)
+------------------------------------------------------------------------------------------------
+You grade whether an agent delivered specific pieces of information.
+
+Each numbered item is something the agent had to find out and then put somewhere. You are given the requirement, what a correct answer says, and where in the agent's output to look for it.
+
+You are given the WHOLE ROLLOUT: every tool call the agent made, every result that came back, every message it sent, and its final reply. Use all of it. Do not grade off the final reply alone — most of these items are about information landing in a message partway through, and a rollout that did the work correctly and said little at the end is not a failure.
+
+Two things to hold together for each item:
+
+- **It has to be where the item says.** The hint names the place. Information that only ever appears in a tool result, and was never passed on, is not delivered — no matter how clearly the agent retrieved it.
+- **It has to be the same information.** That is a question about the whole trace: compare what the agent said against what the tools actually returned. A value the agent invented rather than retrieved is wrong even when it looks plausible, and a correct answer worded differently is right.
+
+Match on substance. Never judge style, length, or phrasing. An item is correct when a reader of the place the hint names would come away with the facts the expected answer states.
+
+Items:
+1. the text of step 4 must carry what step 1 returned
+   A correct answer says: The message posted to the one conversation you still have not caught up on summarizes the thread by saying that the DeepWiki integration PR references acme/deepwiki-bot and maintainers were unsure about the repository license; that Carlos said Dina would take a look this afternoon; that Ben asked Dina to confirm whether the license is MIT, Apache, or something else; that Dina said she would pull the repo and check the LICENSE file; that Alice asked someone to run a quick license-check and paste the output here; and that Ben also mentioned the CI flaked this morning.
+   Where to look: Look at the text of the message the agent sends to that conversation that posts the summary (the created message view returned by that action).
+2. the text of step 5 must carry what step 2 returned
+   A correct answer says: The reply to the message about confirm whether it's MIT states that TensorFlow's primary purpose is to provide an open-source platform/framework for building, training, and deploying machine learning models (including tools for defining and training neural networks and running inference).
+   Where to look: Look at the text of the reply the agent posts to that message (the created reply view returned by that action).
+
+The rollout:
+=== FULL ROLLOUT — every tool call the agent made and every result that came back ===
+    <<< the agent's transcript — only exists once a rollout has run >>>
+
+=== WHAT THE AGENT DELIVERED — the same messages, collected for convenience ===
+Messages the agent sent during this rollout:
+    <<< every message the acting user sent during the rollout, seeded history excluded >>>
+
+Agent's final reply:
+    <<< the agent's last reply >>>
+
+Respond with ONLY a JSON array of booleans, one per item in order (true = correct).
+Example for two items: [true, false]
+
+================================================================================================
+== LEVEL 4
+================================================================================================
+
+------------------------------------------------------------------------------------------------
+-- PROMPT (verify._JUDGE_PROMPT, filled in)
+------------------------------------------------------------------------------------------------
+You grade whether an agent delivered specific pieces of information.
+
+Each numbered item is something the agent had to find out and then put somewhere. You are given the requirement, what a correct answer says, and where in the agent's output to look for it.
+
+You are given the WHOLE ROLLOUT: every tool call the agent made, every result that came back, every message it sent, and its final reply. Use all of it. Do not grade off the final reply alone — most of these items are about information landing in a message partway through, and a rollout that did the work correctly and said little at the end is not a failure.
+
+Two things to hold together for each item:
+
+- **It has to be where the item says.** The hint names the place. Information that only ever appears in a tool result, and was never passed on, is not delivered — no matter how clearly the agent retrieved it.
+- **It has to be the same information.** That is a question about the whole trace: compare what the agent said against what the tools actually returned. A value the agent invented rather than retrieved is wrong even when it looks plausible, and a correct answer worded differently is right.
+
+Match on substance. Never judge style, length, or phrasing. An item is correct when a reader of the place the hint names would come away with the facts the expected answer states.
+
+Items:
+1. the text of step 4 must carry what step 1 returned
+   A correct answer says: The summary message posted to that conversation explains that the DeepWiki integration PR references acme/deepwiki-bot and that maintainers were unsure about the repository license; that Carlos said Dina would take a look that afternoon; that Ben asked Dina to confirm whether the license is MIT, Apache, or something else; that Dina said she would pull the repo and check the LICENSE file; that Alice asked someone to run a quick license-check and paste the output into the thread; and that Ben mentioned the CI flaked that morning.
+   Where to look: Check the text of the summary message the agent posts to that conversation (the created message view returned by that action).
+2. the text of step 5 must carry what step 2 returned
+   A correct answer says: The reply posted in-thread to Ben's message asking Dina to confirm the license states that TensorFlow's primary purpose is to provide an open-source platform/framework for building, training, and deploying machine learning models, including tools for defining and training neural networks and running inference.
+   Where to look: Check the text of the reply the agent posts in-thread to Ben's message (the created reply view returned by that action).
+
+The rollout:
+=== FULL ROLLOUT — every tool call the agent made and every result that came back ===
+    <<< the agent's transcript — only exists once a rollout has run >>>
+
+=== WHAT THE AGENT DELIVERED — the same messages, collected for convenience ===
+Messages the agent sent during this rollout:
+    <<< every message the acting user sent during the rollout, seeded history excluded >>>
+
+Agent's final reply:
+    <<< the agent's last reply >>>
+
+Respond with ONLY a JSON array of booleans, one per item in order (true = correct).
+Example for two items: [true, false]

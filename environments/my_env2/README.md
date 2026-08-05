@@ -54,6 +54,11 @@ nothing for the stages that already succeeded.
 | 8 | `prompts.py` | v1: numbered, explicit, ids named. Plus the judge specification. |
 | 9 | `prompts.py` | v2: prose, every id replaced by its Stage 4 description. |
 | 10 | `prompts.py` | v3: the goal, with no steps left individually identifiable. |
+| 11 | `prompts.py` | v4: folded — actions that only fed each other become one request, and no content is dictated. |
+
+Stages 9 to 11 each rewrite the rung below, and each rewrites **the judge specification with
+it**: an item authored against v1 names steps and ids that the rung above has removed, so a
+grader handed it while reading a v4 rollout is checking a task nobody was given.
 
 `pipeline.py` runs them in order and refuses what does not fit. Nothing is repaired: a stage
 either satisfies its contract or the task is dropped, because patching a draft produces a task
@@ -64,15 +69,19 @@ whose prompt describes a world other than the one shipped.
 By the time any prose is written, `(seed, expected)` is fixed and every reference has been proved
 to resolve. `adapter.signature` excludes text, emoji and chat names by design, so Stage 7 onwards
 can decide what the messages actually say without moving a single fact in `expected`. That is
-what makes a ten-stage pipeline affordable rather than circular.
+what makes an eleven-stage pipeline affordable rather than circular.
 
 ## Scoring
 
 Two rewards. `state_diff` (0.6) is F1 between the facts a faithful run adds and the facts this
 run added, over `adapter.signature` — path-agnostic, since it compares end states, which matters
-because v3 deliberately stops telling the agent what order to work in. `delivery` (0.4) is one
-judge call over the Stage 8 specification: information that had to travel from a read into a
-message or into the agent's reply, which no state comparison can see.
+because v3 and v4 deliberately stop telling the agent what order to work in. `delivery` (0.4) is
+one judge call over the specification for the level being served: information that had to travel
+from a read into a message or into the agent's reply, which no state comparison can see.
+
+The judge grades over the **whole rollout** — every tool call and every result — not the final
+reply alone. Most items are about information landing in a message partway through, and the trace
+is also the only way to tell an answer the agent retrieved from one it invented.
 
 Between them they cover every step. A write lands in `state_diff` by construction; a read has no
 state effect, so it reaches the judge either by being carried into a message or by having to be

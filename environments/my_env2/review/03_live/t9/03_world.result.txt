@@ -1,0 +1,31 @@
+Stage 3 result: the authored draft, built into a state.
+`seed.build` validates and never repairs — an undeclared sender, a reply across chats
+or an unbound placeholder rejects the whole draft and costs a correction round.
+
+topic: Synchronizing DeepWiki docs for analytics and plugin repos
+
+You act as Alex Rivera (id u_me).
+
+People:
+  u_me  Alex Rivera @you
+  u_liam  Liam Chen @liam
+  u_devon  Devon Park @devon
+  u_sofia  Sofia Morales @sofia
+  u_priya  Priya Singh @priya
+
+group docs-sync (c_001) — members: Alex Rivera @you, Liam Chen @liam, Sofia Morales @sofia, Priya Singh @priya
+  m_001 [Liam Chen @liam]: I've started a mapping doc for DeepWiki pages that we need to sync with product docs. See the spreadsheet link in the drive. Which repos should we prioritize?
+  m_002 [Sofia Morales @sofia]: I'd prioritize analytics-intel and data-exporter first — they affect reporting. I can grab analytics-intel.  (reply to m_001)
+  m_003 [Priya Singh @priya]: Can someone collect the exact GitHub repo names and DeepWiki repo wikis for the plugins we listed? I need them to start reading. Please list them in this thread.  (reply to m_001)
+  m_004 [Liam Chen @liam]: I think @devon might have a list of repo slugs — Devon's been touching the git hooks and repo ownership.  (reply to m_003)
+  m_005 [Sofia Morales @sofia]: Also, does anyone know where the DeepWiki page that explains the 'indexer' concept lives? I remember a doc but can't find it in deepwiki/deepwiki.  (reply to m_003; UNREAD by you)
+  m_007 [Liam Chen @liam]: I think it's linked from the dev-ops onboarding, but I can't point to the exact page right now — someone who used DeepWiki recently should know.  (reply to m_005; UNREAD by you)
+  m_008 [Priya Singh @priya]: I'll start with deepwiki/deepwiki and plugin-team/data-exporter. If you add repo names here I'll follow up by reading the corresponding wikis.  (reply to m_003; UNREAD by you)
+
+dm (dm) (c_002) — members: Alex Rivera @you, Devon Park @devon
+  m_006 [Devon Park @devon]: Quick note: I put a CSV of repo names and owners into /team/docs/repo-list.csv. If you want me to paste the specific slugs here I can, but it's a bit messy. Ping me if you need an extract.  (UNREAD by you)
+
+PLACEHOLDERS BOUND
+  $user_0              -> u_devon
+  $chat_0              -> c_002
+  $message_0           -> m_003

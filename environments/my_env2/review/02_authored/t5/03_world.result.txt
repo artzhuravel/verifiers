@@ -1,0 +1,40 @@
+Stage 3 result (as shipped, after Stage 5 padding).
+
+topic: Preparing the documentation topics for an acme/platform upgrade
+
+You act as Sam Torres (id u_me).
+
+People:
+  u_me  Sam Torres @you
+  u_alicec  Alice Chen @alicec
+  u_beno  Ben Olad @beno
+  u_cruiz  Carla Ruiz @cruiz
+  u_dpark  Daniel Park @dpark
+  u_ekim  Eve Kim @ekim
+
+group platform-infra (c_001) — members: Sam Torres @you, Alice Chen @alicec, Ben Olad @beno, Carla Ruiz @cruiz
+  m_001 [Alice Chen @alicec]: We need to update acme/platform docs before the runtime upgrade next week. Can someone list the repo's documentation topics so we can triage gaps?  (:+1: x1)
+  m_002 [Ben Olad @beno]: I can run a quick listing later today — can you confirm the repo name (owner/repo)?  (reply to m_001; UNREAD by you)
+  m_004 [Carla Ruiz @cruiz]: Also, I spotted a couple of outdated arrows in the infra diagram; I'll annotate them in the source.  (reply to m_001)
+  m_006 [Alice Chen @alicec]: Thanks — adding a note to check owner fields and access controls while you're auditing the diagrams.  (reply to m_002)
+  m_009 [Alice Chen @alicec]: Also remember to pull the change-log for runtime compatibility notes before we finalize updates.  (reply to m_001; UNREAD by you)
+  m_010 [Carla Ruiz @cruiz]: I'll audit the diagrams this afternoon. Ben, ping me here when you paste the topics.  (reply to m_001)
+  m_012 [Alice Chen @alicec]: Repo owner is 'acme', name 'platform'. Ben, if you can run DeepWiki against 'acme/platform' that would be great.  (reply to m_002; UNREAD by you)
+
+group doc-review (c_002) — members: Sam Torres @you, Ben Olad @beno, Daniel Park @dpark
+  m_003 [Daniel Park @dpark]: Doc-review at 3pm today. Agenda: priority topics from platform repo + onboarding doc.  (:bell: x1)
+  m_005 [Ben Olad @beno]: Added a checklist to the meeting doc. Carla, can you validate diagram versions before we publish?  (reply to m_003)
+  m_008 [Ben Olad @beno]: If someone can paste the DeepWiki topic list for acme/platform here, I'll slot items into the agenda and flag owners.  (reply to m_003; UNREAD by you)
+  m_011 [Daniel Park @dpark]: Can someone also bring up the new contributor checklist so we can align it with the agenda?  (reply to m_008)
+  m_013 [Daniel Park @dpark]: I'll draft slides after lunch and share a quick outline here for feedback.  (reply to m_005; UNREAD by you)
+  m_014 [Daniel Park @dpark]: Noted — I'll be in the 3pm slot. Ben, any ETA on when you'll run the listing?  (reply to m_008; UNREAD by you)
+
+group coffee-break (c_003) — members: Sam Torres @you, Alice Chen @alicec, Eve Kim @ekim
+  m_007 [Eve Kim @ekim]: Hi! I'm new to the infra team — happy to help with docs or diagram checks wherever useful.
+
+PLACEHOLDERS BOUND
+  $message_0             -> m_002        (seed)
+  $message_1             -> m_008        (seed)
+  $new_message_0         -> m_015        (rollout)
+  $new_message_1         -> m_016        (rollout)
+  $new_message_2         -> m_017        (rollout)

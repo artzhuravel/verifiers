@@ -1,0 +1,313 @@
+{
+  "me": "u_me",
+  "users": {
+    "u_me": {
+      "id": "u_me",
+      "name": "Sam Ortiz",
+      "handle": "you"
+    },
+    "u_alice": {
+      "id": "u_alice",
+      "name": "Alice Chen",
+      "handle": "alice"
+    },
+    "u_ben": {
+      "id": "u_ben",
+      "name": "Ben Park",
+      "handle": "ben"
+    },
+    "u_priya": {
+      "id": "u_priya",
+      "name": "Priya Singh",
+      "handle": "priya"
+    },
+    "u_marco": {
+      "id": "u_marco",
+      "name": "Marco Ruiz",
+      "handle": "marco"
+    },
+    "u_lina": {
+      "id": "u_lina",
+      "name": "Lina Gomez",
+      "handle": "lina"
+    }
+  },
+  "chats": {
+    "c_001": {
+      "id": "c_001",
+      "kind": "group",
+      "name": "frontend-sprint",
+      "member_ids": [
+        "u_me",
+        "u_alice",
+        "u_ben",
+        "u_priya",
+        "u_marco"
+      ]
+    },
+    "c_002": {
+      "id": "c_002",
+      "kind": "dm",
+      "name": null,
+      "member_ids": [
+        "u_me",
+        "u_priya"
+      ]
+    },
+    "c_003": {
+      "id": "c_003",
+      "kind": "group",
+      "name": "random-coffee",
+      "member_ids": [
+        "u_me",
+        "u_alice",
+        "u_lina"
+      ]
+    }
+  },
+  "messages": [
+    {
+      "id": "m_001",
+      "chat_id": "c_001",
+      "sender_id": "u_alice",
+      "text": "Sprint retro: the header rendering bug keeps slipping through QA. Anyone able to own it this cycle?",
+      "ts": 1,
+      "reply_to": null,
+      "reactions": {},
+      "read_by": [
+        "u_alice",
+        "u_me"
+      ]
+    },
+    {
+      "id": "m_002",
+      "chat_id": "c_001",
+      "sender_id": "u_ben",
+      "text": "I can pick it up if someone posts the failing test stack. Marco, you mentioned you saw it on staging?",
+      "ts": 2,
+      "reply_to": "m_001",
+      "reactions": {},
+      "read_by": [
+        "u_ben",
+        "u_me"
+      ]
+    },
+    {
+      "id": "m_003",
+      "chat_id": "c_001",
+      "sender_id": "u_alice",
+      "text": "Also, I noticed the flakiness happens mostly on iOS Safari — could be layout reflow related.",
+      "ts": 3,
+      "reply_to": null,
+      "reactions": {},
+      "read_by": [
+        "u_alice",
+        "u_me"
+      ]
+    },
+    {
+      "id": "m_004",
+      "chat_id": "c_001",
+      "sender_id": "u_marco",
+      "text": "Quick request: could someone paste the list of chats you're in? I'm mapping who needs access to the performance dashboard and it would help to see overlap.",
+      "ts": 4,
+      "reply_to": null,
+      "reactions": {},
+      "read_by": [
+        "u_marco",
+        "u_me"
+      ]
+    },
+    {
+      "id": "m_005",
+      "chat_id": "c_003",
+      "sender_id": "u_lina",
+      "text": "Morning! Lina here — happy to join the coffee thread. Who wants to start?",
+      "ts": 5,
+      "reply_to": null,
+      "reactions": {},
+      "read_by": [
+        "u_lina",
+        "u_me"
+      ]
+    },
+    {
+      "id": "m_006",
+      "chat_id": "c_001",
+      "sender_id": "u_ben",
+      "text": "For the dashboard we'll need org-level perms too — tagging infra to grant them.",
+      "ts": 6,
+      "reply_to": "m_004",
+      "reactions": {},
+      "read_by": [
+        "u_ben",
+        "u_me"
+      ]
+    },
+    {
+      "id": "m_007",
+      "chat_id": "c_001",
+      "sender_id": "u_priya",
+      "text": "Here's my list: frontend-sprint, design-review, infra-alerts, random-coffee. Didn't realize I was missing access to the dashboard.",
+      "ts": 7,
+      "reply_to": "m_004",
+      "reactions": {},
+      "read_by": [
+        "u_priya",
+        "u_me"
+      ]
+    },
+    {
+      "id": "m_008",
+      "chat_id": "c_001",
+      "sender_id": "u_marco",
+      "text": "Heads-up: I pushed a tiny staging fix for the header (branch fix/header-padding). Not merged to main yet.",
+      "ts": 8,
+      "reply_to": null,
+      "reactions": {},
+      "read_by": [
+        "u_marco",
+        "u_me"
+      ]
+    },
+    {
+      "id": "m_009",
+      "chat_id": "c_002",
+      "sender_id": "u_priya",
+      "text": "Can you ask DeepWiki what license and primary language acme/frontend-utils uses? We need that for the upcoming audit.",
+      "ts": 9,
+      "reply_to": null,
+      "reactions": {},
+      "read_by": [
+        "u_priya"
+      ]
+    },
+    {
+      "id": "m_010",
+      "chat_id": "c_001",
+      "sender_id": "u_ben",
+      "text": "Added a note to the PR to mention the staging repro steps.",
+      "ts": 10,
+      "reply_to": "m_007",
+      "reactions": {},
+      "read_by": [
+        "u_ben",
+        "u_me"
+      ]
+    },
+    {
+      "id": "m_011",
+      "chat_id": "c_002",
+      "sender_id": "u_priya",
+      "text": "Also, if there’s a listed maintainer contact on the repo page, could you include that too?",
+      "ts": 11,
+      "reply_to": "m_009",
+      "reactions": {},
+      "read_by": [
+        "u_priya"
+      ]
+    },
+    {
+      "id": "m_012",
+      "chat_id": "c_001",
+      "sender_id": "u_alice",
+      "text": "Thanks Marco — when you open the PR, drop the link here so QA can pull it into their run.",
+      "ts": 12,
+      "reply_to": "m_008",
+      "reactions": {},
+      "read_by": [
+        "u_alice",
+        "u_me"
+      ]
+    },
+    {
+      "id": "m_013",
+      "chat_id": "c_001",
+      "sender_id": "u_marco",
+      "text": "Also pinging QA here: can we get a nightly job to run that header test?",
+      "ts": 13,
+      "reply_to": "m_008",
+      "reactions": {},
+      "read_by": [
+        "u_marco",
+        "u_me"
+      ]
+    },
+    {
+      "id": "m_014",
+      "chat_id": "c_001",
+      "sender_id": "u_ben",
+      "text": "I'll fetch the failing tests this afternoon and paste the stack traces into this thread.",
+      "ts": 14,
+      "reply_to": null,
+      "reactions": {},
+      "read_by": [
+        "u_ben",
+        "u_me"
+      ]
+    },
+    {
+      "id": "m_015",
+      "chat_id": "c_002",
+      "sender_id": "u_priya",
+      "text": "Thanks — and yes, please include maintainer contact if it's listed. I'll start an audit checklist.",
+      "ts": 15,
+      "reply_to": "m_011",
+      "reactions": {},
+      "read_by": [
+        "u_priya",
+        "u_me"
+      ]
+    },
+    {
+      "id": "m_016",
+      "chat_id": "c_001",
+      "sender_id": "u_me",
+      "text": "$text_0",
+      "ts": 16,
+      "reply_to": null,
+      "reactions": {},
+      "read_by": [
+        "u_me"
+      ]
+    },
+    {
+      "id": "m_017",
+      "chat_id": "c_001",
+      "sender_id": "u_me",
+      "text": "$text_1",
+      "ts": 17,
+      "reply_to": "m_016",
+      "reactions": {},
+      "read_by": [
+        "u_me"
+      ]
+    },
+    {
+      "id": "m_018",
+      "chat_id": "c_001",
+      "sender_id": "u_me",
+      "text": "$carried_c1a2_text",
+      "ts": 18,
+      "reply_to": "m_004",
+      "reactions": {},
+      "read_by": [
+        "u_me"
+      ]
+    },
+    {
+      "id": "m_019",
+      "chat_id": "c_002",
+      "sender_id": "u_me",
+      "text": "$carried_c0a2_text",
+      "ts": 19,
+      "reply_to": "m_009",
+      "reactions": {},
+      "read_by": [
+        "u_me"
+      ]
+    }
+  ],
+  "next_message_id": 20,
+  "next_chat_id": 4
+}

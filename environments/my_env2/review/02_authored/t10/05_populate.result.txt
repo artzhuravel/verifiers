@@ -1,0 +1,11 @@
+Stage 5 result. Filler is folded in ONE ENTITY AT A TIME and each addition kept only if
+every reference condition still resolves to exactly its own entity. Rejections are
+recorded, never silently dropped, and Stage 5 cannot fail the task.
+
+0 addition(s) rejected:
+  (none)
+
+CONDITIONS EVERY ADDITION HAD TO PRESERVE
+  the chat whose title is exactly frontend-sprint  -> must keep matching exactly one chat
+  the one message whose text contains could someone paste the  -> must keep matching exactly one message
+  the one message whose text contains DeepWiki what license and  -> must keep matching exactly one message

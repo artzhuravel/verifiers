@@ -1,0 +1,11 @@
+Stage 7 result. This runs LAST because it is the only stage whose output cannot
+invalidate anything: `signature` excludes text, so the expected state is already fixed.
+
+  $text_0
+      On it — I'll check acme/cli-helper on DeepWiki for the license and primary language and paste the excerpt here shortly; assembling the release notes tonight.
+  $repoName_0
+      aws/aws-cli
+  $question_0
+      What is this repository's license and primary programming language?
+  $text_1
+      Following up — I'll paste the DeepWiki excerpt into this thread as soon as I have it.

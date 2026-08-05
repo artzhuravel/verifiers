@@ -1,0 +1,113 @@
+# Stage 4 — choose a reference mode per entity
+
+1 model call(s).
+
+================================================================================================
+== call 1 of 1
+================================================================================================
+
+------------------------------------------------------------------------------------------------
+-- SYSTEM PROMPT
+------------------------------------------------------------------------------------------------
+You decide how a task will refer to things without naming their ids.
+
+You are given a workspace and, for each entity the task is about, the ways it could be picked out by description. Pick the ONE that suits that entity best, and say only which. What goes into it is worked out from the workspace afterwards, so you do not have to supply or check anything.
+
+Judge it on how the finished sentence would read and on how much work it makes the reader do. Describing what someone did, or what a conversation is about, is better than restating a name or a handle — those tell the reader nothing they could not have been handed. Some modes will not fit the entity in front of you at all; say so by choosing a different one.
+
+Respond with ONLY this JSON object, one entry per entity:
+{"references": [{"symbol": "$chat_0", "mode": "<mode id>"}]}
+
+------------------------------------------------------------------------------------------------
+-- USER PROMPT
+------------------------------------------------------------------------------------------------
+ENVIRONMENT
+  chat: Local mock chat app. Read and write tools operate on the rollout's ChatState.
+  deepwiki: Public DeepWiki MCP server: read-only GitHub-repo Q&A. Answers can be nondeterministic; requires the repo to be indexed by DeepWiki.
+  You act as one specific user. The acting user's id. Every write is attributed to this user; reads are scoped to it where noted.
+
+ENTITY TYPES IN THIS TASK
+  message — One posted message. `reply_to` threads it under an earlier message in the same chat.
+      id: string
+      chat_id: string (chat id)
+      sender_id: string (user id)
+      text: string
+      ts: int (logical clock, not wall time)
+      reply_to: string | null (parent message id)
+      reactions: object (emoji -> user_id[])
+      read_by: string[] (user ids)
+  chat — A conversation the acting user takes part in. `name` is null for a DM.
+      id: string
+      kind: "dm" | "group"
+      name: string | null
+      member_ids: string[] (user ids)
+
+ACTIONS THIS TASK USES
+  ask_question (read) — Ask an AI-grounded question about a GitHub repository.
+      repoName: GitHub repo in owner/repo form (or a list, max 10)
+      question: the question to ask
+      returns: a free-text answer to any question about the repo — metadata (licence, primary language, maintainers) and prose questions alike. Nondeterministic wording, so only ask things with a stable, unambiguous answer.
+  reply_to (write) — Reply to an existing message in its chat (threaded).
+      message_id: the message being replied to
+      text: reply body
+      returns: the created message view
+  send_message (write) — Send a message from the acting user to a chat.
+      chat_id: destination chat
+      text: message body
+      returns: the created message view
+  add_reaction (write) — Add an emoji reaction from the acting user to a message.
+      message_id: the message to react to
+      emoji: reaction emoji, e.g. ':+1:'
+      returns: the updated message view
+
+WORKSPACE
+You act as You (id u_me).
+
+People:
+  u_me  You @you
+  u_maya  Maya Patel @maya
+  u_ben  Ben Ortiz @ben
+  u_zoe  Zoe Lin @zoe
+  u_raj  Raj Singh @raj
+
+group infra (c_001) — members: You @you, Maya Patel @maya, Ben Ortiz @ben, Zoe Lin @zoe
+  m_001 [Maya Patel @maya]: Can someone confirm whether signalapp/libsignal-client has any official Rust bindings and what license it's released under? We need to know if we can embed it for the encryption layer.  (UNREAD by you)
+  m_002 [Ben Ortiz @ben]: I haven't looked at that repo recently. If it's under a restrictive licence it could be a problem — I can check later today.  (reply to m_001; UNREAD by you; :+1: x1)
+  m_003 [Zoe Lin @zoe]: If there's an official Rust crate maintained by signalapp that'd be ideal; otherwise we'll probably need to wrap the C API ourselves.  (reply to m_001; UNREAD by you)
+  m_006 [Ben Ortiz @ben]: I'll dig through the repo later and post the license and bindings status here.  (reply to m_001; UNREAD by you; :+1: x1)
+  m_008 [Maya Patel @maya]: Also check whether there are prebuilt binaries available or only source — that will affect our CI approach.  (reply to m_001; UNREAD by you)
+  m_010 [Zoe Lin @zoe]: Thanks — ping me once you have the findings and I'll help assess compatibility with our CI.  (reply to m_006; UNREAD by you)
+
+group eng-team (c_002) — members: You @you, Maya Patel @maya, Ben Ortiz @ben, Raj Singh @raj
+  m_004 [Raj Singh @raj]: FYI: I suggest we standardize on signalapp/libsignal-client for the encryption layer unless someone has a better repo.
+  m_005 [You @you]: On it — I can run a quick repo check. If anyone posts the exact repo link I'll use that as the target.  (reply to m_004)
+  m_007 [Maya Patel @maya]: Please prioritize license and whether there's a maintained Rust binding/crate — that's the blocker for embedding.  (reply to m_004; UNREAD by you)
+  m_009 [Ben Ortiz @ben]: If you want, I can run the licensing check too — two sets of eyes sounds good.  (reply to m_005; UNREAD by you)
+
+ENTITIES TO DESCRIBE, AND THE MODES AVAILABLE FOR EACH
+  $message_0 = m_001 (in infra from Maya Patel, unread by you: "Can someone confirm whether signalapp/libsignal-client has any official Rust bindings and what license it's released under? We need to know if we can embed it for the encryption layer.")
+      mode message_reply_to_text: reads as "the reply to the message about {text}" — the single reply to the one message whose text contains {text}
+      mode message_most_reacted: reads as "the message that has drawn the most reactions" — the message with strictly more distinct reactors than any other in the workspace
+      mode message_newest_by_handle: reads as "the latest thing @{handle} posted" — the most recent message written by the user whose handle is {handle}
+      mode message_by_text: reads as "the message about {text}" — the one message whose text contains {text}
+  $chat_0 = c_002 (group 'eng-team' — members: You @you, Maya Patel @maya, Ben Ortiz @ben, Raj Singh @raj)
+      mode chat_containing_text: reads as "the conversation where {text} came up" — the chat containing a message whose text contains {text}
+      mode chat_only_with_unread: reads as "the one conversation you still have not caught up on" — the only chat holding at least one message the acting user has not read
+      mode chat_by_member_count: reads as "the conversation with exactly {count} people in it" — the chat that has exactly {count} members, and is the only chat with that many
+      mode chat_by_name: reads as "the {name} channel" — the chat whose title is exactly {name}
+
+------------------------------------------------------------------------------------------------
+-- REPLY
+------------------------------------------------------------------------------------------------
+{
+  "references": [
+    {
+      "symbol": "$message_0",
+      "mode": "message_by_text"
+    },
+    {
+      "symbol": "$chat_0",
+      "mode": "chat_by_name"
+    }
+  ]
+}

@@ -1,0 +1,21 @@
+Stage 4. Each seed entity gets ONE way of being described instead of named.
+The model picks only WHICH mode; the adapter derives the params from the world and
+proves resolve(state, mode, params) == [that entity]. A mode that cannot be made to fit
+is skipped and the next tried, so the stage is total — an entity with no working
+reference raises, because v2 strips ids out and the task would be unanswerable.
+
+  $message_0  ->  m_002
+      the entity      in platform-infra from Ben Olad, replying to m_001, unread by you: 'I can run a quick listing later today — can you confirm the repo name (owner/repo)?'
+      mode chosen     message_by_text  (model proposed 'message_reply_to_text'; it did not fit, this is the fallback)
+      params derived  {"text": "quick listing later today"}
+      reads as        "the message about quick listing later today"
+      predicate       the one message whose text contains quick listing later today
+      PROOF           resolve() -> ['m_002']   unique, and it is the target
+
+  $message_1  ->  m_008
+      the entity      in doc-review from Ben Olad, replying to m_003, unread by you: "If someone can paste the DeepWiki topic list for acme/platform here, I'll slot items into the agenda and flag owners."
+      mode chosen     message_newest_by_handle  (model proposed 'message_reply_to_text'; it did not fit, this is the fallback)
+      params derived  {"handle": "beno"}
+      reads as        "the latest thing @beno posted"
+      predicate       the most recent message written by the user whose handle is beno
+      PROOF           resolve() -> ['m_008']   unique, and it is the target

@@ -1,0 +1,101 @@
+# Stage 4 — choose a reference mode per entity
+
+1 model call(s).
+
+================================================================================================
+== call 1 of 1
+================================================================================================
+
+------------------------------------------------------------------------------------------------
+-- SYSTEM PROMPT
+------------------------------------------------------------------------------------------------
+You decide how a task will refer to things without naming their ids.
+
+You are given a workspace and, for each entity the task is about, the ways it could be picked out by description. Pick the ONE that suits that entity best, and say only which. What goes into it is worked out from the workspace afterwards, so you do not have to supply or check anything.
+
+Judge it on how the finished sentence would read and on how much work it makes the reader do. Describing what someone did, or what a conversation is about, is better than restating a name or a handle — those tell the reader nothing they could not have been handed. Some modes will not fit the entity in front of you at all; say so by choosing a different one.
+
+Respond with ONLY this JSON object, one entry per entity:
+{"references": [{"symbol": "$chat_0", "mode": "<mode id>"}]}
+
+------------------------------------------------------------------------------------------------
+-- USER PROMPT
+------------------------------------------------------------------------------------------------
+ENVIRONMENT
+  chat: Local mock chat app. Read and write tools operate on the rollout's ChatState.
+  deepwiki: Public DeepWiki MCP server: read-only GitHub-repo Q&A. Answers can be nondeterministic; requires the repo to be indexed by DeepWiki.
+  You act as one specific user. The acting user's id. Every write is attributed to this user; reads are scoped to it where noted.
+
+ENTITY TYPES IN THIS TASK
+  message — One posted message. `reply_to` threads it under an earlier message in the same chat.
+      id: string
+      chat_id: string (chat id)
+      sender_id: string (user id)
+      text: string
+      ts: int (logical clock, not wall time)
+      reply_to: string | null (parent message id)
+      reactions: object (emoji -> user_id[])
+      read_by: string[] (user ids)
+
+ACTIONS THIS TASK USES
+  read_wiki_structure (read) — List the DeepWiki documentation topics for a GitHub repository.
+      repoName: GitHub repo in owner/repo form
+      returns: only the LIST OF DOCUMENTATION TOPIC TITLES. It can answer which areas the documentation covers, and nothing about repo metadata or the content of any page.
+  list_chats (read) — List the chats the acting user is a member of.
+      returns: array of {id, kind, name, members} for chats where actor is in member_ids
+  reply_to (write) — Reply to an existing message in its chat (threaded).
+      message_id: the message being replied to
+      text: reply body
+      returns: the created message view
+  add_reaction (write) — Add an emoji reaction from the acting user to a message.
+      message_id: the message to react to
+      emoji: reaction emoji, e.g. ':+1:'
+      returns: the updated message view
+
+WORKSPACE
+You act as Sam Ortega (id u_me).
+
+People:
+  u_me  Sam Ortega @you
+  u_mpatel  Maya Patel @mpatel
+  u_trivera  Tom Rivera @trivera
+  u_lwong  Lina Wong @lwong
+  u_abrooks  Aaron Brooks @abrooks
+
+group infra (c_001) — members: Sam Ortega @you, Maya Patel @mpatel, Tom Rivera @trivera, Aaron Brooks @abrooks
+  m_001 [Tom Rivera @trivera]: Can someone run DeepWiki to list the documentation topics for acme/edge-proxy? We're deciding if it's covered well enough for the migration.  (UNREAD by you)
+  m_003 [Maya Patel @mpatel]: I can do edge-proxy but might need the exact repo path — is it acme/edge-proxy or acme/edge-proxy-server?  (reply to m_001)
+  m_004 [Aaron Brooks @abrooks]: I think it's acme/edge-proxy (that's the name the infra docs reference). Either way, a DeepWiki topic list would settle it.  (reply to m_003; :+1: x1)
+  m_006 [Tom Rivera @trivera]: Maya, can you return the topic list and which areas are covered? We're short on time.  (reply to m_001; UNREAD by you)
+
+group docs (c_002) — members: Sam Ortega @you, Maya Patel @mpatel, Lina Wong @lwong
+  m_002 [Lina Wong @lwong]: Heads-up: I also want the doc-topic list for acme/monitoring and acme/observability when someone has bandwidth.  (UNREAD by you)
+  m_005 [Lina Wong @lwong]: If you run DeepWiki for acme/edge-proxy, can you paste topics into #docs? It'll speed my review.  (UNREAD by you)
+
+ENTITIES TO DESCRIBE, AND THE MODES AVAILABLE FOR EACH
+  $message_0 = m_001 (in infra from Tom Rivera, unread by you: "Can someone run DeepWiki to list the documentation topics for acme/edge-proxy? We're deciding if it's covered well enough for the migration.")
+      mode message_reply_to_text: reads as "the reply to the message about {text}" — the single reply to the one message whose text contains {text}
+      mode message_most_reacted: reads as "the message that has drawn the most reactions" — the message with strictly more distinct reactors than any other in the workspace
+      mode message_newest_by_handle: reads as "the latest thing @{handle} posted" — the most recent message written by the user whose handle is {handle}
+      mode message_by_text: reads as "the message about {text}" — the one message whose text contains {text}
+  $message_1 = m_002 (in docs from Lina Wong, unread by you: 'Heads-up: I also want the doc-topic list for acme/monitoring and acme/observability when someone has bandwidth.')
+      mode message_reply_to_text: reads as "the reply to the message about {text}" — the single reply to the one message whose text contains {text}
+      mode message_most_reacted: reads as "the message that has drawn the most reactions" — the message with strictly more distinct reactors than any other in the workspace
+      mode message_newest_by_handle: reads as "the latest thing @{handle} posted" — the most recent message written by the user whose handle is {handle}
+      mode message_by_text: reads as "the message about {text}" — the one message whose text contains {text}
+
+------------------------------------------------------------------------------------------------
+-- REPLY
+------------------------------------------------------------------------------------------------
+{
+  "references": [
+    {
+      "symbol": "$message_0",
+      "mode": "message_by_text"
+    },
+    {
+      "symbol": "$message_1",
+      "mode": "message_by_text"
+    }
+  ]
+}

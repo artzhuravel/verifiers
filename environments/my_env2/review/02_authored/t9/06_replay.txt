@@ -1,0 +1,52 @@
+Stage 6. Bind every placeholder, execute the sequence once against the seed.
+This produces `expected` — the deterministic reward's comparison target — and it is the
+pipeline's validity gate: a step that errors, a write that changed nothing, or a read
+that came back empty drops the task rather than shipping a hole in its own scoring.
+
+Free text is NOT resolved here. Replay writes the placeholder itself into message
+bodies, because `signature` excludes text — which is what lets Stage 7 decide what the
+messages say afterwards without moving a single fact in `expected`.
+
+BINDING (symbol -> real id)
+  $user_0              u_lina_p     (seed)
+  $chat_0              c_002        (seed)
+  $message_0           m_004        (seed)
+  $new_message_0       m_018        (rollout)
+  $new_message_1       m_019        (rollout)
+  $new_message_2       m_020        (rollout)
+
+STEP BY STEP
+  step  1 get_user             [read]
+        args      {"user_id": "u_lina_p"}
+        adds      nothing — a read has no state effect, which is why it needs a judge item to be scorable at all
+        returned  lina_p
+  step  2 read_wiki_contents   EXTERNAL — skipped by replay
+  step  3 read_wiki_contents   EXTERNAL — skipped by replay
+  step  4 reply_to             [write]
+        args      {"message_id": "m_004", "text": "$carried_c0a1_text"}
+        adds      ["('new_msg', 'c_001', 'u_me', 'm_004', 1)"]
+  step  5 send_message         [write]
+        args      {"chat_id": "c_002", "text": "$carried_c0a2_text"}
+        adds      ["('new_msg', 'c_002', 'u_me', None, 1)"]
+  step  6 reply_to             [write]
+        args      {"message_id": "m_004", "text": "$carried_c1a1_text"}
+        adds      ["('new_msg', 'c_001', 'u_me', 'm_004', 2)"]
+  step  7 list_chats           [read]
+        args      {}
+        adds      nothing — a read has no state effect, which is why it needs a judge item to be scorable at all
+        returned  [{"id": "c_001", "kind": "group", "name": "backend-architecture", "members": ["u_me", "u_marco_s", "u_lina_p", "u_jamal_r"]}, {"id": "c_002", "kind": "group", "name": "oncall", "members": ["u_me", "u_marco_s", "u_priya_d"]}, {"id": "c_003", "kind": "group", "name": "c_003", "members": ["u_me", "u_marco_s", "u_carlos_v"]}]
+
+PER-TURN DIFFS (recorded, deliberately not scored — they say which turn a failed rollout stopped matching at)
+  turn 0: (nothing)
+  turn 1: ["('new_msg', 'c_001', 'u_me', 'm_004', 1)"]
+  turn 2: ["('new_msg', 'c_002', 'u_me', None, 1)"]
+  turn 3: (nothing)
+  turn 4: ["('new_msg', 'c_001', 'u_me', 'm_004', 2)"]
+
+no-op writes : none
+empty reads  : none
+
+WHAT THE DETERMINISTIC REWARD WILL LOOK FOR (expected minus seed, over `signature`)
+  ('new_msg', 'c_001', 'u_me', 'm_004', 1)
+  ('new_msg', 'c_001', 'u_me', 'm_004', 2)
+  ('new_msg', 'c_002', 'u_me', None, 1)

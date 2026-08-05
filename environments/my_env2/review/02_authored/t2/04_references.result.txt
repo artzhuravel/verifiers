@@ -1,0 +1,61 @@
+Stage 4. Each seed entity gets ONE way of being described instead of named.
+The model picks only WHICH mode; the adapter derives the params from the world and
+proves resolve(state, mode, params) == [that entity]. A mode that cannot be made to fit
+is skipped and the next tried, so the stage is total — an entity with no working
+reference raises, because v2 strips ids out and the task would be unanswerable.
+
+  $user_0  ->  u_alice
+      the entity      Alice Rivera @alice
+      mode chosen     user_authored_text  (the model's pick)
+      params derived  {"text": "feature freeze Aug 10"}
+      reads as        "whoever wrote the message about feature freeze Aug 10"
+      predicate       the user who wrote the one message whose text contains feature freeze Aug 10
+      PROOF           resolve() -> ['u_alice']   unique, and it is the target
+
+  $user_1  ->  u_ben
+      the entity      Ben Turner @ben
+      mode chosen     user_authored_text  (the model's pick)
+      params derived  {"text": "migration to next week"}
+      reads as        "whoever wrote the message about migration to next week"
+      predicate       the user who wrote the one message whose text contains migration to next week
+      PROOF           resolve() -> ['u_ben']   unique, and it is the target
+
+  $user_2  ->  u_cara
+      the entity      Cara Malik @cara
+      mode chosen     user_authored_text  (the model's pick)
+      params derived  {"text": "could we shift beta"}
+      reads as        "whoever wrote the message about could we shift beta"
+      predicate       the user who wrote the one message whose text contains could we shift beta
+      PROOF           resolve() -> ['u_cara']   unique, and it is the target
+
+  $user_3  ->  u_diego
+      the entity      Diego Ramos @diego
+      mode chosen     user_authored_text  (the model's pick)
+      params derived  {"text": "clash with marketing deadlines"}
+      reads as        "whoever wrote the message about clash with marketing deadlines"
+      predicate       the user who wrote the one message whose text contains clash with marketing deadlines
+      PROOF           resolve() -> ['u_diego']   unique, and it is the target
+
+  $chat_0  ->  c_002
+      the entity      dm (unnamed dm) — members: Sam Park @you, Ben Turner @ben
+      mode chosen     chat_containing_text  (the model's pick)
+      params derived  {"text": "migration to next week"}
+      reads as        "the conversation where migration to next week came up"
+      predicate       the chat containing a message whose text contains migration to next week
+      PROOF           resolve() -> ['c_002']   unique, and it is the target
+
+  $message_0  ->  m_005
+      the entity      in launch-planning from Diego Ramos, replying to m_001, unread by you: 'If we shift beta, it will clash with marketing deadlines. I suggest we keep the current dates and add contingency work.'
+      mode chosen     message_newest_by_handle  (model proposed 'message_reply_to_text'; it did not fit, this is the fallback)
+      params derived  {"handle": "diego"}
+      reads as        "the latest thing @diego posted"
+      predicate       the most recent message written by the user whose handle is diego
+      PROOF           resolve() -> ['m_005']   unique, and it is the target
+
+  $message_1  ->  m_008
+      the entity      in c_002 from Ben Turner, replying to m_006, unread by you: "Also, I'll need a review on the migration PR by Tuesday so we don't block deployment."
+      mode chosen     message_reply_to_text  (the model's pick)
+      params derived  {"text": "migration to next week"}
+      reads as        "the reply to the message about migration to next week"
+      predicate       the single reply to the one message whose text contains migration to next week
+      PROOF           resolve() -> ['m_008']   unique, and it is the target

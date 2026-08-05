@@ -1,0 +1,21 @@
+Stage 4. Each seed entity gets ONE way of being described instead of named.
+The model picks only WHICH mode; the adapter derives the params from the world and
+proves resolve(state, mode, params) == [that entity]. A mode that cannot be made to fit
+is skipped and the next tried, so the stage is total — an entity with no working
+reference raises, because v2 strips ids out and the task would be unanswerable.
+
+  $message_0  ->  m_001
+      the entity      in infra from Maya Patel, unread by you: "Can someone confirm whether signalapp/libsignal-client has any official Rust bindings and what license it's released under? We need to know if we can embed it for the encryption layer."
+      mode chosen     message_by_text  (the model's pick)
+      params derived  {"text": "someone confirm whether signalapp/libsignal-client"}
+      reads as        "the message about someone confirm whether signalapp/libsignal-client"
+      predicate       the one message whose text contains someone confirm whether signalapp/libsignal-client
+      PROOF           resolve() -> ['m_001']   unique, and it is the target
+
+  $chat_0  ->  c_002
+      the entity      group 'eng-team' — members: You @you, Maya Patel @maya, Ben Ortiz @ben, Raj Singh @raj
+      mode chosen     chat_by_name  (the model's pick)
+      params derived  {"name": "eng-team"}
+      reads as        "the eng-team channel"
+      predicate       the chat whose title is exactly eng-team
+      PROOF           resolve() -> ['c_002']   unique, and it is the target

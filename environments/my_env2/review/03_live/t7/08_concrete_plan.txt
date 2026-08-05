@@ -1,0 +1,23 @@
+The plan once the world exists: real entities described, authored content inlined.
+This is what every rung is held to.
+
+step 1 [read] list_chats — List the chats the acting user is a member of.
+    -> returns: [{"id": "c_001", "kind": "group", "name": "Launch Planning", "members": ["u_me", "u_samir", "u_leah", "u_maria"]}, {"id": "c_002", "kind": "dm", "name": "c_002", "members": ["u_me", "u_samir"]}, {"id": "c_003", "kind": "group", "name": "Ops Room", "members": ["u_me", "u_maria", "u_tom"]}, {"id": "c_004", "kind": "group", "name": "Watercooler", "members": ["u_me", "u_samir", "u_jia"]}]
+step 2 [read] read_messages — Read the most recent messages in a chat, oldest to newest.
+    chat_id      = c_001 — group 'Launch Planning' — members: Ari Novak @you, Samir Patel @samir, Leah Kim @leah, Maria Gomez @maria
+    -> returns: [{"id": "m_001", "chat_id": "c_001", "from": "Samir Patel", "sender_id": "u_samir", "text": "We need to pick the time window for the feature-flag flip — options: 22:00 or 02:00. Thoughts?", "ts": 1, "reply_to": null, "reactions": {}, "read_by": ["u_samir"]}, {"id": "m_002", "chat_id": "c_001", "from": "Leah Kim", "sender_id": "u_leah", "text": "02:00 is safer for international traffic. Also: flag the CS team in advance.", "ts": 2, "reply_to": "m_001", "reactions": {}, "read_by": ["u_leah"]}, {"id": "m_003", "chat_id": "c_001", "from": "Maria Gomez", "sender_id": "u_maria", "text": "If we flip at 02:00 I'll be on call — can someone draft a clear rollback plan with triggers?", "ts": 3, "reply_to": "m_001", "reactions": {":+1:": ["u_leah"]}, "read_by": ["u_maria"]}, {"id": "m_006", "chat_id": "c_001", "from": "Samir Patel", "sender_id": "u_samir", "text": "Also, FYI, the external stakeholde …(truncated)
+step 3 [write] create_chat — Create a new chat; the acting user is always included as a member.
+    member_ids   = u_maria — Maria Gomez @maria
+    -> creates something new
+step 4 [write] send_message — Send a message from the acting user to a chat.
+    chat_id      = c_001 — group 'Launch Planning' — members: Ari Novak @you, Samir Patel @samir, Leah Kim @leah, Maria Gomez @maria
+    text         <- must carry what step 1 returned
+    -> creates something new
+step 5 [write] send_message — Send a message from the acting user to a chat.
+    chat_id      = c_003 — group 'Ops Room' — members: Ari Novak @you, Maria Gomez @maria, Tom Wright @tom
+    text         <- must carry what step 1 returned
+    -> creates something new
+step 6 [write] reply_to — Reply to an existing message in its chat (threaded).
+    message_id   = m_007 — in Ops Room from Tom Wright, unread by you: 'Alert: the canary shows increased latencies since 23:10. Switching back might be necessary.'
+    text         <- must carry what step 1 returned
+    -> creates something new

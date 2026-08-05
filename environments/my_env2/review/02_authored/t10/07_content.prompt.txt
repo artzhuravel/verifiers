@@ -1,0 +1,139 @@
+# Stage 7 — write the free text
+
+This is EXACTLY the prompt the authoring model received. Every input to it is stored
+in the task record, so it is a reconstruction only in the sense that it was rebuilt rather
+than logged.
+
+------------------------------------------------------------------------------------------------
+-- SYSTEM PROMPT
+------------------------------------------------------------------------------------------------
+You write the text a task's steps carry.
+
+You are given a workspace, a plan of what the agent will do in it, and a list of PLACEHOLDERS for the free text in that plan. Fill each one so that the whole thing reads like one errand a colleague actually asked for.
+
+- A message body should sound like the person you act as, addressed to the people in that conversation, and should belong to what is being discussed there.
+- Where a step says its text must CARRY what an earlier step returned, there is no placeholder for it — the agent supplies that itself. Write the surrounding placeholders so they fit alongside it.
+- For a repository question, name a real, well-known public GitHub repo in owner/repo form and ask something specific whose answer does not change: what the project is for, how a named component works, what a term in it means. NEVER ask about maintainers, contributors, stars, versions or anything else a release could move — a stored expectation for those goes stale and the task starts marking correct answers wrong. Read the step's `returns` line too: each tool answers a different range of things, and a question outside its range has no obtainable answer at all.
+- Keep every value short. A message is a sentence or two, not a paragraph.
+
+Respond with ONLY this JSON object, one entry per placeholder, keyed by placeholder:
+{"content": {"$text_0": "...", "$name_1": "..."}}
+
+------------------------------------------------------------------------------------------------
+-- USER PROMPT
+------------------------------------------------------------------------------------------------
+ENVIRONMENT
+  chat: Local mock chat app. Read and write tools operate on the rollout's ChatState.
+  deepwiki: Public DeepWiki MCP server: read-only GitHub-repo Q&A. Answers can be nondeterministic; requires the repo to be indexed by DeepWiki.
+  You act as one specific user. The acting user's id. Every write is attributed to this user; reads are scoped to it where noted.
+
+ENTITY TYPES IN THIS TASK
+  chat — A conversation the acting user takes part in. `name` is null for a DM.
+      id: string
+      kind: "dm" | "group"
+      name: string | null
+      member_ids: string[] (user ids)
+  message — One posted message. `reply_to` threads it under an earlier message in the same chat.
+      id: string
+      chat_id: string (chat id)
+      sender_id: string (user id)
+      text: string
+      ts: int (logical clock, not wall time)
+      reply_to: string | null (parent message id)
+      reactions: object (emoji -> user_id[])
+      read_by: string[] (user ids)
+
+ACTIONS THIS TASK USES
+  list_chats (read) — List the chats the acting user is a member of.
+      returns: array of {id, kind, name, members} for chats where actor is in member_ids
+  send_message (write) — Send a message from the acting user to a chat.
+      chat_id: destination chat
+      text: message body
+      returns: the created message view
+  ask_question (read) — Ask an AI-grounded question about a GitHub repository.
+      repoName: GitHub repo in owner/repo form (or a list, max 10)
+      question: the question to ask
+      returns: a free-text answer to any question about the repo — metadata (licence, primary language, maintainers) and prose questions alike. Nondeterministic wording, so only ask things with a stable, unambiguous answer.
+  mark_read (write) — Mark every message in a chat as read by the acting user.
+      chat_id: chat to mark read
+      returns: {chat_id, marked_read: <count>}
+  reply_to (write) — Reply to an existing message in its chat (threaded).
+      message_id: the message being replied to
+      text: reply body
+      returns: the created message view
+
+WORKSPACE
+You act as Sam Ortiz (id u_me).
+
+People:
+  u_me  Sam Ortiz @you
+  u_alice  Alice Chen @alice
+  u_ben  Ben Park @ben
+  u_priya  Priya Singh @priya
+  u_marco  Marco Ruiz @marco
+  u_lina  Lina Gomez @lina
+
+group frontend-sprint (c_001) — members: Sam Ortiz @you, Alice Chen @alice, Ben Park @ben, Priya Singh @priya, Marco Ruiz @marco
+  m_001 [Alice Chen @alice]: Sprint retro: the header rendering bug keeps slipping through QA. Anyone able to own it this cycle?
+  m_002 [Ben Park @ben]: I can pick it up if someone posts the failing test stack. Marco, you mentioned you saw it on staging?  (reply to m_001)
+  m_003 [Alice Chen @alice]: Also, I noticed the flakiness happens mostly on iOS Safari — could be layout reflow related.
+  m_004 [Marco Ruiz @marco]: Quick request: could someone paste the list of chats you're in? I'm mapping who needs access to the performance dashboard and it would help to see overlap.
+  m_006 [Ben Park @ben]: For the dashboard we'll need org-level perms too — tagging infra to grant them.  (reply to m_004)
+  m_007 [Priya Singh @priya]: Here's my list: frontend-sprint, design-review, infra-alerts, random-coffee. Didn't realize I was missing access to the dashboard.  (reply to m_004)
+  m_008 [Marco Ruiz @marco]: Heads-up: I pushed a tiny staging fix for the header (branch fix/header-padding). Not merged to main yet.  (UNREAD by you)
+  m_010 [Ben Park @ben]: Added a note to the PR to mention the staging repro steps.  (reply to m_007)
+  m_012 [Alice Chen @alice]: Thanks Marco — when you open the PR, drop the link here so QA can pull it into their run.  (reply to m_008)
+  m_013 [Marco Ruiz @marco]: Also pinging QA here: can we get a nightly job to run that header test?  (reply to m_008)
+  m_014 [Ben Park @ben]: I'll fetch the failing tests this afternoon and paste the stack traces into this thread.
+
+dm (dm) (c_002) — members: Sam Ortiz @you, Priya Singh @priya
+  m_009 [Priya Singh @priya]: Can you ask DeepWiki what license and primary language acme/frontend-utils uses? We need that for the upcoming audit.  (UNREAD by you)
+  m_011 [Priya Singh @priya]: Also, if there’s a listed maintainer contact on the repo page, could you include that too?  (reply to m_009; UNREAD by you)
+  m_015 [Priya Singh @priya]: Thanks — and yes, please include maintainer contact if it's listed. I'll start an audit checklist.  (reply to m_011)
+
+group random-coffee (c_003) — members: Sam Ortiz @you, Alice Chen @alice, Lina Gomez @lina
+  m_005 [Lina Gomez @lina]: Morning! Lina here — happy to join the coffee thread. Who wants to start?
+
+PLAN
+step 1 [read] list_chats — List the chats the acting user is a member of.
+    -> returns: [{"id": "c_001", "kind": "group", "name": "frontend-sprint", "members": ["u_me", "u_alice", "u_ben", "u_priya", "u_marco"]}, {"id": "c_002", "kind": "dm", "name": "c_002", "members": ["u_me", "u_priya"]}, {"id": "c_003", "kind": "group", "name": "random-coffee", "members": ["u_me", "u_alice", "u_lina"]}]
+step 2 [write] send_message — Send a message from the acting user to a chat.
+    chat_id      = c_001 — group 'frontend-sprint' — members: Sam Ortiz @you, Alice Chen @alice, Ben Park @ben, Priya Singh @priya, Marco Ruiz @marco
+    text         = $text_0 (free text: message body)
+    -> creates something new
+step 3 [read, an aside] ask_question — Ask an AI-grounded question about a GitHub repository.
+    repoName     = $repoName_0 (free text: GitHub repo in owner/repo form (or a list, max 10))
+    question     = $question_0 (free text: the question to ask)
+    -> returns a free-text answer to any question about the repo — metadata (licence, primary language, maintainers) and prose questions alike. Nondeterministic wording, so only ask things with a stable, unambiguous answer. (not known until the agent runs it)
+step 4 [write] mark_read — Mark every message in a chat as read by the acting user.
+    chat_id      = c_001 — group 'frontend-sprint' — members: Sam Ortiz @you, Alice Chen @alice, Ben Park @ben, Priya Singh @priya, Marco Ruiz @marco
+step 5 [write] reply_to — Reply to an existing message in its chat (threaded).
+    message_id   = the message step 2 creates
+    text         = $text_1 (free text: reply body)
+    -> creates something new
+step 6 [write] reply_to — Reply to an existing message in its chat (threaded).
+    message_id   = m_004 — in frontend-sprint from Marco Ruiz: "Quick request: could someone paste the list of chats you're in? I'm mapping who needs access to the performance dashboard and it would help to see overlap."
+    text         <- must carry what step 1 returned
+    -> creates something new
+step 7 [write] reply_to — Reply to an existing message in its chat (threaded).
+    message_id   = m_009 — in c_002 from Priya Singh, unread by you: 'Can you ask DeepWiki what license and primary language acme/frontend-utils uses? We need that for the upcoming audit.'
+    text         <- must carry what step 3 returned
+    -> creates something new
+
+PLACEHOLDERS TO FILL
+  $text_0 — step 2 (send_message.text): message body
+  $repoName_0 — step 3 (ask_question.repoName): GitHub repo in owner/repo form (or a list, max 10)
+  $question_0 — step 3 (ask_question.question): the question to ask
+  $text_1 — step 5 (reply_to.text): reply body
+
+------------------------------------------------------------------------------------------------
+-- WHAT THE MODEL RETURNED (the shipped artifact)
+------------------------------------------------------------------------------------------------
+{
+  "content": {
+    "$text_0": "Quick update: I'm checking the repo license/language Priya asked about and will DM her the results. Marco — when you open the PR for fix/header-padding, drop the link here so QA can pull it into their run.",
+    "$repoName_0": "facebook/react",
+    "$question_0": "What license and primary language does facebook/react use?",
+    "$text_1": "Assigning the header bug to myself for this cycle — Ben, please paste the failing test stack when you fetch it and I’ll take it from there."
+  }
+}

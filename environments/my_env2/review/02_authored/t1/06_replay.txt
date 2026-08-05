@@ -1,0 +1,51 @@
+Stage 6. Bind every placeholder, execute the sequence once against the seed.
+This produces `expected` — the deterministic reward's comparison target — and it is the
+pipeline's validity gate: a step that errors, a write that changed nothing, or a read
+that came back empty drops the task rather than shipping a hole in its own scoring.
+
+Free text is NOT resolved here. Replay writes the placeholder itself into message
+bodies, because `signature` excludes text — which is what lets Stage 7 decide what the
+messages say afterwards without moving a single fact in `expected`.
+
+BINDING (symbol -> real id)
+  $chat_0              c_002        (seed)
+  $message_0           m_004        (seed)
+  $new_message_0       m_012        (rollout)
+  $new_message_1       m_013        (rollout)
+  $new_message_2       m_014        (rollout)
+
+STEP BY STEP
+  step  1 read_messages        [read]
+        args      {"chat_id": "c_002"}
+        adds      nothing — a read has no state effect, which is why it needs a judge item to be scorable at all
+        returned  [{"id": "m_001", "chat_id": "c_002", "from": "Sam Ortega", "sender_id": "u_sam_o", "text": "Heads-up: security audit scheduled next Tue. We need to collect license, primary language, and maintainer list for the repos we're scanning. Lina, which repo did you want checked first?", "ts": 1, "reply_to": null, "reactions": {}, "read_by": ["u_sam_o", "u_me"]}, {"id": "m_003", "chat_id": "c_002", "from": "Marisa Gómez", "sender_id": "u_marisa_g", "text": "I can take a look at the license files later today.", "ts": 3, "reply_to": "m_001", "reactions": {}, "read_by": ["u_marisa_g"]}, {"id": "m_004", "c …
+  step  2 ask_question         EXTERNAL — skipped by replay
+  step  3 mark_read            [write]
+        args      {"chat_id": "c_002"}
+        adds      ["('read', 'm_003', 'u_me')", "('read', 'm_008', 'u_me')", "('read', 'm_009', 'u_me')", "('read', 'm_010', 'u_me')"]
+  step  4 send_message         [write]
+        args      {"chat_id": "c_002", "text": "$carried_c0a1_text"}
+        adds      ["('new_msg', 'c_002', 'u_me', None, 1)"]
+  step  5 reply_to             [write]
+        args      {"message_id": "m_004", "text": "$carried_c1a1_text"}
+        adds      ["('new_msg', 'c_002', 'u_me', 'm_004', 1)"]
+  step  6 reply_to             [write]
+        args      {"message_id": "m_012", "text": "$text_0"}
+        adds      ["('new_msg', 'c_002', 'u_me', ('new_msg', 'c_002', 'u_me', None, 1), 1)"]
+
+PER-TURN DIFFS (recorded, deliberately not scored — they say which turn a failed rollout stopped matching at)
+  turn 0: ["('read', 'm_003', 'u_me')", "('read', 'm_008', 'u_me')", "('read', 'm_009', 'u_me')", "('read', 'm_010', 'u_me')"]
+  turn 1: ["('new_msg', 'c_002', 'u_me', 'm_004', 1)", "('new_msg', 'c_002', 'u_me', None, 1)"]
+  turn 2: ["('new_msg', 'c_002', 'u_me', ('new_msg', 'c_002', 'u_me', None, 1), 1)"]
+
+no-op writes : none
+empty reads  : none
+
+WHAT THE DETERMINISTIC REWARD WILL LOOK FOR (expected minus seed, over `signature`)
+  ('new_msg', 'c_002', 'u_me', 'm_004', 1)
+  ('new_msg', 'c_002', 'u_me', ('new_msg', 'c_002', 'u_me', None, 1), 1)
+  ('new_msg', 'c_002', 'u_me', None, 1)
+  ('read', 'm_003', 'u_me')
+  ('read', 'm_008', 'u_me')
+  ('read', 'm_009', 'u_me')
+  ('read', 'm_010', 'u_me')

@@ -1,0 +1,39 @@
+Stage 5 result. Filler is folded in ONE ENTITY AT A TIME and each addition kept only if
+every reference condition still resolves to exactly its own entity. Rejections are
+recorded, never silently dropped, and Stage 5 cannot fail the task — a world without
+padding is weaker, not broken.
+
+core     : 4 people, 2 chats, 6 messages
+populated: 5 people, 3 chats, 12 messages
+
+REJECTED ADDITIONS
+  (none)
+
+THE SEED THAT SHIPS
+You act as Sam Ortega (id u_me).
+
+People:
+  u_me  Sam Ortega @you
+  u_mpatel  Maya Patel @mpatel
+  u_trivera  Tom Rivera @trivera
+  u_lwong  Lina Wong @lwong
+  u_abrooks  Aaron Brooks @abrooks
+  u_dramos  Diego Ramos @dramos
+
+group infra (c_001) — members: Sam Ortega @you, Maya Patel @mpatel, Tom Rivera @trivera, Aaron Brooks @abrooks
+  m_001 [Tom Rivera @trivera]: Can someone run DeepWiki to list the documentation topics for acme/edge-proxy? We're deciding if it's covered well enough for the migration.  (UNREAD by you)
+  m_003 [Maya Patel @mpatel]: Anyone up for grabbing lunch after standup? There's a new taco place on 5th.
+  m_005 [Maya Patel @mpatel]: I can do edge-proxy but might need the exact repo path — is it acme/edge-proxy or acme/edge-proxy-server?  (reply to m_001)
+  m_007 [Aaron Brooks @abrooks]: I think it's acme/edge-proxy (that's the name the infra docs reference). Either way, a DeepWiki topic list would settle it.  (reply to m_005; :+1: x1)
+  m_008 [Tom Rivera @trivera]: I've queued a topic check for acme/edge-proxy and will paste the list here soon.  (reply to m_001)
+  m_010 [Aaron Brooks @abrooks]: Ooh, tacos sound great — count me in. What time?  (reply to m_003)
+  m_011 [Tom Rivera @trivera]: Maya, can you return the topic list and which areas are covered? We're short on time.  (reply to m_001; UNREAD by you)
+
+group docs (c_002) — members: Sam Ortega @you, Maya Patel @mpatel, Lina Wong @lwong
+  m_002 [Lina Wong @lwong]: Heads-up: I also want the doc-topic list for acme/monitoring and acme/observability when someone has bandwidth.  (UNREAD by you)
+  m_006 [Lina Wong @lwong]: Also, does anyone have the latest timeline for the observability docs?
+  m_009 [Lina Wong @lwong]: If you run DeepWiki for acme/edge-proxy, can you paste topics into #docs? It'll speed my review.  (UNREAD by you)
+  m_012 [Maya Patel @mpatel]: I'll paste anything I run into #docs as requested.  (reply to m_009)
+
+group random (c_003) — members: Sam Ortega @you, Maya Patel @mpatel, Diego Ramos @dramos
+  m_004 [Diego Ramos @dramos]: Hey Maya, are you free for a quick sync about the onboarding doc?

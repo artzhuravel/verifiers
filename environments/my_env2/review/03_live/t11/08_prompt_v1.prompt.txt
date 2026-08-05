@@ -1,0 +1,160 @@
+# Stage 8 — v1 prompt and the judge specification
+
+1 model call(s).
+
+================================================================================================
+== call 1 of 1
+================================================================================================
+
+------------------------------------------------------------------------------------------------
+-- SYSTEM PROMPT
+------------------------------------------------------------------------------------------------
+You turn a plan into a task, written as an explicit numbered sequence.
+
+You are given a workspace, and the exact actions an agent should perform in it with every detail already decided. Write the request the agent will receive.
+
+- One numbered step per action, in the given order — but write SENTENCES. The plan you are given is a machine listing; do not reproduce its layout, its bracketed tags, its parameter lines or its "returns" notes. Those are notes to you. Ask for the thing, using the ids shown.
+- Every step is work that must happen, including any marked as an aside. The plan is the complete and exact set of actions: never ask for anything it does not contain, and never leave one out. An unplanned message is an unexpected change to the workspace, and a missing one costs the agent credit for obeying you.
+- Where a step's text must CARRY what an earlier step returned, say so plainly: the agent has to look that up and say it in the message. Ask for the information, not for a transcript — a person asks a colleague to pass on what a thread said, never to paste the raw tool output. Never guess the value yourself.
+- Where a step looks something up and no later step posts what it found, ask the agent to report that back to you in its reply.
+
+You also write the JUDGE SPECIFICATION. You are given the items that need checking, each with where its answer must appear. For each one return:
+- expected: THE ANSWER ITSELF, in a sentence. Two ways to get this wrong, and both make the item useless. Do not write "the text returned by step N" or "the answer to the question above" — a grader given that has nothing to compare against. And do not paste the returned value back verbatim — say what a correct answer STATES, in your own words, so that a grader can recognise one that is worded differently. Where the item shows what the step actually returned, draw the facts out of it ("names all three of X, Y and Z"); where the answer comes from outside the workspace, give it as best you know it.
+- hint: where in the agent's output a grader should look for it.
+
+Respond with ONLY this JSON object:
+{"prompt": "<the task text>",
+ "judge": [{"id": "<item id, copied exactly>", "expected": "...", "hint": "..."}]}
+
+------------------------------------------------------------------------------------------------
+-- USER PROMPT
+------------------------------------------------------------------------------------------------
+ENVIRONMENT
+  chat: Local mock chat app. Read and write tools operate on the rollout's ChatState.
+  deepwiki: Public DeepWiki MCP server: read-only GitHub-repo Q&A. Answers can be nondeterministic; requires the repo to be indexed by DeepWiki.
+  You act as one specific user. The acting user's id. Every write is attributed to this user; reads are scoped to it where noted.
+
+ENTITY TYPES IN THIS TASK
+  user — A person in the workspace. Display names may collide; handles never do.
+      id: string
+      name: string
+      handle: string
+  chat — A conversation the acting user takes part in. `name` is null for a DM.
+      id: string
+      kind: "dm" | "group"
+      name: string | null
+      member_ids: string[] (user ids)
+  message — One posted message. `reply_to` threads it under an earlier message in the same chat.
+      id: string
+      chat_id: string (chat id)
+      sender_id: string (user id)
+      text: string
+      ts: int (logical clock, not wall time)
+      reply_to: string | null (parent message id)
+      reactions: object (emoji -> user_id[])
+      read_by: string[] (user ids)
+
+ACTIONS THIS TASK USES
+  read_wiki_contents (read) — View DeepWiki documentation for a GitHub repository.
+      repoName: GitHub repo in owner/repo form
+      returns: the repo's wiki DOCUMENTATION PROSE. It states what the project is for, how a subsystem works, what a concept means. It does NOT state licence, stars, maintainers or primary language, so a question about those has no obtainable answer here.
+  read_wiki_structure (read) — List the DeepWiki documentation topics for a GitHub repository.
+      repoName: GitHub repo in owner/repo form
+      returns: only the LIST OF DOCUMENTATION TOPIC TITLES. It can answer which areas the documentation covers, and nothing about repo metadata or the content of any page.
+  create_chat (write) — Create a new chat; the acting user is always included as a member.
+      member_ids: user ids to include (actor added automatically)
+      name: chat name; if set (or >2 members) the chat is a group, else a dm (optional)
+      returns: {id, kind, name, members}
+  reply_to (write) — Reply to an existing message in its chat (threaded).
+      message_id: the message being replied to
+      text: reply body
+      returns: the created message view
+  send_message (write) — Send a message from the acting user to a chat.
+      chat_id: destination chat
+      text: message body
+      returns: the created message view
+
+WORKSPACE
+You act as Sam Harper (id u_me).
+
+People:
+  u_me  Sam Harper @you
+  u_pri  Priya Sinha @pri
+  u_marco  Marco Li @marco
+  u_dana  Dana Ortiz @dana
+  u_owen  Owen Brooks @owen
+  u_lina  Lina Park @lina
+  u_elliot  Elliot Kim @elliot
+
+group backend-team (c_001) — members: Sam Harper @you, Priya Sinha @pri, Marco Li @marco, Dana Ortiz @dana
+  m_001 [Priya Sinha @pri]: Heads-up: We need to sync the payment-service runbook with the DeepWiki architecture page before Friday. Who can pull the current docs for owner/acme/payment-service?  (UNREAD by you)
+  m_002 [Dana Ortiz @dana]: I can fetch it and paste the main sections here. Any specific pages to prioritize (architecture, runbook, or API)?  (reply to m_001; UNREAD by you)
+  m_004 [Marco Li @marco]: I'll do a repo-wide structure check; interested in architecture and the API topics first. I can post the list of topics once I have it.  (reply to m_001; UNREAD by you; :+1: x1)
+  m_005 [Dana Ortiz @dana]: I'll grab the API topic list tonight and drop links here, plus a short summary.  (reply to m_002; UNREAD by you)
+  m_008 [Priya Sinha @pri]: Also, does anyone know if the staging env has the same hooks for webhooks? I had a failed delivery yesterday.
+  m_010 [Marco Li @marco]: Staging does mirror prod for hooks, but the delivery logs rotate faster. I can pull them if you point me to the timeframe.  (reply to m_008; UNREAD by you)
+
+dm (dm) (c_002) — members: Sam Harper @you, Owen Brooks @owen
+  m_012 [Owen Brooks @owen]: I pushed a small update to the runbook branch but didn't touch DeepWiki. If someone needs the topic list for acme/payment-service, ping me and I'll point them to the pages I checked locally.  (UNREAD by you)
+
+group deploy-ops (c_003) — members: Sam Harper @you, Marco Li @marco, Dana Ortiz @dana
+  m_006 [Marco Li @marco]: Also ran into an unexpected permission error on the CI runner this morning — filing a ticket.  (UNREAD by you)
+  m_007 [Marco Li @marco]: Deployment checklist needs the list of doc topics for owner/acme/deploy-scripts—does the repo have a wiki section for 'rollback' or 'hotfix'?
+  m_009 [Dana Ortiz @dana]: I couldn't find that in the repo; Owen might have the last edit on deploy-scripts doc and could confirm.  (reply to m_007)
+  m_011 [Dana Ortiz @dana]: Ticket number? I'll attach it to the deploy-scripts issue so we track it.  (reply to m_006)
+  m_013 [Marco Li @marco]: T-1023. Also can someone confirm if rollback mentions a db migration step? I couldn't find 'rollback' doc.  (reply to m_007; UNREAD by you)
+
+group lunch-plans (c_004) — members: Sam Harper @you, Priya Sinha @pri, Lina Park @lina
+  m_003 [Lina Park @lina]: Who wants dumplings Friday? I can reserve a table for 6.  (UNREAD by you)
+
+PLAN (perform in this order)
+step 1 [read] read_wiki_contents — View DeepWiki documentation for a GitHub repository.
+    repoName     = 'owner/acme/payment-service'
+    -> returns the repo's wiki DOCUMENTATION PROSE. It states what the project is for, how a subsystem works, what a concept means. It does NOT state licence, stars, maintainers or primary language, so a question about those has no obtainable answer here. (not known until the agent runs it)
+step 2 [read] read_wiki_structure — List the DeepWiki documentation topics for a GitHub repository.
+    repoName     = 'owner/acme/payment-service'
+    -> returns only the LIST OF DOCUMENTATION TOPIC TITLES. It can answer which areas the documentation covers, and nothing about repo metadata or the content of any page. (not known until the agent runs it)
+step 3 [write] create_chat — Create a new chat; the acting user is always included as a member.
+    member_ids   = u_pri — Priya Sinha @pri, u_marco — Marco Li @marco
+    -> creates something new
+step 4 [write] reply_to — Reply to an existing message in its chat (threaded).
+    message_id   = m_001 — in backend-team from Priya Sinha, unread by you: 'Heads-up: We need to sync the payment-service runbook with the DeepWiki architecture page before Friday. Who can pull the current docs for owner/acme/payment-service?'
+    text         <- must carry what step 1 returned
+    -> creates something new
+step 5 [write] send_message — Send a message from the acting user to a chat.
+    chat_id      = c_002 — dm (unnamed dm) — members: Sam Harper @you, Owen Brooks @owen
+    text         <- must carry what step 2 returned
+    -> creates something new
+step 6 [write] send_message — Send a message from the acting user to a chat.
+    chat_id      = the chat step 3 creates
+    text         = "Thanks — I pasted the docs into Priya's thread. Priya, can you lead the runbook review; Marco, can you check architecture and API and flag any issues by Thursday?"
+    -> creates something new
+
+ITEMS THAT NEED CHECKING
+  carry:c0a1:text
+      the text of step 4 must carry what step 1 returned
+      delivered in: the message step 4 posts
+      step 1 (read_wiki_contents) returns the repo's wiki DOCUMENTATION PROSE. It states what the project is for, how a subsystem works, what a concept means. It does NOT state licence, stars, maintainers or primary language, so a question about those has no obtainable answer here.
+  carry:c1a1:text
+      the text of step 5 must carry what step 2 returned
+      delivered in: the message step 5 posts
+      step 2 (read_wiki_structure) returns only the LIST OF DOCUMENTATION TOPIC TITLES. It can answer which areas the documentation covers, and nothing about repo metadata or the content of any page.
+
+------------------------------------------------------------------------------------------------
+-- REPLY
+------------------------------------------------------------------------------------------------
+{
+  "prompt": "1. Call read_wiki_contents with repoName='owner/acme/payment-service' and keep the returned documentation prose (the prose describing what the project is for, how subsystems work, and definitions of key concepts) available for use in later steps.\n2. Call read_wiki_structure with repoName='owner/acme/payment-service' and keep the returned list of documentation topic titles available for use in later steps.\n3. Create a new chat by calling create_chat with member_ids=[u_pri, u_marco] (the acting user is added automatically) and keep the created chat id for step 6.\n4. Reply to message m_001 in the backend-team chat by calling reply_to with message_id='m_001' and a reply text that carries the main points from the documentation prose you read in step 1 — in other words, summarize the wiki prose for owner/acme/payment-service so the thread can use it (state what the project is for, explain how a relevant subsystem works, and include any key concept definitions you found).\n5. Send a message to the DM chat c_002 by calling send_message with chat_id='c_002' and a message text that carries the list of documentation topic titles you obtained in step 2 — present the topic titles as a clear list so Owen can see which wiki topics exist for owner/acme/payment-service.\n6. Send a message to the chat created in step 3 by calling send_message with chat_id equal to the id returned by step 3 and with the exact text: \"Thanks — I pasted the docs into Priya's thread. Priya, can you lead the runbook review; Marco, can you check architecture and API and flag any issues by Thursday?\"",
+  "judge": [
+    {
+      "id": "carry:c0a1:text",
+      "expected": "The reply to m_001 summarizes the payment-service wiki documentation prose, stating what the owner/acme/payment-service project is for, explaining how at least one subsystem works, and defining or explaining key concepts from the docs.",
+      "hint": "Look in the reply message you post as a reply to message m_001 in the backend-team chat (the message created in step 4)."
+    },
+    {
+      "id": "carry:c1a1:text",
+      "expected": "The DM sent to chat c_002 lists the repository's documentation topic titles as a clear list of topic names (the wiki's topic titles that describe the areas the docs cover, such as Architecture, Runbook, API, etc.).",
+      "hint": "Look in the message you send to chat c_002 (the DM to Owen) created in step 5."
+    }
+  ]
+}

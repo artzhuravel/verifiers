@@ -1,0 +1,135 @@
+# Stage 4 — choose a reference mode per entity
+
+1 model call(s).
+
+================================================================================================
+== call 1 of 1
+================================================================================================
+
+------------------------------------------------------------------------------------------------
+-- SYSTEM PROMPT
+------------------------------------------------------------------------------------------------
+You decide how a task will refer to things without naming their ids.
+
+You are given a workspace and, for each entity the task is about, the ways it could be picked out by description. Pick the ONE that suits that entity best, and say only which. What goes into it is worked out from the workspace afterwards, so you do not have to supply or check anything.
+
+Judge it on how the finished sentence would read and on how much work it makes the reader do. Describing what someone did, or what a conversation is about, is better than restating a name or a handle — those tell the reader nothing they could not have been handed. Some modes will not fit the entity in front of you at all; say so by choosing a different one.
+
+Respond with ONLY this JSON object, one entry per entity:
+{"references": [{"symbol": "$chat_0", "mode": "<mode id>"}]}
+
+------------------------------------------------------------------------------------------------
+-- USER PROMPT
+------------------------------------------------------------------------------------------------
+ENVIRONMENT
+  chat: Local mock chat app. Read and write tools operate on the rollout's ChatState.
+  deepwiki: Public DeepWiki MCP server: read-only GitHub-repo Q&A. Answers can be nondeterministic; requires the repo to be indexed by DeepWiki.
+  You act as one specific user. The acting user's id. Every write is attributed to this user; reads are scoped to it where noted.
+
+ENTITY TYPES IN THIS TASK
+  user — A person in the workspace. Display names may collide; handles never do.
+      id: string
+      name: string
+      handle: string
+  message — One posted message. `reply_to` threads it under an earlier message in the same chat.
+      id: string
+      chat_id: string (chat id)
+      sender_id: string (user id)
+      text: string
+      ts: int (logical clock, not wall time)
+      reply_to: string | null (parent message id)
+      reactions: object (emoji -> user_id[])
+      read_by: string[] (user ids)
+  chat — A conversation the acting user takes part in. `name` is null for a DM.
+      id: string
+      kind: "dm" | "group"
+      name: string | null
+      member_ids: string[] (user ids)
+
+ACTIONS THIS TASK USES
+  get_user (read) — Look up a user by id.
+      user_id: user to look up
+      returns: {id, name, handle} or {"error": "no such user"}
+  ask_question (read) — Ask an AI-grounded question about a GitHub repository.
+      repoName: GitHub repo in owner/repo form (or a list, max 10)
+      question: the question to ask
+      returns: a free-text answer to any question about the repo — metadata (licence, primary language, maintainers) and prose questions alike. Nondeterministic wording, so only ask things with a stable, unambiguous answer.
+  reply_to (write) — Reply to an existing message in its chat (threaded).
+      message_id: the message being replied to
+      text: reply body
+      returns: the created message view
+  send_message (write) — Send a message from the acting user to a chat.
+      chat_id: destination chat
+      text: message body
+      returns: the created message view
+
+WORKSPACE
+You act as You (id u_me).
+
+People:
+  u_me  You @you
+  u_alice  Alice Kim @alice
+  u_ben  Ben Ortiz @ben
+  u_cara  Cara Singh @cara
+  u_dan  Dan Park @dan
+
+group spark-lib (c_001) — members: You @you, Alice Kim @alice, Ben Ortiz @ben, Cara Singh @cara
+  m_001 [Alice Kim @alice]: Heads-up: running the benchmark on 1.4 shows a ~30% regression in the map-reduce path since the last release. Any guesses what changed?
+  m_003 [Cara Singh @cara]: Yikes. I'll start a bisection tomorrow — could be the new serializer we merged last sprint.  (reply to m_001)
+  m_005 [Ben Ortiz @ben]: If Cara can bisect, great. Also — which upstream repo is the vendored data-toolkit at (owner/repo)? I couldn't find it in the docs.  (reply to m_003)
+  m_007 [Alice Kim @alice]: Ben — if you can find the owner/repo we can ask DeepWiki for the license and contributors to confirm the maintainer.  (reply to m_005)
+  m_009 [Ben Ortiz @ben]: Agree, bisect sounds right.  (reply to m_003; :+1: x1)
+
+group (dm) (c_002) — members: You @you, Ben Ortiz @ben, Dan Park @dan
+  m_002 [Ben Ortiz @ben]: Quick Q: who is the maintainer of the 'data-toolkit' repo we vendor? I don't have their GitHub handle — can you remind me?  (UNREAD by you)
+  m_006 [Dan Park @dan]: I'm not sure of the exact handle — I thought it was someone in infra. Worth looking up before we ping them.  (reply to m_002; UNREAD by you)
+
+group release-planning (c_003) — members: You @you, Alice Kim @alice, Dan Park @dan
+  m_004 [Dan Park @dan]: We need to loop in the upstream maintainer for licensing questions — does anyone have their contact (GitHub handle or org)?  (UNREAD by you)
+  m_008 [Alice Kim @alice]: Agree. Holding the release until we confirm licensing would be safer.  (reply to m_004; UNREAD by you)
+
+ENTITIES TO DESCRIBE, AND THE MODES AVAILABLE FOR EACH
+  $user_0 = u_cara (Cara Singh @cara)
+      mode user_authored_text: reads as "whoever wrote the message about {text}" — the user who wrote the one message whose text contains {text}
+      mode user_most_messages: reads as "the person who has posted the most across all your chats" — the user who has written more messages than any other across the workspace (strictly more, so there is no tie)
+      mode user_by_display_name: reads as "the person called {name}" — the user whose display name is exactly {name}, and who is the only such user
+      mode user_by_handle: reads as "the person whose handle is @{handle}" — the user whose handle is exactly {handle}
+  $message_0 = m_002 (in c_002 from Ben Ortiz, unread by you: "Quick Q: who is the maintainer of the 'data-toolkit' repo we vendor? I don't have their GitHub handle — can you remind me?")
+      mode message_reply_to_text: reads as "the reply to the message about {text}" — the single reply to the one message whose text contains {text}
+      mode message_most_reacted: reads as "the message that has drawn the most reactions" — the message with strictly more distinct reactors than any other in the workspace
+      mode message_newest_by_handle: reads as "the latest thing @{handle} posted" — the most recent message written by the user whose handle is {handle}
+      mode message_by_text: reads as "the message about {text}" — the one message whose text contains {text}
+  $message_1 = m_004 (in release-planning from Dan Park, unread by you: 'We need to loop in the upstream maintainer for licensing questions — does anyone have their contact (GitHub handle or org)?')
+      mode message_reply_to_text: reads as "the reply to the message about {text}" — the single reply to the one message whose text contains {text}
+      mode message_most_reacted: reads as "the message that has drawn the most reactions" — the message with strictly more distinct reactors than any other in the workspace
+      mode message_newest_by_handle: reads as "the latest thing @{handle} posted" — the most recent message written by the user whose handle is {handle}
+      mode message_by_text: reads as "the message about {text}" — the one message whose text contains {text}
+  $chat_0 = c_001 (group 'spark-lib' — members: You @you, Alice Kim @alice, Ben Ortiz @ben, Cara Singh @cara)
+      mode chat_containing_text: reads as "the conversation where {text} came up" — the chat containing a message whose text contains {text}
+      mode chat_only_with_unread: reads as "the one conversation you still have not caught up on" — the only chat holding at least one message the acting user has not read
+      mode chat_by_member_count: reads as "the conversation with exactly {count} people in it" — the chat that has exactly {count} members, and is the only chat with that many
+      mode chat_by_name: reads as "the {name} channel" — the chat whose title is exactly {name}
+
+------------------------------------------------------------------------------------------------
+-- REPLY
+------------------------------------------------------------------------------------------------
+{
+  "references": [
+    {
+      "symbol": "$user_0",
+      "mode": "user_authored_text"
+    },
+    {
+      "symbol": "$message_0",
+      "mode": "message_by_text"
+    },
+    {
+      "symbol": "$message_1",
+      "mode": "message_by_text"
+    },
+    {
+      "symbol": "$chat_0",
+      "mode": "chat_by_name"
+    }
+  ]
+}

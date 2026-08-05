@@ -1,0 +1,45 @@
+Stage 3 result (as shipped, after Stage 5 padding).
+
+topic: Collecting DeepWiki prose for the scheduler repo
+
+You act as Sam Cho (id u_me).
+
+People:
+  u_me  Sam Cho @you
+  u_alice  Alice Nguyen @alice
+  u_benp  Ben Park @benp
+  u_carl  Carlos Ruiz @carl
+  u_danali  Dana Li @danali
+  u_jlee  Jin Lee @jlee
+
+dm (dm) (c_001) — members: Sam Cho @you, Alice Nguyen @alice
+  m_005 [Alice Nguyen @alice]: Sam, could you read the wiki for owner/scheduler and paste the prose into the infra channel? We need the subsystem explanation in full.  (UNREAD by you)
+  m_010 [Alice Nguyen @alice]: Repo name someone mentioned owner/scheduler earlier — confirm? I can ping on GH but would be faster if you paste the wiki here.  (reply to m_005; UNREAD by you)
+  m_013 [Alice Nguyen @alice]: I pinged GH to confirm the repo name; they responded with a link.  (reply to m_010)
+  m_016 [Alice Nguyen @alice]: Also note: DeepWiki often shows conceptual info only — we may need to follow links to code for specifics.  (UNREAD by you)
+
+group infra (c_002) — members: Sam Cho @you, Alice Nguyen @alice, Ben Park @benp, Carlos Ruiz @carl, Dana Li @danali
+  m_001 [Alice Nguyen @alice]: Heads-up: we need the wiki for ops/scheduler to update the runbook. Anyone knows the repo name?
+  m_003 [Ben Park @benp]: I think it's ops/scheduler-service? The README points to a wiki. Can someone pull the DeepWiki page?  (reply to m_001; UNREAD by you; :+1: x1)
+  m_004 [Carlos Ruiz @carl]: FWIW I left the notes from the toggle rollout in /docs/rollouts — check there before we duplicate effort.
+  m_006 [Ben Park @benp]: Thanks — @carl can you skim the leader-election section once Sam pastes the wiki?  (reply to m_003)
+  m_007 [Carlos Ruiz @carl]: If it's owner/scheduler we should include section on lifecycle and leader-election. The wiki usually has that.  (reply to m_003)
+  m_008 [Dana Li @danali]: Also note the wiki doesn't include deployment notes — maybe add them after we paste the docs.  (reply to m_001; :+1: x1)
+  m_009 [Dana Li @danali]: Noted. I'll add a deployment stub to the runbook after we have the wiki text.  (reply to m_001)
+  m_011 [Alice Nguyen @alice]: Please include the lifecycle section verbatim when you paste, compliance needs it.  (reply to m_007)
+  m_012 [Ben Park @benp]: Quick request: once Sam posts the wiki, I'll start extracting config keys.  (reply to m_007; UNREAD by you; :+1: x2)
+  m_014 [Alice Nguyen @alice]: Okay—waiting on Sam. Whoever can confirm the exact GH repo name, call it out here.  (reply to m_012; UNREAD by you)
+  m_015 [Carlos Ruiz @carl]: Also, coffee machine on floor 4 is back online. Save your mornings!  (reply to m_012)
+
+group (dm) (c_003) — members: Sam Cho @you, Alice Nguyen @alice, Jin Lee @jlee
+  m_002 [Jin Lee @jlee]: Hey Alice, do you have a minute to go over the onboarding checklist?
+
+PLACEHOLDERS BOUND
+  $chat_0                -> c_001        (seed)
+  $chat_1                -> c_002        (seed)
+  $message_0             -> m_003        (seed)
+  $message_1             -> m_005        (seed)
+  $new_message_0         -> m_017        (rollout)
+  $new_message_1         -> m_018        (rollout)
+  $new_message_2         -> m_019        (rollout)
+  $new_message_3         -> m_020        (rollout)

@@ -7,7 +7,14 @@ import pytest
 
 from my_env2.adapter import ChatAdapter
 from my_env2.llm import AuthoringError
-from my_env2.prompts import _complaints, _forbidden, _merge_judge, _text
+from my_env2.prompts import (
+    _complaints,
+    _forbidden,
+    _merge_judge,
+    _rewrite_judge,
+    _text,
+    stale_references,
+)
 from my_env2.seed import DraftChat, DraftMessage, DraftUser, WorldDraft, build
 
 SPEC = json.loads(
@@ -169,3 +176,97 @@ def test_a_reply_with_no_prompt_is_refused():
     for reply in ({}, {"prompt": ""}, {"prompt": None}, {"prompt": 7}):
         with pytest.raises(AuthoringError, match="no .prompt. string"):
             _text(reply)
+
+
+# --- a description introduces a thing once ------------------------------------------------
+
+PHRASE = "the one conversation you still have not caught up on"
+
+
+def test_a_description_pasted_twice_is_a_complaint():
+    """The defect this check exists for: 40 of 81 phrase uses over twelve tasks were the same
+    description pasted again, because the stage asked for per-occurrence substitution."""
+    twice = f"Catch up on {PHRASE} and then post a summary to {PHRASE}."
+    assert any("pasted the description" in c for c in _complaints(twice, set(), [PHRASE]))
+
+
+def test_a_description_used_once_and_referred_back_to_is_clean():
+    once = f"Catch up on {PHRASE}, summarise what you find, and post it back there."
+    assert [c for c in _complaints(once, set(), [PHRASE]) if "pasted" in c] == []
+
+
+def test_sequencing_is_only_flagged_where_the_rung_forbids_it():
+    """v2 is prose and may read sequentially; v3 and v4 forbid "and then" chaining."""
+    chained = "Read the room; then post a summary."
+    assert [c for c in _complaints(chained, set()) if "sequencing" in c] == []
+    assert any(
+        "sequencing" in c for c in _complaints(chained, set(), flag_sequencing=True)
+    )
+
+
+# --- the judge specification travels with the prompt --------------------------------------
+
+MERGED = {
+    "id": "carry:c0a1:text",
+    "requirement": "the text of step 2 must carry what step 1 returned",
+    "expected": "names Bazel as the build system",
+    "hint": "the message the agent sent to chat c_001 in step 2",
+    "delivered_in": "the message step 2 posts",
+}
+
+
+def test_a_rung_that_leaves_an_item_unrestated_is_refused():
+    """An item still naming a step or an id describes a task the higher rung never gave."""
+    for authored in ([], [{"id": MERGED["id"]}], [{"id": "other", "expected": "x"}]):
+        with pytest.raises(AuthoringError, match="was not restated"):
+            _rewrite_judge([MERGED], authored)
+
+
+def test_restating_keeps_the_requirement_and_the_delivery_target():
+    """Only `expected` and `hint` are the author's. Letting it restate the requirement invites a
+    weaker one; letting it choose the destination invents a message the plan does not contain."""
+    [restated] = _rewrite_judge(
+        [MERGED],
+        [{"id": MERGED["id"], "expected": "says the build system is Bazel",
+          "hint": "the summary posted back to that channel"}],
+    )
+    assert restated["expected"] == "says the build system is Bazel"
+    assert restated["hint"] == "the summary posted back to that channel"
+    assert restated["requirement"] == MERGED["requirement"]
+    assert restated["delivered_in"] == MERGED["delivered_in"]
+
+
+def test_a_hint_left_out_falls_back_rather_than_going_empty():
+    [restated] = _rewrite_judge([MERGED], [{"id": MERGED["id"], "expected": "Bazel"}])
+    assert restated["hint"] == MERGED["hint"]
+
+
+# --- a description the task's own work makes false -----------------------------------------
+
+
+def test_a_reference_the_work_invalidates_is_detected():
+    """Uniqueness is proved against the seed, but `chat_only_with_unread` stops holding the moment
+    the task marks that chat read — and the prompt then goes on using the phrase."""
+    unread_seed, unread_binding = build(
+        WorldDraft(
+            actor_name="You",
+            users=[DraftUser(ref="u1", name="Bo", handle="bob")],
+            chats=[DraftChat(ref="c1", name="infra", members=["u1"], symbol="$chat_0")],
+            messages=[
+                DraftMessage(ref="m1", chat="c1", sender="u1", text="anyone around?",
+                             order=1, read_by_actor=False)
+            ],
+        ),
+        {"$chat_0": "chat"},
+    )
+    reference = {
+        "$chat_0": {"mode": "chat_only_with_unread", "params": {},
+                    "phrase": "the one conversation you still have not caught up on",
+                    "predicate": "..."}
+    }
+    assert stale_references(ADAPTER, unread_seed, unread_binding, reference) == set()
+
+    caught_up = unread_seed.model_copy(deep=True)
+    for message in caught_up.messages:
+        message.read_by = [*message.read_by, caught_up.me]
+    assert stale_references(ADAPTER, caught_up, unread_binding, reference) == {"$chat_0"}

@@ -1,0 +1,202 @@
+# The delivery judge (eval time — after a rollout)
+
+Not part of authoring. This is the one model call made while *scoring*, and it is the
+whole of the `delivery` component (0.4 of the reward). One call per task, however many
+items. The judge grades over the WHOLE rollout — every tool call and every result — so
+that a retrieved answer can be told from an invented one, and so that information landing
+in a message partway through counts. It is not graded off the final reply alone.
+
+The items differ per level: each rung restates them for its own text, since the higher
+rungs remove the step numbers and ids the lower ones lean on. One section per level below.
+
+================================================================================================
+== LEVEL 1
+================================================================================================
+
+------------------------------------------------------------------------------------------------
+-- PROMPT (verify._JUDGE_PROMPT, filled in)
+------------------------------------------------------------------------------------------------
+You grade whether an agent delivered specific pieces of information.
+
+Each numbered item is something the agent had to find out and then put somewhere. You are given the requirement, what a correct answer says, and where in the agent's output to look for it.
+
+You are given the WHOLE ROLLOUT: every tool call the agent made, every result that came back, every message it sent, and its final reply. Use all of it. Do not grade off the final reply alone — most of these items are about information landing in a message partway through, and a rollout that did the work correctly and said little at the end is not a failure.
+
+Two things to hold together for each item:
+
+- **It has to be where the item says.** The hint names the place. Information that only ever appears in a tool result, and was never passed on, is not delivered — no matter how clearly the agent retrieved it.
+- **It has to be the same information.** That is a question about the whole trace: compare what the agent said against what the tools actually returned. A value the agent invented rather than retrieved is wrong even when it looks plausible, and a correct answer worded differently is right.
+
+Match on substance. Never judge style, length, or phrasing. An item is correct when a reader of the place the hint names would come away with the facts the expected answer states.
+
+Items:
+1. step 2 looks something up and no later step posts what it found, so the agent must report it back in its own reply
+   A correct answer says: Pandas is a Python library that provides high-performance, user-friendly data structures (notably DataFrame and Series) and tools for data manipulation and analysis of structured/tabular data.
+   Where to look: Look in the agent's final reply for the sentence reporting the answer returned by the ask_question about pandas-dev/pandas (the project's purpose).
+2. the text of step 3 must carry what step 1 returned
+   A correct answer says: The reply to Ben (the threaded reply to message m_002) includes Cara's handle @cara.
+   Where to look: Check the text of the reply the agent posted in thread replying to message m_002 in chat c_002.
+3. the text of step 4 must carry what step 1 returned
+   A correct answer says: The reply to Dan (the threaded reply to message m_005) includes Cara's handle @cara.
+   Where to look: Check the text of the reply the agent posted in thread replying to message m_005 in chat c_003.
+4. the text of step 5 must carry what step 1 returned
+   A correct answer says: The message sent to the spark-lib group (chat c_001) includes Cara's handle @cara.
+   Where to look: Check the text of the message the agent sent to chat c_001 (spark-lib).
+
+The rollout:
+=== FULL ROLLOUT — every tool call the agent made and every result that came back ===
+    <<< the agent's transcript — only exists once a rollout has run >>>
+
+=== WHAT THE AGENT DELIVERED — the same messages, collected for convenience ===
+Messages the agent sent during this rollout:
+    <<< every message the acting user sent during the rollout, seeded history excluded >>>
+
+Agent's final reply:
+    <<< the agent's last reply >>>
+
+Respond with ONLY a JSON array of booleans, one per item in order (true = correct).
+Example for two items: [true, false]
+
+================================================================================================
+== LEVEL 2
+================================================================================================
+
+------------------------------------------------------------------------------------------------
+-- PROMPT (verify._JUDGE_PROMPT, filled in)
+------------------------------------------------------------------------------------------------
+You grade whether an agent delivered specific pieces of information.
+
+Each numbered item is something the agent had to find out and then put somewhere. You are given the requirement, what a correct answer says, and where in the agent's output to look for it.
+
+You are given the WHOLE ROLLOUT: every tool call the agent made, every result that came back, every message it sent, and its final reply. Use all of it. Do not grade off the final reply alone — most of these items are about information landing in a message partway through, and a rollout that did the work correctly and said little at the end is not a failure.
+
+Two things to hold together for each item:
+
+- **It has to be where the item says.** The hint names the place. Information that only ever appears in a tool result, and was never passed on, is not delivered — no matter how clearly the agent retrieved it.
+- **It has to be the same information.** That is a question about the whole trace: compare what the agent said against what the tools actually returned. A value the agent invented rather than retrieved is wrong even when it looks plausible, and a correct answer worded differently is right.
+
+Match on substance. Never judge style, length, or phrasing. An item is correct when a reader of the place the hint names would come away with the facts the expected answer states.
+
+Items:
+1. step 2 looks something up and no later step posts what it found, so the agent must report it back in its own reply
+   A correct answer says: Pandas is a Python library that provides high-performance, user-friendly data structures (notably DataFrame and Series) and tools for data manipulation and analysis of structured/tabular data.
+   Where to look: Look in the agent's final reply for the sentence reporting the answer returned by the question asked about the repository 'pandas-dev/pandas' (the question: "What is this project's purpose?").
+2. the text of step 3 must carry what step 1 returned
+   A correct answer says: The reply to the message about maintainer of the 'data-toolkit' includes Cara's handle @cara.
+   Where to look: Check the text of the reply the agent posted in the thread replying to the message about maintainer of the 'data-toolkit' (the DM that asked who maintains the vendored 'data-toolkit').
+3. the text of step 4 must carry what step 1 returned
+   A correct answer says: The reply to the message about upstream maintainer for licensing includes Cara's handle @cara.
+   Where to look: Check the text of the reply the agent posted in the thread replying to the message about upstream maintainer for licensing (the release-planning thread asking for the maintainer's contact).
+4. the text of step 5 must carry what step 1 returned
+   A correct answer says: The message sent to the spark-lib channel includes Cara's handle @cara.
+   Where to look: Check the text of the message the agent sent to the spark-lib channel.
+
+The rollout:
+=== FULL ROLLOUT — every tool call the agent made and every result that came back ===
+    <<< the agent's transcript — only exists once a rollout has run >>>
+
+=== WHAT THE AGENT DELIVERED — the same messages, collected for convenience ===
+Messages the agent sent during this rollout:
+    <<< every message the acting user sent during the rollout, seeded history excluded >>>
+
+Agent's final reply:
+    <<< the agent's last reply >>>
+
+Respond with ONLY a JSON array of booleans, one per item in order (true = correct).
+Example for two items: [true, false]
+
+================================================================================================
+== LEVEL 3
+================================================================================================
+
+------------------------------------------------------------------------------------------------
+-- PROMPT (verify._JUDGE_PROMPT, filled in)
+------------------------------------------------------------------------------------------------
+You grade whether an agent delivered specific pieces of information.
+
+Each numbered item is something the agent had to find out and then put somewhere. You are given the requirement, what a correct answer says, and where in the agent's output to look for it.
+
+You are given the WHOLE ROLLOUT: every tool call the agent made, every result that came back, every message it sent, and its final reply. Use all of it. Do not grade off the final reply alone — most of these items are about information landing in a message partway through, and a rollout that did the work correctly and said little at the end is not a failure.
+
+Two things to hold together for each item:
+
+- **It has to be where the item says.** The hint names the place. Information that only ever appears in a tool result, and was never passed on, is not delivered — no matter how clearly the agent retrieved it.
+- **It has to be the same information.** That is a question about the whole trace: compare what the agent said against what the tools actually returned. A value the agent invented rather than retrieved is wrong even when it looks plausible, and a correct answer worded differently is right.
+
+Match on substance. Never judge style, length, or phrasing. An item is correct when a reader of the place the hint names would come away with the facts the expected answer states.
+
+Items:
+1. step 2 looks something up and no later step posts what it found, so the agent must report it back in its own reply
+   A correct answer says: The final report states that Pandas is a Python library providing high-performance, user-friendly data structures (notably DataFrame and Series) and tools for data manipulation and analysis of structured/tabular data.
+   Where to look: Look in the agent's final report for the sentence that reports the answer returned to the question asked about the repository 'pandas-dev/pandas' (the question: "What is this project's purpose?").
+2. the text of step 3 must carry what step 1 returned
+   A correct answer says: The threaded reply to the message about maintainer of the 'data-toolkit' includes the handle of the user found by looking up whoever wrote the message about start a bisection tomorrow, exactly as that lookup returned it.
+   Where to look: Check the text of the reply the agent posted in the thread replying to the message about maintainer of the 'data-toolkit' (the DM that asked who maintains the vendored 'data-toolkit').
+3. the text of step 4 must carry what step 1 returned
+   A correct answer says: The threaded reply to the message about upstream maintainer for licensing includes the handle of the same user found by looking up whoever wrote the message about start a bisection tomorrow, exactly as that lookup returned it.
+   Where to look: Check the text of the reply the agent posted in the thread replying to the message about upstream maintainer for licensing (the release-planning thread asking for the maintainer's contact).
+4. the text of step 5 must carry what step 1 returned
+   A correct answer says: The message sent to the spark-lib channel includes the handle of the same user found by looking up whoever wrote the message about start a bisection tomorrow, exactly as that lookup returned it.
+   Where to look: Check the text of the message the agent sent to the spark-lib channel.
+
+The rollout:
+=== FULL ROLLOUT — every tool call the agent made and every result that came back ===
+    <<< the agent's transcript — only exists once a rollout has run >>>
+
+=== WHAT THE AGENT DELIVERED — the same messages, collected for convenience ===
+Messages the agent sent during this rollout:
+    <<< every message the acting user sent during the rollout, seeded history excluded >>>
+
+Agent's final reply:
+    <<< the agent's last reply >>>
+
+Respond with ONLY a JSON array of booleans, one per item in order (true = correct).
+Example for two items: [true, false]
+
+================================================================================================
+== LEVEL 4
+================================================================================================
+
+------------------------------------------------------------------------------------------------
+-- PROMPT (verify._JUDGE_PROMPT, filled in)
+------------------------------------------------------------------------------------------------
+You grade whether an agent delivered specific pieces of information.
+
+Each numbered item is something the agent had to find out and then put somewhere. You are given the requirement, what a correct answer says, and where in the agent's output to look for it.
+
+You are given the WHOLE ROLLOUT: every tool call the agent made, every result that came back, every message it sent, and its final reply. Use all of it. Do not grade off the final reply alone — most of these items are about information landing in a message partway through, and a rollout that did the work correctly and said little at the end is not a failure.
+
+Two things to hold together for each item:
+
+- **It has to be where the item says.** The hint names the place. Information that only ever appears in a tool result, and was never passed on, is not delivered — no matter how clearly the agent retrieved it.
+- **It has to be the same information.** That is a question about the whole trace: compare what the agent said against what the tools actually returned. A value the agent invented rather than retrieved is wrong even when it looks plausible, and a correct answer worded differently is right.
+
+Match on substance. Never judge style, length, or phrasing. An item is correct when a reader of the place the hint names would come away with the facts the expected answer states.
+
+Items:
+1. step 2 looks something up and no later step posts what it found, so the agent must report it back in its own reply
+   A correct answer says: The final report states that Pandas is a Python library providing high-performance, user-friendly data structures (notably DataFrame and Series) and tools for data manipulation and analysis of structured/tabular data.
+   Where to look: Look in the agent's final report (the last reply it posts here) for the sentence that reports what 'pandas-dev/pandas' is for.
+2. the text of step 3 must carry what step 1 returned
+   A correct answer says: The threaded reply posted in the direct message that asks who maintains the vendored 'data-toolkit' includes the handle of the person who wrote the message about starting a bisection tomorrow, exactly as that handle appears in that person's workspace profile.
+   Where to look: Check the text of the reply the agent posted in the DM thread asking who maintains the vendored 'data-toolkit'.
+3. the text of step 4 must carry what step 1 returned
+   A correct answer says: The threaded reply posted in the release-planning thread that asks for the upstream maintainer contact includes the same handle of the person who wrote the message about starting a bisection tomorrow, exactly as that handle appears in that person's workspace profile.
+   Where to look: Check the text of the reply the agent posted in the release-planning thread requesting the maintainer's contact.
+4. the text of step 5 must carry what step 1 returned
+   A correct answer says: The message sent to the spark-lib group includes the same handle of the person who wrote the message about starting a bisection tomorrow, exactly as that handle appears in that person's workspace profile.
+   Where to look: Check the text of the message the agent sent to the spark-lib channel.
+
+The rollout:
+=== FULL ROLLOUT — every tool call the agent made and every result that came back ===
+    <<< the agent's transcript — only exists once a rollout has run >>>
+
+=== WHAT THE AGENT DELIVERED — the same messages, collected for convenience ===
+Messages the agent sent during this rollout:
+    <<< every message the acting user sent during the rollout, seeded history excluded >>>
+
+Agent's final reply:
+    <<< the agent's last reply >>>
+
+Respond with ONLY a JSON array of booleans, one per item in order (true = correct).
+Example for two items: [true, false]

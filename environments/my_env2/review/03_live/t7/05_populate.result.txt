@@ -1,0 +1,46 @@
+Stage 5 result. Filler is folded in ONE ENTITY AT A TIME and each addition kept only if
+every reference condition still resolves to exactly its own entity. Rejections are
+recorded, never silently dropped, and Stage 5 cannot fail the task — a world without
+padding is weaker, not broken.
+
+core     : 4 people, 3 chats, 9 messages
+populated: 6 people, 4 chats, 16 messages
+
+REJECTED ADDITIONS
+  (none)
+
+THE SEED THAT SHIPS
+You act as Ari Novak (id u_me).
+
+People:
+  u_me  Ari Novak @you
+  u_samir  Samir Patel @samir
+  u_leah  Leah Kim @leah
+  u_maria  Maria Gomez @maria
+  u_tom  Tom Wright @tom
+  u_jia  Jia Chen @jia
+  u_brett  Brett Lane @brett
+
+group Launch Planning (c_001) — members: Ari Novak @you, Samir Patel @samir, Leah Kim @leah, Maria Gomez @maria
+  m_001 [Samir Patel @samir]: We need to pick the time window for the feature-flag flip — options: 22:00 or 02:00. Thoughts?  (UNREAD by you)
+  m_002 [Leah Kim @leah]: 02:00 is safer for international traffic. Also: flag the CS team in advance.  (reply to m_001; UNREAD by you)
+  m_003 [Maria Gomez @maria]: If we flip at 02:00 I'll be on call — can someone draft a clear rollback plan with triggers?  (reply to m_001; UNREAD by you; :+1: x1)
+  m_006 [Samir Patel @samir]: Also, FYI, the external stakeholders asked for a one-pager by tomorrow.  (reply to m_001; UNREAD by you)
+  m_008 [Samir Patel @samir]: Also note marketing asked for a slide deck with timeline — can someone own that?  (UNREAD by you)
+  m_010 [Leah Kim @leah]: I can draft the rollback triggers doc — will share a link by EOD.  (reply to m_003; UNREAD by you)
+  m_012 [Ari Novak @you]: Can we confirm the rollback trigger conditions before we pick the time?
+  m_014 [Leah Kim @leah]: We haven't defined exact thresholds yet — Leah to draft? Also who will own the rollback?  (reply to m_012; UNREAD by you)
+
+dm (dm) (c_002) — members: Ari Novak @you, Samir Patel @samir
+  m_005 [Samir Patel @samir]: Quick DM: do you have the list of services affected by the rollout?
+  m_011 [Samir Patel @samir]: Forgot to mention: the payment service isn't in that list — it's critical.  (reply to m_005; UNREAD by you)
+  m_016 [Ari Novak @you]: I'll pull the affected-service list and post it to Ops Room once I have it.  (reply to m_005)
+
+group Ops Room (c_003) — members: Ari Novak @you, Maria Gomez @maria, Tom Wright @tom
+  m_007 [Tom Wright @tom]: Alert: the canary shows increased latencies since 23:10. Switching back might be necessary.  (UNREAD by you; ⚠️ x1)
+  m_009 [Maria Gomez @maria]: Acknowledged. Can you pull p50/p95 and error rate for the last hour so we can decide?  (reply to m_007; UNREAD by you)
+  m_013 [Tom Wright @tom]: Uploaded graphs to the dashboard: look at canary-1, canary-2. p95 jumped 40%.  (reply to m_009; UNREAD by you)
+  m_015 [Maria Gomez @maria]: On it — will take a look after the standup.  (reply to m_013)
+
+group Watercooler (c_004) — members: Ari Novak @you, Samir Patel @samir, Jia Chen @jia
+  m_004 [Jia Chen @jia]: Morning! Saw the Launch Planning thread — good luck today.  (UNREAD by you)

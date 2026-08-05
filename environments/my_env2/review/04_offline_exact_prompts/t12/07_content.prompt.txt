@@ -1,0 +1,137 @@
+# Stage 7 — write the free text
+
+1 model call(s).
+
+================================================================================================
+== call 1 of 1
+================================================================================================
+
+------------------------------------------------------------------------------------------------
+-- SYSTEM PROMPT
+------------------------------------------------------------------------------------------------
+You write the text a task's steps carry.
+
+You are given a workspace, a plan of what the agent will do in it, and a list of PLACEHOLDERS for the free text in that plan. Fill each one so that the whole thing reads like one errand a colleague actually asked for.
+
+- A message body should sound like the person you act as, addressed to the people in that conversation, and should belong to what is being discussed there.
+- Where a step says its text must CARRY what an earlier step returned, there is no placeholder for it — the agent supplies that itself. Write the surrounding placeholders so they fit alongside it.
+- For a repository question, name a real, well-known public GitHub repo in owner/repo form and ask something specific whose answer does not change: what the project is for, how a named component works, what a term in it means. NEVER ask about maintainers, contributors, stars, versions or anything else a release could move — a stored expectation for those goes stale and the task starts marking correct answers wrong. Read the step's `returns` line too: each tool answers a different range of things, and a question outside its range has no obtainable answer at all.
+- Keep every value short. A message is a sentence or two, not a paragraph.
+
+Respond with ONLY this JSON object, one entry per placeholder, keyed by placeholder:
+{"content": {"$text_0": "...", "$name_1": "..."}}
+
+------------------------------------------------------------------------------------------------
+-- USER PROMPT
+------------------------------------------------------------------------------------------------
+ENVIRONMENT
+  chat: Local mock chat app. Read and write tools operate on the rollout's ChatState.
+  deepwiki: Public DeepWiki MCP server: read-only GitHub-repo Q&A. Answers can be nondeterministic; requires the repo to be indexed by DeepWiki.
+  You act as one specific user. The acting user's id. Every write is attributed to this user; reads are scoped to it where noted.
+
+ENTITY TYPES IN THIS TASK
+  user — A person in the workspace. Display names may collide; handles never do.
+      id: string
+      name: string
+      handle: string
+  chat — A conversation the acting user takes part in. `name` is null for a DM.
+      id: string
+      kind: "dm" | "group"
+      name: string | null
+      member_ids: string[] (user ids)
+  message — One posted message. `reply_to` threads it under an earlier message in the same chat.
+      id: string
+      chat_id: string (chat id)
+      sender_id: string (user id)
+      text: string
+      ts: int (logical clock, not wall time)
+      reply_to: string | null (parent message id)
+      reactions: object (emoji -> user_id[])
+      read_by: string[] (user ids)
+
+ACTIONS THIS TASK USES
+  create_chat (write) — Create a new chat; the acting user is always included as a member.
+      member_ids: user ids to include (actor added automatically)
+      name: chat name; if set (or >2 members) the chat is a group, else a dm (optional)
+      returns: {id, kind, name, members}
+  read_wiki_contents (read) — View DeepWiki documentation for a GitHub repository.
+      repoName: GitHub repo in owner/repo form
+      returns: the repo's wiki DOCUMENTATION PROSE. It states what the project is for, how a subsystem works, what a concept means. It does NOT state licence, stars, maintainers or primary language, so a question about those has no obtainable answer here.
+  read_wiki_structure (read) — List the DeepWiki documentation topics for a GitHub repository.
+      repoName: GitHub repo in owner/repo form
+      returns: only the LIST OF DOCUMENTATION TOPIC TITLES. It can answer which areas the documentation covers, and nothing about repo metadata or the content of any page.
+  send_message (write) — Send a message from the acting user to a chat.
+      chat_id: destination chat
+      text: message body
+      returns: the created message view
+  add_reaction (write) — Add an emoji reaction from the acting user to a message.
+      message_id: the message to react to
+      emoji: reaction emoji, e.g. ':+1:'
+      returns: the updated message view
+  mark_read (write) — Mark every message in a chat as read by the acting user.
+      chat_id: chat to mark read
+      returns: {chat_id, marked_read: <count>}
+
+WORKSPACE
+You act as You (id u_me).
+
+People:
+  u_me  You @you
+  u_person0  Person 0 @person0
+  u_extra0  Extra 0 @extra0
+  u_extra1  Extra 1 @extra1
+  u_extra2  Extra 2 @extra2
+  u_filler1  Filler One @filler1
+
+group room-0 (c_001) — members: You @you, Person 0 @person0, Extra 0 @extra0
+  m_001 [Person 0 @person0]: padding 0 mentions gadget 0 in passing  (UNREAD by you)
+  m_004 [Extra 0 @extra0]: padding 3 mentions gadget 3 in passing  (UNREAD by you)
+
+group room-1 (c_002) — members: You @you, Person 0 @person0, Extra 0 @extra0, Extra 1 @extra1
+  m_002 [Extra 0 @extra0]: padding 1 mentions gadget 1 in passing  (UNREAD by you)
+
+group room-2 (c_003) — members: You @you, Person 0 @person0, Extra 0 @extra0
+  m_003 [Person 0 @person0]: padding 2 mentions gadget 2 in passing  (UNREAD by you)
+
+group watercooler (c_004) — members: You @you, Person 0 @person0, Filler One @filler1
+  m_005 [Filler One @filler1]: unrelated chatter about the coffee machine
+
+PLAN
+step 1 [write] create_chat — Create a new chat; the acting user is always included as a member.
+    member_ids   = u_person0 — Person 0 @person0
+    -> creates something new
+step 2 [read] read_wiki_contents — View DeepWiki documentation for a GitHub repository.
+    repoName     = $repoName_0 (free text: GitHub repo in owner/repo form)
+    -> returns the repo's wiki DOCUMENTATION PROSE. It states what the project is for, how a subsystem works, what a concept means. It does NOT state licence, stars, maintainers or primary language, so a question about those has no obtainable answer here. (not known until the agent runs it)
+step 3 [read] read_wiki_structure — List the DeepWiki documentation topics for a GitHub repository.
+    repoName     = $repoName_1 (free text: GitHub repo in owner/repo form)
+    -> returns only the LIST OF DOCUMENTATION TOPIC TITLES. It can answer which areas the documentation covers, and nothing about repo metadata or the content of any page. (not known until the agent runs it)
+step 4 [write] send_message — Send a message from the acting user to a chat.
+    chat_id      = c_001 — group 'room-0' — members: You @you, Person 0 @person0, Extra 0 @extra0
+    text         <- must carry what step 2 returned
+    -> creates something new
+step 5 [write] add_reaction — Add an emoji reaction from the acting user to a message.
+    message_id   = the message step 4 creates
+    emoji        = $emoji_0 (free text: reaction emoji, e.g. ':+1:')
+step 6 [write] send_message — Send a message from the acting user to a chat.
+    chat_id      = c_002 — group 'room-1' — members: You @you, Person 0 @person0, Extra 0 @extra0, Extra 1 @extra1
+    text         <- must carry what step 2 returned
+    -> creates something new
+step 7 [write, an aside] mark_read — Mark every message in a chat as read by the acting user.
+    chat_id      = c_003 — group 'room-2' — members: You @you, Person 0 @person0, Extra 0 @extra0
+
+PLACEHOLDERS TO FILL
+  $repoName_0 — step 2 (read_wiki_contents.repoName): GitHub repo in owner/repo form
+  $repoName_1 — step 3 (read_wiki_structure.repoName): GitHub repo in owner/repo form
+  $emoji_0 — step 5 (add_reaction.emoji): reaction emoji, e.g. ':+1:'
+
+------------------------------------------------------------------------------------------------
+-- REPLY
+------------------------------------------------------------------------------------------------
+{
+  "content": {
+    "$repoName_0": "canned text for $repoName_0",
+    "$repoName_1": "canned text for $repoName_1",
+    "$emoji_0": "canned text for $emoji_0"
+  }
+}

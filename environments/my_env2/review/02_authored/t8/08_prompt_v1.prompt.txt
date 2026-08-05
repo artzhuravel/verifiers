@@ -1,0 +1,178 @@
+# Stage 8 — v1 prompt and the judge specification
+
+This is EXACTLY the prompt the authoring model received. Every input to it is stored
+in the task record, so it is a reconstruction only in the sense that it was rebuilt rather
+than logged.
+
+------------------------------------------------------------------------------------------------
+-- SYSTEM PROMPT
+------------------------------------------------------------------------------------------------
+You turn a plan into a task, written as an explicit numbered sequence.
+
+You are given a workspace, and the exact actions an agent should perform in it with every detail already decided. Write the request the agent will receive.
+
+- One numbered step per action, in the given order — but write SENTENCES. The plan you are given is a machine listing; do not reproduce its layout, its bracketed tags, its parameter lines or its "returns" notes. Those are notes to you. Ask for the thing, using the ids shown.
+- Every step is work that must happen, including any marked as an aside. The plan is the complete and exact set of actions: never ask for anything it does not contain, and never leave one out. An unplanned message is an unexpected change to the workspace, and a missing one costs the agent credit for obeying you.
+- Where a step's text must CARRY what an earlier step returned, say so plainly: the agent has to look that up and say it in the message. Ask for the information, not for a transcript — a person asks a colleague to pass on what a thread said, never to paste the raw tool output. Never guess the value yourself.
+- Where a step looks something up and no later step posts what it found, ask the agent to report that back to you in its reply.
+
+You also write the JUDGE SPECIFICATION. You are given the items that need checking, each with where its answer must appear. For each one return:
+- expected: THE ANSWER ITSELF, in a sentence. Two ways to get this wrong, and both make the item useless. Do not write "the text returned by step N" or "the answer to the question above" — a grader given that has nothing to compare against. And do not paste the returned value back verbatim — say what a correct answer STATES, in your own words, so that a grader can recognise one that is worded differently. Where the item shows what the step actually returned, draw the facts out of it ("names all three of X, Y and Z"); where the answer comes from outside the workspace, give it as best you know it.
+- hint: where in the agent's output a grader should look for it.
+
+Respond with ONLY this JSON object:
+{"prompt": "<the task text>",
+ "judge": [{"id": "<item id, copied exactly>", "expected": "...", "hint": "..."}]}
+
+------------------------------------------------------------------------------------------------
+-- USER PROMPT
+------------------------------------------------------------------------------------------------
+ENVIRONMENT
+  chat: Local mock chat app. Read and write tools operate on the rollout's ChatState.
+  deepwiki: Public DeepWiki MCP server: read-only GitHub-repo Q&A. Answers can be nondeterministic; requires the repo to be indexed by DeepWiki.
+  You act as one specific user. The acting user's id. Every write is attributed to this user; reads are scoped to it where noted.
+
+ENTITY TYPES IN THIS TASK
+  user — A person in the workspace. Display names may collide; handles never do.
+      id: string
+      name: string
+      handle: string
+  message — One posted message. `reply_to` threads it under an earlier message in the same chat.
+      id: string
+      chat_id: string (chat id)
+      sender_id: string (user id)
+      text: string
+      ts: int (logical clock, not wall time)
+      reply_to: string | null (parent message id)
+      reactions: object (emoji -> user_id[])
+      read_by: string[] (user ids)
+  chat — A conversation the acting user takes part in. `name` is null for a DM.
+      id: string
+      kind: "dm" | "group"
+      name: string | null
+      member_ids: string[] (user ids)
+
+ACTIONS THIS TASK USES
+  get_user (read) — Look up a user by id.
+      user_id: user to look up
+      returns: {id, name, handle} or {"error": "no such user"}
+  ask_question (read) — Ask an AI-grounded question about a GitHub repository.
+      repoName: GitHub repo in owner/repo form (or a list, max 10)
+      question: the question to ask
+      returns: a free-text answer to any question about the repo — metadata (licence, primary language, maintainers) and prose questions alike. Nondeterministic wording, so only ask things with a stable, unambiguous answer.
+  reply_to (write) — Reply to an existing message in its chat (threaded).
+      message_id: the message being replied to
+      text: reply body
+      returns: the created message view
+  send_message (write) — Send a message from the acting user to a chat.
+      chat_id: destination chat
+      text: message body
+      returns: the created message view
+
+WORKSPACE
+You act as Sam Ortega (id u_me).
+
+People:
+  u_me  Sam Ortega @you
+  u_alice  Alice Monroe @alice
+  u_ben  Benjamin Ortiz @ben
+  u_carla  Carla Ruiz @carla
+  u_dan  Daniel Park @dan
+  u_kzhang  Kevin Zhang @kzhang
+  u_linac  Lina Chen @linac
+
+group backend-team (c_001) — members: Sam Ortega @you, Alice Monroe @alice, Benjamin Ortiz @ben, Carla Ruiz @carla, Daniel Park @dan
+  m_001 [Alice Monroe @alice]: Quick ask: before we cut the release, can someone check acme/telemetry-lib on GitHub — we need the license, primary language, and current maintainers listed.
+  m_002 [Benjamin Ortiz @ben]: I can check this, but can someone confirm my GitHub handle? I use a couple of variants ('benort' vs company handle).  (reply to m_001; UNREAD by you)
+  m_003 [Alice Monroe @alice]: Small heads-up: spilled coffee but all good here. Also tagging u2 in case you want to confirm which handle you're using publicly.
+  m_004 [Carla Ruiz @carla]: Ben — if you look, also confirm whether it's under acme-org or a personal repo. Infra needs that for permissions.  (reply to m_002)
+  m_006 [Daniel Park @dan]: FYI I pushed a tiny fix to the pipeline; shouldn't affect the release but ping me if anything flakey shows up.  (reply to m_001)
+  m_008 [Carla Ruiz @carla]: Totally unrelated: did anyone else have audio glitches on the standup stream this morning?  (reply to m_004)
+  m_010 [Daniel Park @dan]: If it's under acme-org, the maintainers list should be in CODEOWNERS. Could someone fetch that file and check the entries?  (reply to m_001)
+  m_012 [Benjamin Ortiz @ben]: Also, if anyone's checking, confirm whether the license permits redistribution — Legal will block the release otherwise.  (reply to m_002; UNREAD by you)
+  m_013 [Benjamin Ortiz @ben]: I can take the CODEOWNERS check now and report back — heads up that I have a hard stop at 6pm for a kid thing.  (reply to m_010)
+  m_014 [Alice Monroe @alice]: Let's collect the results in the thread on the release checklist. Ping me once you have the GitHub metadata so I can update the release notes.  (reply to m_001)
+
+dm (dm) (c_002) — members: Sam Ortega @you, Carla Ruiz @carla
+  m_007 [Carla Ruiz @carla]: Hey — can you look up Ben's GitHub ID? I need to @-mention him in the repo issue about the security advisory.  (UNREAD by you)
+  m_011 [Carla Ruiz @carla]: Found it — u2 appears on GitHub as 'benort-company'. Sending the exact ID in this DM thread.  (reply to m_007)
+  m_015 [Carla Ruiz @carla]: And send the GitHub handle back here if you find it, so I can message him privately about timing.  (reply to m_007; UNREAD by you)
+
+group coffee-break (c_003) — members: Sam Ortega @you, Alice Monroe @alice, Kevin Zhang @kzhang, Lina Chen @linac
+  m_005 [Kevin Zhang @kzhang]: Morning — who's up for grabbing coffee after standup? I can swing by the lobby at 10:15.
+  m_009 [Alice Monroe @alice]: I'll join — meet you by the coffee machine after standup.  (reply to m_005)
+
+PLAN (perform in this order)
+step 1 [read] get_user — Look up a user by id.
+    user_id      = u_ben — Benjamin Ortiz @ben
+    -> returns: ben
+step 2 [read] ask_question — Ask an AI-grounded question about a GitHub repository.
+    repoName     = 'python/cpython'
+    question     = 'What is the primary purpose of the python/cpython repository?'
+    -> returns a free-text answer to any question about the repo — metadata (licence, primary language, maintainers) and prose questions alike. Nondeterministic wording, so only ask things with a stable, unambiguous answer. (not known until the agent runs it)
+step 3 [write] reply_to — Reply to an existing message in its chat (threaded).
+    message_id   = m_002 — in backend-team from Benjamin Ortiz, replying to m_001, unread by you: "I can check this, but can someone confirm my GitHub handle? I use a couple of variants ('benort' vs company handle)."
+    text         <- must carry what step 1 returned
+    -> creates something new
+step 4 [write] reply_to — Reply to an existing message in its chat (threaded).
+    message_id   = m_007 — in c_002 from Carla Ruiz, unread by you: "Hey — can you look up Ben's GitHub ID? I need to @-mention him in the repo issue about the security advisory."
+    text         <- must carry what step 1 returned
+    -> creates something new
+step 5 [write] send_message — Send a message from the acting user to a chat.
+    chat_id      = c_001 — group 'backend-team' — members: Sam Ortega @you, Alice Monroe @alice, Benjamin Ortiz @ben, Carla Ruiz @carla, Daniel Park @dan
+    text         <- must carry what step 1 returned
+    -> creates something new
+step 6 [write] reply_to — Reply to an existing message in its chat (threaded).
+    message_id   = the message step 3 creates
+    text         = "Thanks — noted Ben's GitHub handle is ben; I'll mention him in the issue and update the release checklist."
+    -> creates something new
+
+ITEMS THAT NEED CHECKING
+  report:c2a0
+      step 2 looks something up and no later step posts what it found, so the agent must report it back in its own reply
+      delivered in: the agent's final reply
+      step 2 (ask_question) returns a free-text answer to any question about the repo — metadata (licence, primary language, maintainers) and prose questions alike. Nondeterministic wording, so only ask things with a stable, unambiguous answer.
+  carry:c0a1:text
+      the text of step 3 must carry what step 1 returned
+      delivered in: the message step 3 posts
+      step 1 (get_user) returns {id, name, handle} or {"error": "no such user"}
+          it actually returned: ben
+  carry:c1a0:text
+      the text of step 4 must carry what step 1 returned
+      delivered in: the message step 4 posts
+      step 1 (get_user) returns {id, name, handle} or {"error": "no such user"}
+          it actually returned: ben
+  carry:c0a2:text
+      the text of step 5 must carry what step 1 returned
+      delivered in: the message step 5 posts
+      step 1 (get_user) returns {id, name, handle} or {"error": "no such user"}
+          it actually returned: ben
+
+------------------------------------------------------------------------------------------------
+-- WHAT THE MODEL RETURNED (the shipped artifact)
+------------------------------------------------------------------------------------------------
+{
+  "prompt": "1. Look up the user with id u_ben using get_user and save the returned value for use in later steps. 2. Ask the repository question to the AI-grounded repo tool: \"What is the primary purpose of the python/cpython repository?\" and save the returned answer; include that returned answer in your final reply. 3. Reply in-thread to message m_002 in the backend-team chat and make the reply text include the value returned by the get_user call from step 1. 4. Reply in-thread to message m_007 in the DM chat and make the reply text include the value returned by the get_user call from step 1. 5. Send a message to chat c_001 (backend-team) whose message text includes the value returned by the get_user call from step 1. 6. Reply in-thread to the message you created in step 3 with exactly: \"Thanks — noted Ben's GitHub handle is ben; I'll mention him in the issue and update the release checklist.\".",
+  "judge": [
+    {
+      "id": "report:c2a0",
+      "expected": "The python/cpython repository is the reference implementation of the Python programming language (CPython), containing the interpreter source code and the standard library and tooling to build and ship the Python interpreter.",
+      "hint": "Look in the agent's final reply for the paragraph that reports the answer returned by the repo question about python/cpython."
+    },
+    {
+      "id": "carry:c0a1:text",
+      "expected": "The reply posted to message m_002 explicitly states that Ben's GitHub handle is ben.",
+      "hint": "Check the text of the reply the agent sent in-thread to message m_002 in the backend-team chat."
+    },
+    {
+      "id": "carry:c1a0:text",
+      "expected": "The reply posted to message m_007 explicitly states that Ben's GitHub handle is ben.",
+      "hint": "Check the text of the reply the agent sent in-thread to message m_007 in the DM with Carla."
+    },
+    {
+      "id": "carry:c0a2:text",
+      "expected": "The message sent to chat c_001 (backend-team) explicitly states that Ben's GitHub handle is ben.",
+      "hint": "Check the text of the new message the agent posted to the backend-team chat (chat id c_001)."
+    }
+  ]
+}

@@ -1,0 +1,55 @@
+Stage 6. Bind every placeholder, execute the sequence once against the seed.
+This produces `expected` — the deterministic reward's comparison target — and it is the
+pipeline's validity gate: a step that errors, a write that changed nothing, or a read
+that came back empty drops the task rather than shipping a hole in its own scoring.
+
+Free text is NOT resolved here. Replay writes the placeholder itself into message
+bodies, because `signature` excludes text — which is what lets Stage 7 decide what the
+messages say afterwards without moving a single fact in `expected`.
+
+BINDING (symbol -> real id)
+  $user_0              u_lena       (seed)
+  $user_1              u_rafael     (seed)
+  $chat_0              c_001        (seed)
+  $new_chat_0          c_004        (rollout)
+  $new_message_0       m_014        (rollout)
+  $new_message_1       m_015        (rollout)
+  $new_message_2       m_016        (rollout)
+
+STEP BY STEP
+  step  1 create_chat          [write]
+        args      {"member_ids": ["u_lena", "u_rafael"], "name": "$name_0"}
+        adds      ["('new_chat', ('u_lena', 'u_me', 'u_rafael'), 1)"]
+  step  2 send_message         [write]
+        args      {"chat_id": "c_001", "text": "$text_0"}
+        adds      ["('new_msg', 'c_001', 'u_me', None, 1)"]
+  step  3 send_message         [write]
+        args      {"chat_id": "c_004", "text": "$text_1"}
+        adds      ["('new_msg', ('new_chat', ('u_lena', 'u_me', 'u_rafael'), 1), 'u_me', None, 1)"]
+  step  4 add_reaction         [write]
+        args      {"message_id": "m_015", "emoji": "$emoji_0"}
+        adds      ["('react', ('new_msg', ('new_chat', ('u_lena', 'u_me', 'u_rafael'), 1), 'u_me', None, 1), 'u_me')"]
+  step  5 add_reaction         [write]
+        args      {"message_id": "m_014", "emoji": "$emoji_1"}
+        adds      ["('react', ('new_msg', 'c_001', 'u_me', None, 1), 'u_me')"]
+  step  6 reply_to             [write]
+        args      {"message_id": "m_015", "text": "$text_2"}
+        adds      ["('new_msg', ('new_chat', ('u_lena', 'u_me', 'u_rafael'), 1), 'u_me', ('new_msg', ('new_chat', ('u_lena', 'u_me', 'u_rafael'), 1), 'u_me', None, 1), 1)"]
+
+PER-TURN DIFFS (recorded, deliberately not scored — they say which turn a failed rollout stopped matching at)
+  turn 0: ["('new_chat', ('u_lena', 'u_me', 'u_rafael'), 1)", "('new_msg', 'c_001', 'u_me', None, 1)"]
+  turn 1: ["('new_msg', ('new_chat', ('u_lena', 'u_me', 'u_rafael'), 1), 'u_me', None, 1)"]
+  turn 2: ["('react', ('new_msg', 'c_001', 'u_me', None, 1), 'u_me')", "('react', ('new_msg', ('new_chat', ('u_lena', 'u_me', 'u_rafael'), 1), 'u_me', None, 1), 'u_me')"]
+  turn 3: (nothing)
+  turn 4: ["('new_msg', ('new_chat', ('u_lena', 'u_me', 'u_rafael'), 1), 'u_me', ('new_msg', ('new_chat', ('u_lena', 'u_me', 'u_rafael'), 1), 'u_me', None, 1), 1)"]
+
+no-op writes : none
+empty reads  : none
+
+WHAT THE DETERMINISTIC REWARD WILL LOOK FOR (expected minus seed, over `signature`)
+  ('new_chat', ('u_lena', 'u_me', 'u_rafael'), 1)
+  ('new_msg', 'c_001', 'u_me', None, 1)
+  ('new_msg', ('new_chat', ('u_lena', 'u_me', 'u_rafael'), 1), 'u_me', ('new_msg', ('new_chat', ('u_lena', 'u_me', 'u_rafael'), 1), 'u_me', None, 1), 1)
+  ('new_msg', ('new_chat', ('u_lena', 'u_me', 'u_rafael'), 1), 'u_me', None, 1)
+  ('react', ('new_msg', 'c_001', 'u_me', None, 1), 'u_me')
+  ('react', ('new_msg', ('new_chat', ('u_lena', 'u_me', 'u_rafael'), 1), 'u_me', None, 1), 'u_me')

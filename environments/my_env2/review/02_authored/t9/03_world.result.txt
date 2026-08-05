@@ -1,0 +1,45 @@
+Stage 3 result (as shipped, after Stage 5 padding).
+
+topic: backend telemetry rollout and deployment notes
+
+You act as You (id u_me).
+
+People:
+  u_me  You @you
+  u_marco_s  Marco Silva @marco_s
+  u_lina_p  Lina Park @lina_p
+  u_jamal_r  Jamal Reed @jamal_r
+  u_priya_d  Priya Desai @priya_d
+  u_carlos_v  Carlos Vega @carlos_v
+  u_aisha_k  Aisha Khan @aisha_k
+
+group backend-architecture (c_001) — members: You @you, Marco Silva @marco_s, Lina Park @lina_p, Jamal Reed @jamal_r
+  m_001 [Marco Silva @marco_s]: We need to validate which exporter repos Lina owns before we finalize the deployment notes. Can someone enumerate the repos and docs we should cite?  (:+1: x1)
+  m_002 [Lina Park @lina_p]: I can help with that — do you mean the low-level Rust exporter or the JS wrapper the frontend team uses?  (reply to m_001)
+  m_003 [Lina Park @lina_p]: Small aside: anyone up for coffee after the sync? 15 min break?  (UNREAD by you)
+  m_004 [Jamal Reed @jamal_r]: Lina — can you confirm which GitHub repo we should cite in the deployment notes? Also, who's the primary contact on your side (handle) for follow-ups?  (UNREAD by you)
+  m_005 [Jamal Reed @jamal_r]: Quick non-blocking note: I put a comment on the exporter PR about metrics labels; someone should ack it.  (UNREAD by you)
+  m_006 [Marco Silva @marco_s]: We specifically need the repo used in the Docker image and the exporter docs page — both links.  (reply to m_004; :+1: x1)
+  m_009 [Lina Park @lina_p]: Also, fyi the Rust exporter README mentions a sample config in examples/config.toml. I'll paste snippet later.  (UNREAD by you)
+  m_010 [Lina Park @lina_p]: I'll gather the exact repo names and the DeepWiki pages and paste them here in a bit — give me 20 mins.  (reply to m_004; UNREAD by you)
+  m_013 [Marco Silva @marco_s]: I'll need the exact filename paths to add to the Dockerfile; could you include those, u2?  (reply to m_009)
+  m_014 [Jamal Reed @jamal_r]: Thanks — when you post the wiki pages I'll update the deployment notes and the rollback plan.  (reply to m_004; UNREAD by you)
+  m_016 [Lina Park @lina_p]: To be clear: I'll post links to the DeepWiki pages 'Exporter Concepts' and 'Exporter Deployment' and then the exact GitHub repo names.  (reply to m_014; UNREAD by you)
+  m_017 [Jamal Reed @jamal_r]: Also tagging u2 — any ETA on the links? No rush; coordinating timelines.  (reply to m_010; UNREAD by you)
+
+group oncall (c_002) — members: You @you, Marco Silva @marco_s, Priya Desai @priya_d
+  m_008 [Priya Desai @priya_d]: Oncall: heads-up — prod latency spike on /api/orders. It coincides with the new exporter rollout. Jamal, can you take a look?  (UNREAD by you)
+  m_011 [Priya Desai @priya_d]: Thanks — I'm looking at the logs now. The spike seems to start exactly at 14:12 UTC.  (reply to m_008; UNREAD by you)
+  m_012 [Marco Silva @marco_s]: Priya — tagging you for postmortem. If this is the exporter rollout we may need to rollback.  (reply to m_008; :+1: x1)
+  m_015 [Marco Silva @marco_s]: If it's the exporter, prep steps for rollback: disable feature flag then revert image.  (reply to m_011)
+
+group (dm) (c_003) — members: You @you, Marco Silva @marco_s, Carlos Vega @carlos_v
+  m_007 [Carlos Vega @carlos_v]: hey — can you share that docker layering tip again? I keep rebuilding from scratch, u1.  (UNREAD by you)
+
+PLACEHOLDERS BOUND
+  $user_0                -> u_lina_p     (seed)
+  $chat_0                -> c_002        (seed)
+  $message_0             -> m_004        (seed)
+  $new_message_0         -> m_018        (rollout)
+  $new_message_1         -> m_019        (rollout)
+  $new_message_2         -> m_020        (rollout)

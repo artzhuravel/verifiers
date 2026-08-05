@@ -1,0 +1,113 @@
+SEQUENCE idx 2  (task id t2)
+
+Stage 1 output. No world exists yet: every entity is a typed placeholder, and the
+world is authored afterwards to satisfy what is written here.
+
+WHAT OF THIS THE AUTHORING MODEL ACTUALLY SEES
+Only two of the blocks below are prompt content; each is tagged. The rest is written
+for you. The full Stage 3 user message is, in order:
+
+    ENVIRONMENT / ENTITY TYPES IN THIS TASK / ACTIONS THIS TASK USES   <- 02_shared_context.txt
+    PLAN THE AGENT WILL BE ASKED TO CARRY OUT                          <- the tagged block below
+    PLACEHOLDERS THAT MUST ALREADY EXIST                               <- the tagged block below
+    BIND EXACTLY THESE, ONE EACH, AND NOTHING ELSE                     <- one line, not shown here
+
+plus a system prompt. For the real thing, byte for byte, read 03_world.prompt.txt.
+
+SHAPE (measured off the emitted steps, not read back from the config)
+[REVIEW ONLY — this block is written for a human and is never sent to any model]
+  threads                    3
+  turns                      3
+  steps                      6
+  links_per_thread           [3, 2, 1]
+  longest_chain              2
+  longest_chain_per_thread   [2, 2, 1]
+  cross_thread_edges         1
+  object_edges               0
+  value_edges                3
+  fan_in                     {"1": 3}
+  fan_out                    {"3": 1}
+  external_steps             0
+  write_steps                5
+  distractors                0
+  actions                    {"create_chat": 2, "list_chats": 1, "reply_to": 2, "send_message": 1}
+
+THE CLOCK — three threads advancing in parallel; a thread may skip a turn to wait
+for another thread to produce something it can consume
+[REVIEW ONLY — this block is written for a human and is never sent to any model]
+turn  thread 0                          thread 1                          thread 2                          
+   0  1. list_chats                     2. create_chat                    3. create_chat
+   1  4. send_message                   5. reply_to                       —
+   2  6. reply_to                       —                                 —
+
+THE PLAN, AS THE AUTHORING MODEL SEES IT
+[SENT — this block appears VERBATIM in the Stage 3 prompt, under the header named below]
+header in the prompt: "PLAN THE AGENT WILL BE ASKED TO CARRY OUT"
+step 1 [read] list_chats — List the chats the acting user is a member of.
+    -> returns $info_0: array of {id, kind, name, members} for chats where actor is in member_ids
+step 2 [write] create_chat — Create a new chat; the acting user is always included as a member.
+    member_ids   = $user_0 (an existing user), $user_1 (an existing user)
+    name         = $name_0 (free text: chat name; if set (or >2 members) the chat is a group, else a dm)
+    -> creates $new_chat_0
+step 3 [write] create_chat — Create a new chat; the acting user is always included as a member.
+    member_ids   = $user_2 (an existing user), $user_3 (an existing user)
+    name         = $name_1 (free text: chat name; if set (or >2 members) the chat is a group, else a dm)
+    -> creates $new_chat_1
+step 4 [write] send_message — Send a message from the acting user to a chat.
+    chat_id      = $chat_0 (an existing chat)
+    text         <- must carry what step 1 returned
+    -> creates $new_message_0
+step 5 [write] reply_to — Reply to an existing message in its chat (threaded).
+    message_id   = $message_0 (an existing message)
+    text         <- must carry what step 1 returned
+    -> creates $new_message_1
+step 6 [write] reply_to — Reply to an existing message in its chat (threaded).
+    message_id   = $message_1 (an existing message)
+    text         <- must carry what step 1 returned
+    -> creates $new_message_2
+
+DEPENDENCY EDGES — the reason this is a chain and not a list
+[REVIEW ONLY — this block is written for a human and is never sent to any model]
+The model is never handed this table. It learns the edges only from lines inside the
+plan block above — `text <- must carry what step N returned` for a value edge, and
+`= $new_x_0 (the x step N creates)` for an object edge.
+  step 1 (list_chats)  ->  step 4 (send_message).text
+        VALUE  (what a read returned — only the judge can see it)
+  step 1 (list_chats)  ->  step 5 (reply_to).text [cross-thread]
+        VALUE  (what a read returned — only the judge can see it)
+  step 1 (list_chats)  ->  step 6 (reply_to).text
+        VALUE  (what a read returned — only the judge can see it)
+
+PLACEHOLDERS THAT MUST ALREADY EXIST
+[SENT — this block appears VERBATIM in the Stage 3 prompt, under the header named below]
+header in the prompt: "PLACEHOLDERS THAT MUST ALREADY EXIST" (Stage 3 only)
+A REQUIRED line is what stops a step being a no-op.
+  $user_0 — a user
+      step 2 uses it as create_chat.member_ids (Create a new chat; the acting user is always included as a member.)
+  $user_1 — a user
+      step 2 uses it as create_chat.member_ids (Create a new chat; the acting user is always included as a member.)
+  $user_2 — a user
+      step 3 uses it as create_chat.member_ids (Create a new chat; the acting user is always included as a member.)
+  $user_3 — a user
+      step 3 uses it as create_chat.member_ids (Create a new chat; the acting user is always included as a member.)
+  $chat_0 — a chat
+      step 4 uses it as send_message.chat_id (Send a message from the acting user to a chat.)
+  $message_0 — a message
+      step 5 uses it as reply_to.message_id (Reply to an existing message in its chat (threaded).)
+  $message_1 — a message
+      step 6 uses it as reply_to.message_id (Reply to an existing message in its chat (threaded).)
+
+SLOTS THE AUTHORING PASSES MUST FILL
+[REVIEW ONLY — this block is written for a human and is never sent to any model]
+Not sent as a block. `sequence.slots` is what Stage 7 turns into its own
+PLACEHOLDERS TO FILL list, and what Stage 8 derives the judge items from.
+  step  2 name         [content]
+        chat name; if set (or >2 members) the chat is a group, else a dm
+  step  3 name         [content]
+        chat name; if set (or >2 members) the chat is a group, else a dm
+  step  4 text         [carry] <- from step(s) 1
+        message body
+  step  5 text         [carry] <- from step(s) 1
+        reply body
+  step  6 text         [carry] <- from step(s) 1
+        reply body

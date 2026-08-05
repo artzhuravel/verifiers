@@ -1,0 +1,181 @@
+# Stage 5 — pad the world with filler
+
+1 model call(s).
+
+================================================================================================
+== call 1 of 1
+================================================================================================
+
+------------------------------------------------------------------------------------------------
+-- SYSTEM PROMPT
+------------------------------------------------------------------------------------------------
+You pad out a workspace so it looks lived-in.
+
+You are given a workspace that was built around one specific task. It is too tidy: everything in it is there for a reason, which is itself a giveaway. Add ordinary, unrelated traffic — a few more colleagues, another conversation or two, and messages that have nothing to do with anything.
+
+Put most of the new messages in the conversations that already exist, from the people already in them. A separate room full of strangers hides nothing; unrelated chatter alongside the real thing does.
+
+Three hard rules:
+- Do NOT touch or restate what is already there. You are only adding.
+- Refer to existing people, conversations and messages by the SHORT KEY shown on the left of each line (`u2`, `c1`, `m4`) — never by a name or by anything else. New entries you add get their own new keys.
+- Each CONDITION listed below must still pick out exactly the entity it picks out now. If adding a person whose handle collides, or a message repeating a distinctive phrase, would make a condition match two things, do not add it. Anything that breaks a condition is discarded, so being careless here just wastes your work.
+
+Give messages `order` values spread across the existing range so the new history interleaves with the old rather than piling up after it. A reply must have a higher `order` than the message it replies to.
+
+Every entry you return is a NEW one and needs a key nothing else uses — start them all with "n". Do not return an entry for anything already in the workspace; it is already there, and repeating it is the one thing that makes this call useless.
+
+Respond with ONLY this JSON object:
+{"new_users": [{"ref": "n1", "name": "...", "handle": "..."}],
+ "new_chats": [{"ref": "n2", "name": "...", "members": ["u1", "n1"]}],
+ "new_messages": [{"ref": "n3", "chat": "c1", "sender": "u2", "text": "...", "order": 4,
+                   "reply_to": null, "read_by_actor": true, "reactors": []}]}
+
+------------------------------------------------------------------------------------------------
+-- USER PROMPT
+------------------------------------------------------------------------------------------------
+ENVIRONMENT
+  chat: Local mock chat app. Read and write tools operate on the rollout's ChatState.
+  deepwiki: Public DeepWiki MCP server: read-only GitHub-repo Q&A. Answers can be nondeterministic; requires the repo to be indexed by DeepWiki.
+  You act as one specific user. The acting user's id. Every write is attributed to this user; reads are scoped to it where noted.
+
+ENTITY TYPES IN THIS TASK
+  user — A person in the workspace. Display names may collide; handles never do.
+      id: string
+      name: string
+      handle: string
+  message — One posted message. `reply_to` threads it under an earlier message in the same chat.
+      id: string
+      chat_id: string (chat id)
+      sender_id: string (user id)
+      text: string
+      ts: int (logical clock, not wall time)
+      reply_to: string | null (parent message id)
+      reactions: object (emoji -> user_id[])
+      read_by: string[] (user ids)
+  chat — A conversation the acting user takes part in. `name` is null for a DM.
+      id: string
+      kind: "dm" | "group"
+      name: string | null
+      member_ids: string[] (user ids)
+
+ACTIONS THIS TASK USES
+  get_user (read) — Look up a user by id.
+      user_id: user to look up
+      returns: {id, name, handle} or {"error": "no such user"}
+  ask_question (read) — Ask an AI-grounded question about a GitHub repository.
+      repoName: GitHub repo in owner/repo form (or a list, max 10)
+      question: the question to ask
+      returns: a free-text answer to any question about the repo — metadata (licence, primary language, maintainers) and prose questions alike. Nondeterministic wording, so only ask things with a stable, unambiguous answer.
+  reply_to (write) — Reply to an existing message in its chat (threaded).
+      message_id: the message being replied to
+      text: reply body
+      returns: the created message view
+  send_message (write) — Send a message from the acting user to a chat.
+      chat_id: destination chat
+      text: message body
+      returns: the created message view
+
+WORKSPACE SO FAR
+You are You @you, and a member of every chat.
+
+People (refer to them by the key on the left):
+  u1     Alice Kim @alice
+  u2     Ben Ortiz @ben
+  u3     Cara Singh @cara
+  u4     Dan Park @dan
+
+Chat c1     spark-lib — members: u1, u2, u3
+  m1     order 1   [u1]: Heads-up: running the benchmark on 1.4 shows a ~30% regression in the map-reduce path since the last release. Any guesses what changed?
+  m3     order 3   [u3]: Yikes. I'll start a bisection tomorrow — could be the new serializer we merged last sprint.  (reply to m1)
+  m5     order 5   [u2]: If Cara can bisect, great. Also — which upstream repo is the vendored data-toolkit at (owner/repo)? I couldn't find it in the docs.  (reply to m3)
+  m7     order 7   [u1]: Ben — if you can find the owner/repo we can ask DeepWiki for the license and contributors to confirm the maintainer.  (reply to m5)
+  m9     order 9   [u2]: Agree, bisect sounds right.  (reply to m3; :+1: x1)
+
+Chat c2     (a dm) — members: u2, u4
+  m2     order 2   [u2]: Quick Q: who is the maintainer of the 'data-toolkit' repo we vendor? I don't have their GitHub handle — can you remind me?  (UNREAD by you)
+  m6     order 6   [u4]: I'm not sure of the exact handle — I thought it was someone in infra. Worth looking up before we ping them.  (reply to m2; UNREAD by you)
+
+Chat c3     release-planning — members: u1, u4
+  m4     order 4   [u4]: We need to loop in the upstream maintainer for licensing questions — does anyone have their contact (GitHub handle or org)?  (UNREAD by you)
+  m8     order 8   [u1]: Agree. Holding the release until we confirm licensing would be safer.  (reply to m4; UNREAD by you)
+
+CONDITIONS
+  the user who wrote the one message whose text contains start a bisection tomorrow  -> must keep matching exactly one user
+  the one message whose text contains maintainer of the 'data-toolkit  -> must keep matching exactly one message
+  the one message whose text contains upstream maintainer for licensing  -> must keep matching exactly one message
+  the chat whose title is exactly spark-lib  -> must keep matching exactly one chat
+
+------------------------------------------------------------------------------------------------
+-- REPLY
+------------------------------------------------------------------------------------------------
+{
+  "new_users": [
+    {
+      "ref": "n1",
+      "name": "Jamie Lin",
+      "handle": "jamielin"
+    }
+  ],
+  "new_chats": [
+    {
+      "ref": "n2",
+      "name": null,
+      "members": [
+        "u1",
+        "n1"
+      ]
+    }
+  ],
+  "new_messages": [
+    {
+      "ref": "n3",
+      "chat": "c1",
+      "sender": "u2",
+      "text": "Also, FYI I left some profiling logs in /tmp on my laptop if anyone wants them.",
+      "order": 2,
+      "reply_to": "m1",
+      "read_by_actor": true,
+      "reactors": []
+    },
+    {
+      "ref": "n4",
+      "chat": "c2",
+      "sender": "n1",
+      "text": "Hey Ben — saw your message about the toolkit earlier. Happy to help dig through infra contacts later today.",
+      "order": 4,
+      "reply_to": "m2",
+      "read_by_actor": false,
+      "reactors": []
+    },
+    {
+      "ref": "n7",
+      "chat": "c3",
+      "sender": "u4",
+      "text": "Thanks — if we confirm license compatibility we can proceed. Also can someone draft the vendor outreach?",
+      "order": 5,
+      "reply_to": "m4",
+      "read_by_actor": false,
+      "reactors": []
+    },
+    {
+      "ref": "n5",
+      "chat": "c3",
+      "sender": "u1",
+      "text": "Dan, quick aside: the vendor meeting got pushed to Thursday. I'll update the calendar.",
+      "order": 6,
+      "reply_to": "m4",
+      "read_by_actor": false,
+      "reactors": []
+    },
+    {
+      "ref": "n6",
+      "chat": "c1",
+      "sender": "u3",
+      "text": "Also cc'ing the new hire in infra — they might know the vendored repo.",
+      "order": 8,
+      "reply_to": "m5",
+      "read_by_actor": true,
+      "reactors": []
+    }
+  ]
+}

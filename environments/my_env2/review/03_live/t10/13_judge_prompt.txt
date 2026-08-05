@@ -1,0 +1,178 @@
+# The delivery judge (eval time — after a rollout)
+
+Not part of authoring. This is the one model call made while *scoring*, and it is the
+whole of the `delivery` component (0.4 of the reward). One call per task, however many
+items. The judge grades over the WHOLE rollout — every tool call and every result — so
+that a retrieved answer can be told from an invented one, and so that information landing
+in a message partway through counts. It is not graded off the final reply alone.
+
+The items differ per level: each rung restates them for its own text, since the higher
+rungs remove the step numbers and ids the lower ones lean on. One section per level below.
+
+================================================================================================
+== LEVEL 1
+================================================================================================
+
+------------------------------------------------------------------------------------------------
+-- PROMPT (verify._JUDGE_PROMPT, filled in)
+------------------------------------------------------------------------------------------------
+You grade whether an agent delivered specific pieces of information.
+
+Each numbered item is something the agent had to find out and then put somewhere. You are given the requirement, what a correct answer says, and where in the agent's output to look for it.
+
+You are given the WHOLE ROLLOUT: every tool call the agent made, every result that came back, every message it sent, and its final reply. Use all of it. Do not grade off the final reply alone — most of these items are about information landing in a message partway through, and a rollout that did the work correctly and said little at the end is not a failure.
+
+Two things to hold together for each item:
+
+- **It has to be where the item says.** The hint names the place. Information that only ever appears in a tool result, and was never passed on, is not delivered — no matter how clearly the agent retrieved it.
+- **It has to be the same information.** That is a question about the whole trace: compare what the agent said against what the tools actually returned. A value the agent invented rather than retrieved is wrong even when it looks plausible, and a correct answer worded differently is right.
+
+Match on substance. Never judge style, length, or phrasing. An item is correct when a reader of the place the hint names would come away with the facts the expected answer states.
+
+Items:
+1. the text of step 6 must carry what step 1 returned
+   A correct answer says: The reply to m_004 lists three chats exactly: c_001 (kind: group, name: "product-team", members: u_me, u_maya_r, u_luis_h, u_priya_k, u_ben_z), c_002 (kind: dm, name: "c_002", members: u_me, u_maya_r), and c_003 (kind: group, name: "c_003", members: u_me, u_maya_r, u_evelyn_c).
+   Where to look: Look in the message posted in step 6—the reply to m_004 in chat c_002.
+2. the text of step 7 must carry what step 3 returned
+   A correct answer says: The reply to m_009 states that the aws/aws-cli repository uses the Apache-2.0 license and that its primary programming language is Python.
+   Where to look: Look in the message posted in step 7—the reply to m_009 in chat c_001, which should include the ask_question answer about aws/aws-cli.
+
+The rollout:
+=== FULL ROLLOUT — every tool call the agent made and every result that came back ===
+    <<< the agent's transcript — only exists once a rollout has run >>>
+
+=== WHAT THE AGENT DELIVERED — the same messages, collected for convenience ===
+Messages the agent sent during this rollout:
+    <<< every message the acting user sent during the rollout, seeded history excluded >>>
+
+Agent's final reply:
+    <<< the agent's last reply >>>
+
+Respond with ONLY a JSON array of booleans, one per item in order (true = correct).
+Example for two items: [true, false]
+
+================================================================================================
+== LEVEL 2
+================================================================================================
+
+------------------------------------------------------------------------------------------------
+-- PROMPT (verify._JUDGE_PROMPT, filled in)
+------------------------------------------------------------------------------------------------
+You grade whether an agent delivered specific pieces of information.
+
+Each numbered item is something the agent had to find out and then put somewhere. You are given the requirement, what a correct answer says, and where in the agent's output to look for it.
+
+You are given the WHOLE ROLLOUT: every tool call the agent made, every result that came back, every message it sent, and its final reply. Use all of it. Do not grade off the final reply alone — most of these items are about information landing in a message partway through, and a rollout that did the work correctly and said little at the end is not a failure.
+
+Two things to hold together for each item:
+
+- **It has to be where the item says.** The hint names the place. Information that only ever appears in a tool result, and was never passed on, is not delivered — no matter how clearly the agent retrieved it.
+- **It has to be the same information.** That is a question about the whole trace: compare what the agent said against what the tools actually returned. A value the agent invented rather than retrieved is wrong even when it looks plausible, and a correct answer worded differently is right.
+
+Match on substance. Never judge style, length, or phrasing. An item is correct when a reader of the place the hint names would come away with the facts the expected answer states.
+
+Items:
+1. the text of step 6 must carry what step 1 returned
+   A correct answer says: The reply to the message about paste the full list lists three chats exactly: the product-team channel (kind: group, name: "product-team", members: You, Maya Singh, Luis Hernández, Priya Kapoor, Ben Zhao), the direct message between You and Maya Singh (kind: dm, name and id as returned by the system for that DM, members: You, Maya Singh), and the group that includes You, Maya Singh, and Evelyn Cho (kind: group, name and id as returned by the system for that group, members: You, Maya Singh, Evelyn Cho).
+   Where to look: Look in the reply you posted to the message about paste the full list, the DM with Maya Singh.
+2. the text of step 7 must carry what step 3 returned
+   A correct answer says: The reply to the message about Could someone check acme/cli-helper states that the aws/aws-cli repository uses the Apache-2.0 license and that its primary programming language is Python.
+   Where to look: Look in the reply you posted to the message about Could someone check acme/cli-helper in the product-team channel; it should include the answer you got about aws/aws-cli.
+
+The rollout:
+=== FULL ROLLOUT — every tool call the agent made and every result that came back ===
+    <<< the agent's transcript — only exists once a rollout has run >>>
+
+=== WHAT THE AGENT DELIVERED — the same messages, collected for convenience ===
+Messages the agent sent during this rollout:
+    <<< every message the acting user sent during the rollout, seeded history excluded >>>
+
+Agent's final reply:
+    <<< the agent's last reply >>>
+
+Respond with ONLY a JSON array of booleans, one per item in order (true = correct).
+Example for two items: [true, false]
+
+================================================================================================
+== LEVEL 3
+================================================================================================
+
+------------------------------------------------------------------------------------------------
+-- PROMPT (verify._JUDGE_PROMPT, filled in)
+------------------------------------------------------------------------------------------------
+You grade whether an agent delivered specific pieces of information.
+
+Each numbered item is something the agent had to find out and then put somewhere. You are given the requirement, what a correct answer says, and where in the agent's output to look for it.
+
+You are given the WHOLE ROLLOUT: every tool call the agent made, every result that came back, every message it sent, and its final reply. Use all of it. Do not grade off the final reply alone — most of these items are about information landing in a message partway through, and a rollout that did the work correctly and said little at the end is not a failure.
+
+Two things to hold together for each item:
+
+- **It has to be where the item says.** The hint names the place. Information that only ever appears in a tool result, and was never passed on, is not delivered — no matter how clearly the agent retrieved it.
+- **It has to be the same information.** That is a question about the whole trace: compare what the agent said against what the tools actually returned. A value the agent invented rather than retrieved is wrong even when it looks plausible, and a correct answer worded differently is right.
+
+Match on substance. Never judge style, length, or phrasing. An item is correct when a reader of the place the hint names would come away with the facts the expected answer states.
+
+Items:
+1. the text of step 6 must carry what step 1 returned
+   A correct answer says: The reply to the message about paste the full list must present the three chats exactly as returned by the system: the product-team channel (kind: group, name: "product-team", members: You, Maya Singh, Luis Hernández, Priya Kapoor, Ben Zhao), the direct message between You and Maya Singh (kind: dm, with the name and id exactly as returned for that DM, members: You, Maya Singh), and the group that includes You, Maya Singh, and Evelyn Cho (kind: group, with the name and id exactly as returned for that group, members: You, Maya Singh, Evelyn Cho).
+   Where to look: Look in the reply you posted to the message about paste the full list (the DM with Maya Singh).
+2. the text of step 7 must carry what step 3 returned
+   A correct answer says: The reply to the message about Could someone check acme/cli-helper must state that the aws/aws-cli repository uses the Apache-2.0 license and that its primary programming language is Python.
+   Where to look: Look in the reply you posted to the message about Could someone check acme/cli-helper in the product-team channel; it should include the answer you received about aws/aws-cli.
+
+The rollout:
+=== FULL ROLLOUT — every tool call the agent made and every result that came back ===
+    <<< the agent's transcript — only exists once a rollout has run >>>
+
+=== WHAT THE AGENT DELIVERED — the same messages, collected for convenience ===
+Messages the agent sent during this rollout:
+    <<< every message the acting user sent during the rollout, seeded history excluded >>>
+
+Agent's final reply:
+    <<< the agent's last reply >>>
+
+Respond with ONLY a JSON array of booleans, one per item in order (true = correct).
+Example for two items: [true, false]
+
+================================================================================================
+== LEVEL 4
+================================================================================================
+
+------------------------------------------------------------------------------------------------
+-- PROMPT (verify._JUDGE_PROMPT, filled in)
+------------------------------------------------------------------------------------------------
+You grade whether an agent delivered specific pieces of information.
+
+Each numbered item is something the agent had to find out and then put somewhere. You are given the requirement, what a correct answer says, and where in the agent's output to look for it.
+
+You are given the WHOLE ROLLOUT: every tool call the agent made, every result that came back, every message it sent, and its final reply. Use all of it. Do not grade off the final reply alone — most of these items are about information landing in a message partway through, and a rollout that did the work correctly and said little at the end is not a failure.
+
+Two things to hold together for each item:
+
+- **It has to be where the item says.** The hint names the place. Information that only ever appears in a tool result, and was never passed on, is not delivered — no matter how clearly the agent retrieved it.
+- **It has to be the same information.** That is a question about the whole trace: compare what the agent said against what the tools actually returned. A value the agent invented rather than retrieved is wrong even when it looks plausible, and a correct answer worded differently is right.
+
+Match on substance. Never judge style, length, or phrasing. An item is correct when a reader of the place the hint names would come away with the facts the expected answer states.
+
+Items:
+1. the text of step 6 must carry what step 1 returned
+   A correct answer says: The reply posted in the DM to Maya’s request for the full list must contain the exact array that was returned when you retrieved your chats; each chat object in that array must include its id, its kind, its name, and its members. The three chats must appear exactly as returned: the product-team group (kind: group, name: "product-team", members: You, Maya Singh, Luis Hernández, Priya Kapoor, Ben Zhao), the direct message with Maya (kind: dm, with the name and id exactly as returned for that DM, members: You, Maya Singh), and the group that includes You, Maya Singh, and Evelyn Cho (kind: group, with the name and id exactly as returned for that group, members: You, Maya Singh, Evelyn Cho).
+   Where to look: Look at the message you posted in reply to Maya’s DM asking for the full list; the exact chat-array you pasted there is what to check.
+2. the text of step 7 must carry what step 3 returned
+   A correct answer says: The reply posted in the product-team channel responding to Priya’s request about acme/cli-helper must state that the aws/aws-cli repository uses the Apache-2.0 license and that its primary programming language is Python.
+   Where to look: Look at the reply you posted in the product-team channel to Priya’s message asking someone to check acme/cli-helper; it should include the aws/aws-cli license and primary language information.
+
+The rollout:
+=== FULL ROLLOUT — every tool call the agent made and every result that came back ===
+    <<< the agent's transcript — only exists once a rollout has run >>>
+
+=== WHAT THE AGENT DELIVERED — the same messages, collected for convenience ===
+Messages the agent sent during this rollout:
+    <<< every message the acting user sent during the rollout, seeded history excluded >>>
+
+Agent's final reply:
+    <<< the agent's last reply >>>
+
+Respond with ONLY a JSON array of booleans, one per item in order (true = correct).
+Example for two items: [true, false]

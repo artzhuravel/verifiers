@@ -1,0 +1,32 @@
+Stage 3 result: the authored draft, built into a state.
+`seed.build` validates and never repairs — an undeclared sender, a reply across chats
+or an unbound placeholder rejects the whole draft and costs a correction round.
+
+topic: Spec and coordination for telemetry export feature
+
+You act as You (id u_me).
+
+People:
+  u_me  You @you
+  u_alicec  Alice Chen @alicec
+  u_benr  Ben Rosario @benr
+  u_carom  Caro Martínez @carom
+  u_dpatel  Diego Patel @dpatel
+
+group telemetry (c_001) — members: You @you, Alice Chen @alicec, Ben Rosario @benr, Caro Martínez @carom
+  m_001 [Alice Chen @alicec]: Draft API surfaces: /export/start, /export/status and /export/chunk. I'm worried about bursts if chunk size defaults to something tiny.
+  m_002 [Ben Rosario @benr]: I skimmed the DeepWiki docs on exporter chunking; they recommend ~64MB chunks and explain retry semantics. Might be relevant for our throttling design.  (reply to m_001; UNREAD by you; :+1: x1)
+  m_003 [Caro Martínez @carom]: Opened issue #88 to track client-side backoff and idempotency for exports. Link in the issue references the docs Ben mentioned.  (:+1: x1)
+  m_006 [Ben Rosario @benr]: Also worth noting: the docs call out idempotency tokens and suggested retry windows — we'll need to reflect that in the API surface.  (reply to m_002; UNREAD by you)
+
+dm (dm) (c_002) — members: You @you, Alice Chen @alicec
+  m_004 [Alice Chen @alicec]: Quick ask: can you pull the DeepWiki export docs and forward the key recommendations to Infra? They want concrete chunk/timeout numbers.  (UNREAD by you)
+
+group infra (c_003) — members: You @you, Ben Rosario @benr, Diego Patel @dpatel
+  m_005 [Diego Patel @dpatel]: Infra question: what chunk size should we bake into the pipeline? We've heard 64MB from telemetry but need confirmation.  (UNREAD by you)
+
+PLACEHOLDERS BOUND
+  $chat_0              -> c_002
+  $chat_1              -> c_003
+  $message_0           -> m_002
+  $message_1           -> m_005

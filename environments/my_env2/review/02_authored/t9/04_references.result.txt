@@ -1,0 +1,29 @@
+Stage 4. Each seed entity gets ONE way of being described instead of named.
+The model picks only WHICH mode; the adapter derives the params from the world and
+proves resolve(state, mode, params) == [that entity]. A mode that cannot be made to fit
+is skipped and the next tried, so the stage is total — an entity with no working
+reference raises, because v2 strips ids out and the task would be unanswerable.
+
+  $user_0  ->  u_lina_p
+      the entity      Lina Park @lina_p
+      mode chosen     user_by_handle  (the model's pick)
+      params derived  {"handle": "lina_p"}
+      reads as        "the person whose handle is @lina_p"
+      predicate       the user whose handle is exactly lina_p
+      PROOF           resolve() -> ['u_lina_p']   unique, and it is the target
+
+  $message_0  ->  m_004
+      the entity      in backend-architecture from Jamal Reed, unread by you: "Lina — can you confirm which GitHub repo we should cite in the deployment notes? Also, who's the primary contact on your side (handle) for follow-ups?"
+      mode chosen     message_by_text  (the model's pick)
+      params derived  {"text": "confirm which GitHub repo"}
+      reads as        "the message about confirm which GitHub repo"
+      predicate       the one message whose text contains confirm which GitHub repo
+      PROOF           resolve() -> ['m_004']   unique, and it is the target
+
+  $chat_0  ->  c_002
+      the entity      group 'oncall' — members: You @you, Marco Silva @marco_s, Priya Desai @priya_d
+      mode chosen     chat_by_name  (the model's pick)
+      params derived  {"name": "oncall"}
+      reads as        "the oncall channel"
+      predicate       the chat whose title is exactly oncall
+      PROOF           resolve() -> ['c_002']   unique, and it is the target

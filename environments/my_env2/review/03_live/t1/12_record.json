@@ -1,0 +1,1019 @@
+{
+  "task_id": "t1",
+  "idx": 1,
+  "topic": "Infra team coordinating a license check for acme/deepwiki-bot",
+  "seed": {
+    "me": "u_me",
+    "users": {
+      "u_me": {
+        "id": "u_me",
+        "name": "Sam Park",
+        "handle": "you"
+      },
+      "u_alice": {
+        "id": "u_alice",
+        "name": "Alice Nguyen",
+        "handle": "alice"
+      },
+      "u_ben": {
+        "id": "u_ben",
+        "name": "Ben Ortiz",
+        "handle": "ben"
+      },
+      "u_carlos": {
+        "id": "u_carlos",
+        "name": "Carlos Reyes",
+        "handle": "carlos"
+      },
+      "u_dina": {
+        "id": "u_dina",
+        "name": "Dina Patel",
+        "handle": "dina"
+      },
+      "u_evem": {
+        "id": "u_evem",
+        "name": "Eve Morris",
+        "handle": "evem"
+      },
+      "u_frankl": {
+        "id": "u_frankl",
+        "name": "Frank Li",
+        "handle": "frankl"
+      }
+    },
+    "chats": {
+      "c_001": {
+        "id": "c_001",
+        "kind": "group",
+        "name": "infra",
+        "member_ids": [
+          "u_me",
+          "u_alice",
+          "u_ben",
+          "u_carlos",
+          "u_dina"
+        ]
+      },
+      "c_002": {
+        "id": "c_002",
+        "kind": "dm",
+        "name": null,
+        "member_ids": [
+          "u_me",
+          "u_ben"
+        ]
+      },
+      "c_003": {
+        "id": "c_003",
+        "kind": "group",
+        "name": "watercooler",
+        "member_ids": [
+          "u_me",
+          "u_alice",
+          "u_evem",
+          "u_carlos"
+        ]
+      }
+    },
+    "messages": [
+      {
+        "id": "m_001",
+        "chat_id": "c_001",
+        "sender_id": "u_alice",
+        "text": "FYI: The DeepWiki integration PR references acme/deepwiki-bot but maintainers weren't sure about the repo license. Flagging here so legal isn't surprised.",
+        "ts": 1,
+        "reply_to": null,
+        "reactions": {},
+        "read_by": [
+          "u_alice"
+        ]
+      },
+      {
+        "id": "m_002",
+        "chat_id": "c_002",
+        "sender_id": "u_ben",
+        "text": "Do you have the repo URL for that bot? I want to check the license quickly before we merge.",
+        "ts": 2,
+        "reply_to": null,
+        "reactions": {},
+        "read_by": [
+          "u_ben",
+          "u_me"
+        ]
+      },
+      {
+        "id": "m_003",
+        "chat_id": "c_001",
+        "sender_id": "u_carlos",
+        "text": "Also, FYI I bumped into @dina in the hall; she said she'll take a look this afternoon.",
+        "ts": 3,
+        "reply_to": "m_001",
+        "reactions": {},
+        "read_by": [
+          "u_carlos"
+        ]
+      },
+      {
+        "id": "m_004",
+        "chat_id": "c_001",
+        "sender_id": "u_ben",
+        "text": "Repo is acme/deepwiki-bot. @dina, can you confirm whether it's MIT or Apache (or something else)?",
+        "ts": 4,
+        "reply_to": "m_001",
+        "reactions": {},
+        "read_by": [
+          "u_ben"
+        ]
+      },
+      {
+        "id": "m_005",
+        "chat_id": "c_002",
+        "sender_id": "u_ben",
+        "text": "Link: https://github.com/acme/deepwiki-bot — sending it here so it's easy to copy.",
+        "ts": 5,
+        "reply_to": "m_002",
+        "reactions": {},
+        "read_by": [
+          "u_ben",
+          "u_me"
+        ]
+      },
+      {
+        "id": "m_006",
+        "chat_id": "c_001",
+        "sender_id": "u_dina",
+        "text": "I remember we looked at this a while back and thought it was MIT, but the README has been edited since. I'll pull the repo and check the LICENSE file.",
+        "ts": 6,
+        "reply_to": "m_004",
+        "reactions": {},
+        "read_by": [
+          "u_dina"
+        ]
+      },
+      {
+        "id": "m_007",
+        "chat_id": "c_003",
+        "sender_id": "u_evem",
+        "text": "Who's bringing snacks for Friday's gathering?",
+        "ts": 7,
+        "reply_to": null,
+        "reactions": {},
+        "read_by": [
+          "u_evem",
+          "u_me"
+        ]
+      },
+      {
+        "id": "m_008",
+        "chat_id": "c_002",
+        "sender_id": "u_me",
+        "text": "Got it — I'll ping the infra channel and ask Dina to paste the license output when she has it.",
+        "ts": 8,
+        "reply_to": "m_002",
+        "reactions": {},
+        "read_by": [
+          "u_me"
+        ]
+      },
+      {
+        "id": "m_009",
+        "chat_id": "c_001",
+        "sender_id": "u_alice",
+        "text": "Also, unrelated — does anyone want to join a trivia night tonight?",
+        "ts": 9,
+        "reply_to": null,
+        "reactions": {},
+        "read_by": [
+          "u_alice"
+        ]
+      },
+      {
+        "id": "m_010",
+        "chat_id": "c_001",
+        "sender_id": "u_carlos",
+        "text": "If it turns out to be MIT we're fine to proceed. If it's something incompatible we'll need legal sign-off — heads up.",
+        "ts": 10,
+        "reply_to": "m_001",
+        "reactions": {},
+        "read_by": [
+          "u_carlos"
+        ]
+      },
+      {
+        "id": "m_011",
+        "chat_id": "c_001",
+        "sender_id": "u_alice",
+        "text": "Can someone run a quick license-check on acme/deepwiki-bot and paste the output here? That would save time.",
+        "ts": 11,
+        "reply_to": null,
+        "reactions": {},
+        "read_by": [
+          "u_alice"
+        ]
+      },
+      {
+        "id": "m_012",
+        "chat_id": "c_001",
+        "sender_id": "u_ben",
+        "text": "The CI flaked on me this morning, unrelated to the PR — I'll rerun.",
+        "ts": 12,
+        "reply_to": "m_010",
+        "reactions": {},
+        "read_by": [
+          "u_ben"
+        ]
+      },
+      {
+        "id": "m_013",
+        "chat_id": "c_002",
+        "sender_id": "u_ben",
+        "text": "Thanks — I'll hold off merging until we have that confirmation in infra.",
+        "ts": 13,
+        "reply_to": null,
+        "reactions": {},
+        "read_by": [
+          "u_ben",
+          "u_me"
+        ]
+      }
+    ],
+    "next_message_id": 14,
+    "next_chat_id": 4
+  },
+  "expected": {
+    "me": "u_me",
+    "users": {
+      "u_me": {
+        "id": "u_me",
+        "name": "Sam Park",
+        "handle": "you"
+      },
+      "u_alice": {
+        "id": "u_alice",
+        "name": "Alice Nguyen",
+        "handle": "alice"
+      },
+      "u_ben": {
+        "id": "u_ben",
+        "name": "Ben Ortiz",
+        "handle": "ben"
+      },
+      "u_carlos": {
+        "id": "u_carlos",
+        "name": "Carlos Reyes",
+        "handle": "carlos"
+      },
+      "u_dina": {
+        "id": "u_dina",
+        "name": "Dina Patel",
+        "handle": "dina"
+      },
+      "u_evem": {
+        "id": "u_evem",
+        "name": "Eve Morris",
+        "handle": "evem"
+      },
+      "u_frankl": {
+        "id": "u_frankl",
+        "name": "Frank Li",
+        "handle": "frankl"
+      }
+    },
+    "chats": {
+      "c_001": {
+        "id": "c_001",
+        "kind": "group",
+        "name": "infra",
+        "member_ids": [
+          "u_me",
+          "u_alice",
+          "u_ben",
+          "u_carlos",
+          "u_dina"
+        ]
+      },
+      "c_002": {
+        "id": "c_002",
+        "kind": "dm",
+        "name": null,
+        "member_ids": [
+          "u_me",
+          "u_ben"
+        ]
+      },
+      "c_003": {
+        "id": "c_003",
+        "kind": "group",
+        "name": "watercooler",
+        "member_ids": [
+          "u_me",
+          "u_alice",
+          "u_evem",
+          "u_carlos"
+        ]
+      }
+    },
+    "messages": [
+      {
+        "id": "m_001",
+        "chat_id": "c_001",
+        "sender_id": "u_alice",
+        "text": "FYI: The DeepWiki integration PR references acme/deepwiki-bot but maintainers weren't sure about the repo license. Flagging here so legal isn't surprised.",
+        "ts": 1,
+        "reply_to": null,
+        "reactions": {},
+        "read_by": [
+          "u_alice",
+          "u_me"
+        ]
+      },
+      {
+        "id": "m_002",
+        "chat_id": "c_002",
+        "sender_id": "u_ben",
+        "text": "Do you have the repo URL for that bot? I want to check the license quickly before we merge.",
+        "ts": 2,
+        "reply_to": null,
+        "reactions": {},
+        "read_by": [
+          "u_ben",
+          "u_me"
+        ]
+      },
+      {
+        "id": "m_003",
+        "chat_id": "c_001",
+        "sender_id": "u_carlos",
+        "text": "Also, FYI I bumped into @dina in the hall; she said she'll take a look this afternoon.",
+        "ts": 3,
+        "reply_to": "m_001",
+        "reactions": {},
+        "read_by": [
+          "u_carlos",
+          "u_me"
+        ]
+      },
+      {
+        "id": "m_004",
+        "chat_id": "c_001",
+        "sender_id": "u_ben",
+        "text": "Repo is acme/deepwiki-bot. @dina, can you confirm whether it's MIT or Apache (or something else)?",
+        "ts": 4,
+        "reply_to": "m_001",
+        "reactions": {},
+        "read_by": [
+          "u_ben",
+          "u_me"
+        ]
+      },
+      {
+        "id": "m_005",
+        "chat_id": "c_002",
+        "sender_id": "u_ben",
+        "text": "Link: https://github.com/acme/deepwiki-bot — sending it here so it's easy to copy.",
+        "ts": 5,
+        "reply_to": "m_002",
+        "reactions": {},
+        "read_by": [
+          "u_ben",
+          "u_me"
+        ]
+      },
+      {
+        "id": "m_006",
+        "chat_id": "c_001",
+        "sender_id": "u_dina",
+        "text": "I remember we looked at this a while back and thought it was MIT, but the README has been edited since. I'll pull the repo and check the LICENSE file.",
+        "ts": 6,
+        "reply_to": "m_004",
+        "reactions": {},
+        "read_by": [
+          "u_dina",
+          "u_me"
+        ]
+      },
+      {
+        "id": "m_007",
+        "chat_id": "c_003",
+        "sender_id": "u_evem",
+        "text": "Who's bringing snacks for Friday's gathering?",
+        "ts": 7,
+        "reply_to": null,
+        "reactions": {},
+        "read_by": [
+          "u_evem",
+          "u_me"
+        ]
+      },
+      {
+        "id": "m_008",
+        "chat_id": "c_002",
+        "sender_id": "u_me",
+        "text": "Got it — I'll ping the infra channel and ask Dina to paste the license output when she has it.",
+        "ts": 8,
+        "reply_to": "m_002",
+        "reactions": {},
+        "read_by": [
+          "u_me"
+        ]
+      },
+      {
+        "id": "m_009",
+        "chat_id": "c_001",
+        "sender_id": "u_alice",
+        "text": "Also, unrelated — does anyone want to join a trivia night tonight?",
+        "ts": 9,
+        "reply_to": null,
+        "reactions": {},
+        "read_by": [
+          "u_alice",
+          "u_me"
+        ]
+      },
+      {
+        "id": "m_010",
+        "chat_id": "c_001",
+        "sender_id": "u_carlos",
+        "text": "If it turns out to be MIT we're fine to proceed. If it's something incompatible we'll need legal sign-off — heads up.",
+        "ts": 10,
+        "reply_to": "m_001",
+        "reactions": {},
+        "read_by": [
+          "u_carlos",
+          "u_me"
+        ]
+      },
+      {
+        "id": "m_011",
+        "chat_id": "c_001",
+        "sender_id": "u_alice",
+        "text": "Can someone run a quick license-check on acme/deepwiki-bot and paste the output here? That would save time.",
+        "ts": 11,
+        "reply_to": null,
+        "reactions": {},
+        "read_by": [
+          "u_alice",
+          "u_me"
+        ]
+      },
+      {
+        "id": "m_012",
+        "chat_id": "c_001",
+        "sender_id": "u_ben",
+        "text": "The CI flaked on me this morning, unrelated to the PR — I'll rerun.",
+        "ts": 12,
+        "reply_to": "m_010",
+        "reactions": {},
+        "read_by": [
+          "u_ben",
+          "u_me"
+        ]
+      },
+      {
+        "id": "m_013",
+        "chat_id": "c_002",
+        "sender_id": "u_ben",
+        "text": "Thanks — I'll hold off merging until we have that confirmation in infra.",
+        "ts": 13,
+        "reply_to": null,
+        "reactions": {},
+        "read_by": [
+          "u_ben",
+          "u_me"
+        ]
+      },
+      {
+        "id": "m_014",
+        "chat_id": "c_001",
+        "sender_id": "u_me",
+        "text": "$carried_c0a1_text",
+        "ts": 14,
+        "reply_to": null,
+        "reactions": {},
+        "read_by": [
+          "u_me"
+        ]
+      },
+      {
+        "id": "m_015",
+        "chat_id": "c_001",
+        "sender_id": "u_me",
+        "text": "$carried_c1a1_text",
+        "ts": 15,
+        "reply_to": "m_004",
+        "reactions": {},
+        "read_by": [
+          "u_me"
+        ]
+      },
+      {
+        "id": "m_016",
+        "chat_id": "c_001",
+        "sender_id": "u_me",
+        "text": "$text_0",
+        "ts": 16,
+        "reply_to": "m_014",
+        "reactions": {},
+        "read_by": [
+          "u_me"
+        ]
+      }
+    ],
+    "next_message_id": 17,
+    "next_chat_id": 4
+  },
+  "prompts": {
+    "1": "1. Call read_messages with chat_id c_001 and read the most recent messages in the infra group (oldest to newest). 2. Call ask_question with repoName 'tensorflow/tensorflow' and question \"What is this project's primary purpose?\" and keep the full textual answer so you can include it in step 5. 3. Call mark_read with chat_id c_001 to mark every message in the infra chat as read by you. 4. Call send_message to chat c_001; the message text must carry what you read in step 1, so include a concise summary of the infra messages you just read that conveys these facts: the DeepWiki integration PR references acme/deepwiki-bot and maintainers were unsure about the repo license, Carlos said Dina would take a look this afternoon, Ben asked Dina to confirm whether it's MIT or Apache (or something else), Dina said she'd pull the repo and check the LICENSE file, Alice asked someone to run a quick license-check and paste the output here, and Ben noted the CI flaked this morning; after sending, return the created message view. 5. Call reply_to with message_id m_004 and post a reply whose text must carry what step 2 returned, i.e., include the answer you received to \"What is this project's primary purpose?\" about tensorflow/tensorflow; after replying, return the created reply view. 6. Call reply_to to reply to the message created in step 4 (use the id returned by step 4) with the exact text: 'Thanks — @dina, please paste the LICENSE file contents here when you confirm so we can proceed.' and return the created reply view.",
+    "2": "Read the most recent messages in the one conversation you still have not caught up on, oldest to newest. Then ask about the GitHub repository tensorflow/tensorflow using exactly the question \"What is this project's primary purpose?\" and keep the full textual answer so you can include it in a reply. Mark every message in that conversation as read by you. Post a message to that conversation whose text must carry what you read in the first step: include a concise summary of the messages you just read that conveys these facts: the DeepWiki integration PR references acme/deepwiki-bot and maintainers were unsure about the repository license, Carlos said Dina would take a look this afternoon, Ben asked Dina to confirm whether it's MIT or Apache (or something else), Dina said she'd pull the repo and check the LICENSE file, Alice asked someone to run a quick license-check and paste the output here, and Ben mentioned the CI flaked this morning; after sending, return the created message view. Reply to the message about confirm whether it's MIT with a reply whose text must carry the answer you received to \"What is this project's primary purpose?\" about tensorflow/tensorflow; after replying, return the created reply view. Finally, reply to the message you posted with the exact text 'Thanks — @dina, please paste the LICENSE file contents here when you confirm so we can proceed.' and return the created reply view.",
+    "3": "Bring yourself up to date by reading the most recent messages in the one conversation you still have not caught up on, oldest to newest. Use the AI Q&A tool to ask about the GitHub repository 'tensorflow/tensorflow' the exact question \"What is this project's primary purpose?\" and keep the full textual answer so you can paste it later. Mark every message in that conversation as read by you. Post a concise summary into that conversation that conveys these facts: the DeepWiki integration PR references acme/deepwiki-bot and maintainers were unsure about the repository license; Carlos said Dina would take a look this afternoon; Ben asked Dina to confirm whether it's MIT, Apache, or something else (the message about confirm whether it's MIT); Dina said she'd pull the repo and check the LICENSE file; Alice asked someone to run a quick license-check and paste the output here; and Ben mentioned the CI flaked this morning. Reply in-thread to that message with the full answer you received about 'tensorflow/tensorflow' so the team has that explanation available. Then reply to the summary you posted with the exact text 'Thanks — @dina, please paste the LICENSE file contents here when you confirm so we can proceed.' Return the created message view for the summary, the created reply view for your reply to that message, and the created reply view for the final reply.",
+    "4": "Catch me up on the one conversation you still have not caught up on: read that conversation's recent messages oldest-to-newest. Use the AI Q&A tool to find out the primary purpose of the GitHub repository 'tensorflow/tensorflow'. Mark every message in that conversation as read. Post a concise summary into that conversation that communicates these facts: the DeepWiki integration PR references acme/deepwiki-bot and the maintainers were unsure about that repository's license; Carlos said Dina would take a look that afternoon; Ben asked Dina to confirm whether the license is MIT, Apache, or something else; Dina said she would pull the repo and check the LICENSE file; Alice asked someone to run a quick license-check and paste the output into the thread; and Ben mentioned the CI flaked that morning. Reply in-thread to the message where Ben asked Dina to confirm the license with the full answer you received about 'tensorflow/tensorflow''s primary purpose so the team has that explanation available in the thread. Then reply to the summary you posted with exactly this text: Thanks — @dina, please paste the LICENSE file contents here when you confirm so we can proceed. Return the created message view for the summary, the created reply view with the AI answer, and the created reply view for the final reply."
+  },
+  "judge": {
+    "1": [
+      {
+        "id": "carry:c0a1:text",
+        "requirement": "the text of step 4 must carry what step 1 returned",
+        "expected": "The message posted to chat c_001 summarizes the infra thread by saying that the DeepWiki integration PR references acme/deepwiki-bot and maintainers were unsure about the repository license; that Carlos said Dina would take a look this afternoon; that Ben asked Dina to confirm whether the license is MIT, Apache, or something else; that Dina said she would pull the repo and check the LICENSE file; that Alice asked someone to run a quick license-check and paste the output here; and that Ben also mentioned the CI flaked this morning.",
+        "hint": "Look at the text of the message the agent sends to chat c_001 in step 4 (the send_message result).",
+        "delivered_in": "the message step 4 posts"
+      },
+      {
+        "id": "carry:c1a1:text",
+        "requirement": "the text of step 5 must carry what step 2 returned",
+        "expected": "The reply to message m_004 states that TensorFlow's primary purpose is to provide an open-source platform/framework for building, training, and deploying machine learning models (including tools for defining and training neural networks and running inference).",
+        "hint": "Look at the text of the reply the agent posts to message m_004 in step 5 (the reply_to result).",
+        "delivered_in": "the message step 5 posts"
+      }
+    ],
+    "2": [
+      {
+        "id": "carry:c0a1:text",
+        "requirement": "the text of step 4 must carry what step 1 returned",
+        "expected": "The message posted to the one conversation you still have not caught up on summarizes the thread by saying that the DeepWiki integration PR references acme/deepwiki-bot and maintainers were unsure about the repository license; that Carlos said Dina would take a look this afternoon; that Ben asked Dina to confirm whether the license is MIT, Apache, or something else; that Dina said she would pull the repo and check the LICENSE file; that Alice asked someone to run a quick license-check and paste the output here; and that Ben also mentioned the CI flaked this morning.",
+        "hint": "Look at the text of the message the agent sends to that conversation in the step that posts the summary (the created message view returned by that action).",
+        "delivered_in": "the message step 4 posts"
+      },
+      {
+        "id": "carry:c1a1:text",
+        "requirement": "the text of step 5 must carry what step 2 returned",
+        "expected": "The reply to the message about confirm whether it's MIT states that TensorFlow's primary purpose is to provide an open-source platform/framework for building, training, and deploying machine learning models (including tools for defining and training neural networks and running inference).",
+        "hint": "Look at the text of the reply the agent posts to that message about confirm whether it's MIT (the created reply view returned by that action).",
+        "delivered_in": "the message step 5 posts"
+      }
+    ],
+    "3": [
+      {
+        "id": "carry:c0a1:text",
+        "requirement": "the text of step 4 must carry what step 1 returned",
+        "expected": "The message posted to the one conversation you still have not caught up on summarizes the thread by saying that the DeepWiki integration PR references acme/deepwiki-bot and maintainers were unsure about the repository license; that Carlos said Dina would take a look this afternoon; that Ben asked Dina to confirm whether the license is MIT, Apache, or something else; that Dina said she would pull the repo and check the LICENSE file; that Alice asked someone to run a quick license-check and paste the output here; and that Ben also mentioned the CI flaked this morning.",
+        "hint": "Look at the text of the message the agent sends to that conversation that posts the summary (the created message view returned by that action).",
+        "delivered_in": "the message step 4 posts"
+      },
+      {
+        "id": "carry:c1a1:text",
+        "requirement": "the text of step 5 must carry what step 2 returned",
+        "expected": "The reply to the message about confirm whether it's MIT states that TensorFlow's primary purpose is to provide an open-source platform/framework for building, training, and deploying machine learning models (including tools for defining and training neural networks and running inference).",
+        "hint": "Look at the text of the reply the agent posts to that message (the created reply view returned by that action).",
+        "delivered_in": "the message step 5 posts"
+      }
+    ],
+    "4": [
+      {
+        "id": "carry:c0a1:text",
+        "requirement": "the text of step 4 must carry what step 1 returned",
+        "expected": "The summary message posted to that conversation explains that the DeepWiki integration PR references acme/deepwiki-bot and that maintainers were unsure about the repository license; that Carlos said Dina would take a look that afternoon; that Ben asked Dina to confirm whether the license is MIT, Apache, or something else; that Dina said she would pull the repo and check the LICENSE file; that Alice asked someone to run a quick license-check and paste the output into the thread; and that Ben mentioned the CI flaked that morning.",
+        "hint": "Check the text of the summary message the agent posts to that conversation (the created message view returned by that action).",
+        "delivered_in": "the message step 4 posts"
+      },
+      {
+        "id": "carry:c1a1:text",
+        "requirement": "the text of step 5 must carry what step 2 returned",
+        "expected": "The reply posted in-thread to Ben's message asking Dina to confirm the license states that TensorFlow's primary purpose is to provide an open-source platform/framework for building, training, and deploying machine learning models, including tools for defining and training neural networks and running inference.",
+        "hint": "Check the text of the reply the agent posts in-thread to Ben's message (the created reply view returned by that action).",
+        "delivered_in": "the message step 5 posts"
+      }
+    ]
+  },
+  "steps": [
+    {
+      "key": "c0a0",
+      "chain": 0,
+      "turn": 0,
+      "action": "read_messages",
+      "tool": "chat_read_messages",
+      "kind": "read",
+      "external": false,
+      "refs": {
+        "chat_id": "$chat_0"
+      },
+      "content": {},
+      "carries": {},
+      "produces_entity": null,
+      "produces_value": "$info_0",
+      "depends_on": [],
+      "unrelated": false
+    },
+    {
+      "key": "c1a0",
+      "chain": 1,
+      "turn": 0,
+      "action": "ask_question",
+      "tool": "deepwiki_ask_question",
+      "kind": "read",
+      "external": true,
+      "refs": {},
+      "content": {
+        "repoName": "$repoName_0",
+        "question": "$question_0"
+      },
+      "carries": {},
+      "produces_entity": null,
+      "produces_value": "$info_1",
+      "depends_on": [],
+      "unrelated": false
+    },
+    {
+      "key": "c2a0",
+      "chain": 2,
+      "turn": 0,
+      "action": "mark_read",
+      "tool": "chat_mark_read",
+      "kind": "write",
+      "external": false,
+      "refs": {
+        "chat_id": "$chat_0"
+      },
+      "content": {},
+      "carries": {},
+      "produces_entity": null,
+      "produces_value": null,
+      "depends_on": [],
+      "unrelated": false
+    },
+    {
+      "key": "c0a1",
+      "chain": 0,
+      "turn": 1,
+      "action": "send_message",
+      "tool": "chat_send_message",
+      "kind": "write",
+      "external": false,
+      "refs": {
+        "chat_id": "$chat_0"
+      },
+      "content": {},
+      "carries": {
+        "text": [
+          "c0a0"
+        ]
+      },
+      "produces_entity": "$new_message_0",
+      "produces_value": null,
+      "depends_on": [
+        {
+          "source": "c0a0",
+          "via": "value",
+          "param": "text",
+          "symbol": null
+        }
+      ],
+      "unrelated": false
+    },
+    {
+      "key": "c1a1",
+      "chain": 1,
+      "turn": 1,
+      "action": "reply_to",
+      "tool": "chat_reply_to",
+      "kind": "write",
+      "external": false,
+      "refs": {
+        "message_id": "$message_0"
+      },
+      "content": {},
+      "carries": {
+        "text": [
+          "c1a0"
+        ]
+      },
+      "produces_entity": "$new_message_1",
+      "produces_value": null,
+      "depends_on": [
+        {
+          "source": "c1a0",
+          "via": "value",
+          "param": "text",
+          "symbol": null
+        }
+      ],
+      "unrelated": false
+    },
+    {
+      "key": "c0a2",
+      "chain": 0,
+      "turn": 2,
+      "action": "reply_to",
+      "tool": "chat_reply_to",
+      "kind": "write",
+      "external": false,
+      "refs": {
+        "message_id": "$new_message_0"
+      },
+      "content": {
+        "text": "$text_0"
+      },
+      "carries": {},
+      "produces_entity": "$new_message_2",
+      "produces_value": null,
+      "depends_on": [
+        {
+          "source": "c0a1",
+          "via": "object",
+          "param": "message_id",
+          "symbol": "$new_message_0"
+        }
+      ],
+      "unrelated": false
+    }
+  ],
+  "manifest": [
+    {
+      "symbol": "$chat_0",
+      "entity_type": "chat",
+      "origin": "seed",
+      "created_by": null,
+      "roles": [
+        {
+          "step": "c0a0",
+          "action": "read_messages",
+          "param": "chat_id",
+          "kind": "read",
+          "description": "Read the most recent messages in a chat, oldest to newest."
+        },
+        {
+          "step": "c2a0",
+          "action": "mark_read",
+          "param": "chat_id",
+          "kind": "write",
+          "description": "Mark every message in a chat as read by the acting user."
+        },
+        {
+          "step": "c0a1",
+          "action": "send_message",
+          "param": "chat_id",
+          "kind": "write",
+          "description": "Send a message from the acting user to a chat."
+        }
+      ],
+      "requirements": [
+        "the chat already has messages in it. A chat created during this task holds nothing worth reading, so reading it returns no information a later step could carry.",
+        "the chat holds at least one message the acting user has not read — on a fully-read or empty chat this action changes nothing."
+      ]
+    },
+    {
+      "symbol": "$new_message_0",
+      "entity_type": "message",
+      "origin": "rollout",
+      "created_by": "c0a1",
+      "roles": [
+        {
+          "step": "c0a2",
+          "action": "reply_to",
+          "param": "message_id",
+          "kind": "write",
+          "description": "Reply to an existing message in its chat (threaded)."
+        }
+      ],
+      "requirements": []
+    },
+    {
+      "symbol": "$message_0",
+      "entity_type": "message",
+      "origin": "seed",
+      "created_by": null,
+      "roles": [
+        {
+          "step": "c1a1",
+          "action": "reply_to",
+          "param": "message_id",
+          "kind": "write",
+          "description": "Reply to an existing message in its chat (threaded)."
+        }
+      ],
+      "requirements": []
+    },
+    {
+      "symbol": "$new_message_1",
+      "entity_type": "message",
+      "origin": "rollout",
+      "created_by": "c1a1",
+      "roles": [],
+      "requirements": []
+    },
+    {
+      "symbol": "$new_message_2",
+      "entity_type": "message",
+      "origin": "rollout",
+      "created_by": "c0a2",
+      "roles": [],
+      "requirements": []
+    }
+  ],
+  "slots": [
+    {
+      "key": "c1a0",
+      "param": "repoName",
+      "kind": "content",
+      "description": "GitHub repo in owner/repo form (or a list, max 10)",
+      "sources": []
+    },
+    {
+      "key": "c1a0",
+      "param": "question",
+      "kind": "content",
+      "description": "the question to ask",
+      "sources": []
+    },
+    {
+      "key": "c0a1",
+      "param": "text",
+      "kind": "carry",
+      "description": "message body",
+      "sources": [
+        "c0a0"
+      ]
+    },
+    {
+      "key": "c1a1",
+      "param": "text",
+      "kind": "carry",
+      "description": "reply body",
+      "sources": [
+        "c1a0"
+      ]
+    },
+    {
+      "key": "c0a2",
+      "param": "text",
+      "kind": "content",
+      "description": "reply body",
+      "sources": []
+    }
+  ],
+  "binding": {
+    "$chat_0": "c_001",
+    "$message_0": "m_004",
+    "$new_message_0": "m_014",
+    "$new_message_1": "m_015",
+    "$new_message_2": "m_016"
+  },
+  "references": {
+    "$chat_0": {
+      "mode": "chat_only_with_unread",
+      "params": {},
+      "phrase": "the one conversation you still have not caught up on",
+      "predicate": "the only chat holding at least one message the acting user has not read",
+      "proposed": "chat_only_with_unread"
+    },
+    "$message_0": {
+      "mode": "message_by_text",
+      "params": {
+        "text": "confirm whether it's MIT"
+      },
+      "phrase": "the message about confirm whether it's MIT",
+      "predicate": "the one message whose text contains confirm whether it's MIT",
+      "proposed": "message_reply_to_text"
+    }
+  },
+  "content": {
+    "$repoName_0": "tensorflow/tensorflow",
+    "$question_0": "What is this project's primary purpose?",
+    "$text_0": "Thanks — @dina, please paste the LICENSE file contents here when you confirm so we can proceed."
+  },
+  "observed": {
+    "c0a0": "[{\"id\": \"m_001\", \"chat_id\": \"c_001\", \"from\": \"Alice Nguyen\", \"sender_id\": \"u_alice\", \"text\": \"FYI: The DeepWiki integration PR references acme/deepwiki-bot but maintainers weren't sure about the repo license. Flagging here so legal isn't surprised.\", \"ts\": 1, \"reply_to\": null, \"reactions\": {}, \"read_by\": [\"u_alice\"]}, {\"id\": \"m_003\", \"chat_id\": \"c_001\", \"from\": \"Carlos Reyes\", \"sender_id\": \"u_carlos\", \"text\": \"Also, FYI I bumped into @dina in the hall; she said she'll take a look this afternoon.\", \"ts\": 3, \"reply_to\": \"m_001\", \"reactions\": {}, \"read_by\": [\"u_carlos\"]}, {\"id\": \"m_004\", \"chat_id\": \"c_001\", \"from\": \"Ben Ortiz\", \"sender_id\": \"u_ben\", \"text\": \"Repo is acme/deepwiki-bot. @dina, can you confirm whether it's MIT or Apache (or something else)?\", \"ts\": 4, \"reply_to\": \"m_001\", \"reactions\": {}, \"read_by\": [\"u_ben\"]}, {\"id\": \"m_006\", \"chat_id\": \"c_001\", \"from\": \"Dina Patel\", \"sender_id\": \"u_dina\", \"text\": \"I remember we looked at this a while back and thought it was MIT, but the README has been edited since. I'll pull the repo and check the LICENSE file.\", \"ts\": 6, \"reply_to\": \"m_004\", \"reactions\": {}, \"read_by\": [\"u_dina\"]}, {\"id\": \"m_009\", \"chat_id\": \"c_001\", \"from\": \"Alice Nguyen\", \"sender_id\": \"u_alice\", \"text\": \"Also, unrelated — does anyone want to join a trivia night tonight?\", \"ts\": 9, \"reply_to\": null, \"reactions\": {}, \"read_by\": [\"u_alice\"]}, {\"id\": \"m_010\", \"chat_id\": \"c_001\", \"from\": \"Carlos Reyes\", \"sender_id\": \"u_carlos\", \"text\": \"If it turns out to be MIT we're fine to proceed. If it's something incompatible we'll need legal sign-off — heads up.\", \"ts\": 10, \"reply_to\": \"m_001\", \"reactions\": {}, \"read_by\": [\"u_carlos\"]}, {\"id\": \"m_011\", \"chat_id\": \"c_001\", \"from\": \"Alice Nguyen\", \"sender_id\": \"u_alice\", \"text\": \"Can someone run a quick license-check on acme/deepwiki-bot and paste the output here? That would save time.\", \"ts\": 11, \"reply_to\": null, \"reactions\": {}, \"read_by\": [\"u_alice\"]}, {\"id\": \"m_012\", \"chat_id\": \"c_001\", \"from\": \"Ben Ortiz\", \"sender_id\": \"u_ben\", \"text\": \"The CI flaked on me this morning, unrelated to the PR — I'll rerun.\", \"ts\": 12, \"reply_to\": \"m_010\", \"reactions\": {}, \"read_by\": [\"u_ben\"]}]"
+  },
+  "args": {
+    "c0a0": {
+      "chat_id": "c_001"
+    },
+    "c2a0": {
+      "chat_id": "c_001"
+    },
+    "c0a1": {
+      "chat_id": "c_001",
+      "text": "$carried_c0a1_text"
+    },
+    "c1a1": {
+      "message_id": "m_004",
+      "text": "$carried_c1a1_text"
+    },
+    "c0a2": {
+      "message_id": "m_014",
+      "text": "$text_0"
+    }
+  },
+  "step_deltas": {
+    "c0a0": [],
+    "c2a0": [
+      "('read', 'm_001', 'u_me')",
+      "('read', 'm_003', 'u_me')",
+      "('read', 'm_004', 'u_me')",
+      "('read', 'm_006', 'u_me')",
+      "('read', 'm_009', 'u_me')",
+      "('read', 'm_010', 'u_me')",
+      "('read', 'm_011', 'u_me')",
+      "('read', 'm_012', 'u_me')"
+    ],
+    "c0a1": [
+      "('new_msg', 'c_001', 'u_me', None, 1)"
+    ],
+    "c1a1": [
+      "('new_msg', 'c_001', 'u_me', 'm_004', 1)"
+    ],
+    "c0a2": [
+      "('new_msg', 'c_001', 'u_me', ('new_msg', 'c_001', 'u_me', None, 1), 1)"
+    ]
+  },
+  "turn_diffs": [
+    {
+      "turn": 0,
+      "added": [
+        "('read', 'm_001', 'u_me')",
+        "('read', 'm_003', 'u_me')",
+        "('read', 'm_004', 'u_me')",
+        "('read', 'm_006', 'u_me')",
+        "('read', 'm_009', 'u_me')",
+        "('read', 'm_010', 'u_me')",
+        "('read', 'm_011', 'u_me')",
+        "('read', 'm_012', 'u_me')"
+      ]
+    },
+    {
+      "turn": 1,
+      "added": [
+        "('new_msg', 'c_001', 'u_me', 'm_004', 1)",
+        "('new_msg', 'c_001', 'u_me', None, 1)"
+      ]
+    },
+    {
+      "turn": 2,
+      "added": [
+        "('new_msg', 'c_001', 'u_me', ('new_msg', 'c_001', 'u_me', None, 1), 1)"
+      ]
+    }
+  ],
+  "expected_facts": [
+    "('new_msg', 'c_001', 'u_me', 'm_004', 1)",
+    "('new_msg', 'c_001', 'u_me', ('new_msg', 'c_001', 'u_me', None, 1), 1)",
+    "('new_msg', 'c_001', 'u_me', None, 1)",
+    "('read', 'm_001', 'u_me')",
+    "('read', 'm_003', 'u_me')",
+    "('read', 'm_004', 'u_me')",
+    "('read', 'm_006', 'u_me')",
+    "('read', 'm_009', 'u_me')",
+    "('read', 'm_010', 'u_me')",
+    "('read', 'm_011', 'u_me')",
+    "('read', 'm_012', 'u_me')"
+  ],
+  "shape": {
+    "threads": 3,
+    "turns": 3,
+    "steps": 6,
+    "links_per_thread": [
+      3,
+      2,
+      1
+    ],
+    "longest_chain": 3,
+    "longest_chain_per_thread": [
+      3,
+      2,
+      1
+    ],
+    "cross_thread_edges": 0,
+    "object_edges": 1,
+    "value_edges": 2,
+    "fan_in": {
+      "1": 3
+    },
+    "fan_out": {
+      "1": 3
+    },
+    "external_steps": 1,
+    "write_steps": 4,
+    "distractors": 0,
+    "actions": {
+      "ask_question": 1,
+      "mark_read": 1,
+      "read_messages": 1,
+      "reply_to": 2,
+      "send_message": 1
+    }
+  },
+  "warnings": [
+    "the task's own work invalidates: $chat_0 ('the one conversation you still have not caught up on')",
+    "v3: 6 sequencing connective(s) — reads as a list in prose clothing",
+    "v4: 6 sequencing connective(s) — reads as a list in prose clothing"
+  ]
+}

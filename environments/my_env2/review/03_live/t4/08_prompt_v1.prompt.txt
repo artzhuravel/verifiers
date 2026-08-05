@@ -1,0 +1,159 @@
+# Stage 8 — v1 prompt and the judge specification
+
+1 model call(s).
+
+================================================================================================
+== call 1 of 1
+================================================================================================
+
+------------------------------------------------------------------------------------------------
+-- SYSTEM PROMPT
+------------------------------------------------------------------------------------------------
+You turn a plan into a task, written as an explicit numbered sequence.
+
+You are given a workspace, and the exact actions an agent should perform in it with every detail already decided. Write the request the agent will receive.
+
+- One numbered step per action, in the given order — but write SENTENCES. The plan you are given is a machine listing; do not reproduce its layout, its bracketed tags, its parameter lines or its "returns" notes. Those are notes to you. Ask for the thing, using the ids shown.
+- Every step is work that must happen, including any marked as an aside. The plan is the complete and exact set of actions: never ask for anything it does not contain, and never leave one out. An unplanned message is an unexpected change to the workspace, and a missing one costs the agent credit for obeying you.
+- Where a step's text must CARRY what an earlier step returned, say so plainly: the agent has to look that up and say it in the message. Ask for the information, not for a transcript — a person asks a colleague to pass on what a thread said, never to paste the raw tool output. Never guess the value yourself.
+- Where a step looks something up and no later step posts what it found, ask the agent to report that back to you in its reply.
+
+You also write the JUDGE SPECIFICATION. You are given the items that need checking, each with where its answer must appear. For each one return:
+- expected: THE ANSWER ITSELF, in a sentence. Two ways to get this wrong, and both make the item useless. Do not write "the text returned by step N" or "the answer to the question above" — a grader given that has nothing to compare against. And do not paste the returned value back verbatim — say what a correct answer STATES, in your own words, so that a grader can recognise one that is worded differently. Where the item shows what the step actually returned, draw the facts out of it ("names all three of X, Y and Z"); where the answer comes from outside the workspace, give it as best you know it.
+- hint: where in the agent's output a grader should look for it.
+
+Respond with ONLY this JSON object:
+{"prompt": "<the task text>",
+ "judge": [{"id": "<item id, copied exactly>", "expected": "...", "hint": "..."}]}
+
+------------------------------------------------------------------------------------------------
+-- USER PROMPT
+------------------------------------------------------------------------------------------------
+ENVIRONMENT
+  chat: Local mock chat app. Read and write tools operate on the rollout's ChatState.
+  deepwiki: Public DeepWiki MCP server: read-only GitHub-repo Q&A. Answers can be nondeterministic; requires the repo to be indexed by DeepWiki.
+  You act as one specific user. The acting user's id. Every write is attributed to this user; reads are scoped to it where noted.
+
+ENTITY TYPES IN THIS TASK
+  message — One posted message. `reply_to` threads it under an earlier message in the same chat.
+      id: string
+      chat_id: string (chat id)
+      sender_id: string (user id)
+      text: string
+      ts: int (logical clock, not wall time)
+      reply_to: string | null (parent message id)
+      reactions: object (emoji -> user_id[])
+      read_by: string[] (user ids)
+  chat — A conversation the acting user takes part in. `name` is null for a DM.
+      id: string
+      kind: "dm" | "group"
+      name: string | null
+      member_ids: string[] (user ids)
+
+ACTIONS THIS TASK USES
+  ask_question (read) — Ask an AI-grounded question about a GitHub repository.
+      repoName: GitHub repo in owner/repo form (or a list, max 10)
+      question: the question to ask
+      returns: a free-text answer to any question about the repo — metadata (licence, primary language, maintainers) and prose questions alike. Nondeterministic wording, so only ask things with a stable, unambiguous answer.
+  reply_to (write) — Reply to an existing message in its chat (threaded).
+      message_id: the message being replied to
+      text: reply body
+      returns: the created message view
+  send_message (write) — Send a message from the acting user to a chat.
+      chat_id: destination chat
+      text: message body
+      returns: the created message view
+  add_reaction (write) — Add an emoji reaction from the acting user to a message.
+      message_id: the message to react to
+      emoji: reaction emoji, e.g. ':+1:'
+      returns: the updated message view
+
+WORKSPACE
+You act as You (id u_me).
+
+People:
+  u_me  You @you
+  u_priya_p  Priya Nair @priya_p
+  u_mateo_r  Mateo Ruiz @mateo_r
+  u_sarah_k  Sarah Kim @sarah_k
+  u_jamal_b  Jamal Brown @jamal_b
+  u_alex_p  Alex Park @alex_p
+
+group frontend-team (c_001) — members: You @you, Priya Nair @priya_p, Mateo Ruiz @mateo_r, Sarah Kim @sarah_k
+  m_001 [Priya Nair @priya_p]: Can someone confirm the license and current maintainers for the GitHub repo loom/widget-lib before we vendor it into our codebase? Priya needs a definitive answer today.  (UNREAD by you)
+  m_002 [Mateo Ruiz @mateo_r]: Is that the same widget-lib we used in the legacy dashboard? There were two similarly named repos.  (reply to m_001)
+  m_004 [Mateo Ruiz @mateo_r]: I'll check the org maintainers list and post links.  (reply to m_002)
+  m_005 [Sarah Kim @sarah_k]: Do you mean loom/widget-lib (TypeScript) or loom/widget-lib-js? They have slightly different owners.  (reply to m_001; UNREAD by you)
+  m_006 [Sarah Kim @sarah_k]: Found a packument entry that might list the publisher; saving it here for reference.  (reply to m_001)
+  m_010 [Priya Nair @priya_p]: Adding a note: check /LICENSE and the root package.json for declared authors.  (reply to m_005)
+  m_011 [Priya Nair @priya_p]: Thanks — if someone can confirm by EOD that'd be great. We're trying to avoid a last-minute license mismatch.  (reply to m_002)
+  m_013 [Sarah Kim @sarah_k]: I can take it after lunch unless @you are able to run a quick check now and post what you find.  (reply to m_001; UNREAD by you)
+
+group sec-ops (c_002) — members: You @you, Mateo Ruiz @mateo_r, Jamal Brown @jamal_b
+  m_003 [Jamal Brown @jamal_b]: If it's MIT we're probably fine to vendor; GPL-3 would be a blocker. Whoever checks, please list the license file path and the org/people listed as maintainers.
+  m_008 [Jamal Brown @jamal_b]: I couldn't find a LICENSE in the repo mirror; it might live in a monorepo root. Will keep digging.  (reply to m_003)
+  m_009 [Mateo Ruiz @mateo_r]: Jamal, could you check npm/packument and GH owners for that package? Security wants an explicit maintainer list.  (reply to m_003)
+  m_012 [Mateo Ruiz @mateo_r]: On it — I'll fetch the npm packument and paste the author/version details here.  (reply to m_009)
+  m_015 [Jamal Brown @jamal_b]: I'll scan the repo and check contributors + package.json authors. Will report back with links.  (reply to m_009)
+
+dm (dm) (c_003) — members: You @you, Sarah Kim @sarah_k
+  m_007 [Sarah Kim @sarah_k]: Hey — Priya asked the team to confirm loom/widget-lib's license. Can you pull the repo metadata (license, primary language, maintainers) when you have a moment?  (UNREAD by you)
+  m_014 [Sarah Kim @sarah_k]: Also pinged @priya_p to see if she remembers which variant we used months ago.  (reply to m_007)
+
+PLAN (perform in this order)
+step 1 [read] ask_question — Ask an AI-grounded question about a GitHub repository.
+    repoName     = 'loom/widget-lib'
+    question     = "What is the repo's license, primary language, and who are listed as maintainers (from LICENSE, package.json, or GitHub)?"
+    -> returns a free-text answer to any question about the repo — metadata (licence, primary language, maintainers) and prose questions alike. Nondeterministic wording, so only ask things with a stable, unambiguous answer. (not known until the agent runs it)
+step 2 [write] reply_to — Reply to an existing message in its chat (threaded).
+    message_id   = m_001 — in frontend-team from Priya Nair, unread by you: 'Can someone confirm the license and current maintainers for the GitHub repo loom/widget-lib before we vendor it into our codebase? Priya needs a definitive answer today.'
+    text         = "On it — I'll pull the license file path, primary language, and maintainer list for loom/widget-lib and post what I find shortly."
+    -> creates something new
+step 3 [write] reply_to — Reply to an existing message in its chat (threaded).
+    message_id   = the message step 2 creates
+    text         = 'Posting the findings in the channel below so everyone can review; will flag any concerns for licensing or maintainers.'
+    -> creates something new
+step 4 [write] send_message — Send a message from the acting user to a chat.
+    chat_id      = c_001 — group 'frontend-team' — members: You @you, Priya Nair @priya_p, Mateo Ruiz @mateo_r, Sarah Kim @sarah_k
+    text         <- must carry what step 1 returned
+    -> creates something new
+step 5 [write, an aside] reply_to — Reply to an existing message in its chat (threaded).
+    message_id   = m_001 — in frontend-team from Priya Nair, unread by you: 'Can someone confirm the license and current maintainers for the GitHub repo loom/widget-lib before we vendor it into our codebase? Priya needs a definitive answer today.'
+    text         = 'FYI — I’ll also paste the same findings into sec-ops so Jamal and Mateo can verify.'
+    -> creates something new
+step 6 [write] add_reaction — Add an emoji reaction from the acting user to a message.
+    message_id   = the message step 3 creates
+    emoji        = ':+1:'
+step 7 [write] send_message — Send a message from the acting user to a chat.
+    chat_id      = c_002 — group 'sec-ops' — members: You @you, Mateo Ruiz @mateo_r, Jamal Brown @jamal_b
+    text         <- must carry what step 1 returned
+    -> creates something new
+
+ITEMS THAT NEED CHECKING
+  carry:c1a0:text
+      the text of step 4 must carry what step 1 returned
+      delivered in: the message step 4 posts
+      step 1 (ask_question) returns a free-text answer to any question about the repo — metadata (licence, primary language, maintainers) and prose questions alike. Nondeterministic wording, so only ask things with a stable, unambiguous answer.
+  carry:c1a2:text
+      the text of step 7 must carry what step 1 returned
+      delivered in: the message step 7 posts
+      step 1 (ask_question) returns a free-text answer to any question about the repo — metadata (licence, primary language, maintainers) and prose questions alike. Nondeterministic wording, so only ask things with a stable, unambiguous answer.
+
+------------------------------------------------------------------------------------------------
+-- REPLY
+------------------------------------------------------------------------------------------------
+{
+  "prompt": "1. Call ask_question with repoName 'loom/widget-lib' and the question \"What is the repo's license, primary language, and who are listed as maintainers (from LICENSE, package.json, or GitHub)?\" and capture the free-text answer returned. 2. Reply to message m_001 in chat c_001 with the text: \"On it — I'll pull the license file path, primary language, and maintainer list for loom/widget-lib and post what I find shortly.\" 3. Reply to the message you create in step 2 with the text: \"Posting the findings in the channel below so everyone can review; will flag any concerns for licensing or maintainers.\" 4. Send a message to chat c_001 whose body includes the repository license, the primary language, and the full maintainer list exactly as returned by the ask_question call you made in step 1. 5. Reply to message m_001 in chat c_001 with the text: \"FYI — I’ll also paste the same findings into sec-ops so Jamal and Mateo can verify.\" 6. Add the ':+1:' reaction to the message you created in step 3. 7. Send a message to chat c_002 whose body includes the repository license, the primary language, and the full maintainer list exactly as returned by the ask_question call you made in step 1.",
+  "judge": [
+    {
+      "id": "carry:c1a0:text",
+      "expected": "The message sent to the frontend-team states that the repository's license is MIT, its primary language is TypeScript, and the maintainers listed are Alex Park (alex_p) and Priya Nair (priya_p).",
+      "hint": "Look in the message posted to chat c_001 in step 4; it should contain the license, primary language, and maintainer names."
+    },
+    {
+      "id": "carry:c1a2:text",
+      "expected": "The message sent to the sec-ops channel states that the repository's license is MIT, its primary language is TypeScript, and the maintainers listed are Alex Park (alex_p) and Priya Nair (priya_p).",
+      "hint": "Look in the message posted to chat c_002 in step 7; it should contain the same license, language, and maintainer list as step 4."
+    }
+  ]
+}

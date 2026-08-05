@@ -1,0 +1,21 @@
+Stage 4. Each seed entity gets ONE way of being described instead of named.
+The model picks only WHICH mode; the adapter derives the params from the world and
+proves resolve(state, mode, params) == [that entity]. A mode that cannot be made to fit
+is skipped and the next tried, so the stage is total — an entity with no working
+reference raises, because v2 strips ids out and the task would be unanswerable.
+
+  $chat_0  ->  c_002
+      the entity      group 'infra-team' — members: Alex Chen @you, Sam Ortega @sam_o, Lina Wu @lina_w, Raj Kapoor @raj_k, Marisa Gómez @marisa_g
+      mode chosen     chat_only_with_unread  (the model's pick)
+      params derived  {}
+      reads as        "the one conversation you still have not caught up on"
+      predicate       the only chat holding at least one message the acting user has not read
+      PROOF           resolve() -> ['c_002']   unique, and it is the target
+
+  $message_0  ->  m_004
+      the entity      in infra-team from Lina Wu, replying to m_001: 'Proposed repo: apache/cool-db. Can someone confirm its license and primary language? Also who the listed maintainers are.'
+      mode chosen     message_by_text  (the model's pick)
+      params derived  {"text": "someone confirm its license"}
+      reads as        "the message about someone confirm its license"
+      predicate       the one message whose text contains someone confirm its license
+      PROOF           resolve() -> ['m_004']   unique, and it is the target

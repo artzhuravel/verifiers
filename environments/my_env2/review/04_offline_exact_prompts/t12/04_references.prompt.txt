@@ -1,0 +1,119 @@
+# Stage 4 — choose a reference mode per entity
+
+1 model call(s).
+
+================================================================================================
+== call 1 of 1
+================================================================================================
+
+------------------------------------------------------------------------------------------------
+-- SYSTEM PROMPT
+------------------------------------------------------------------------------------------------
+You decide how a task will refer to things without naming their ids.
+
+You are given a workspace and, for each entity the task is about, the ways it could be picked out by description. Pick the ONE that suits that entity best, and say only which. What goes into it is worked out from the workspace afterwards, so you do not have to supply or check anything.
+
+Judge it on how the finished sentence would read and on how much work it makes the reader do. Describing what someone did, or what a conversation is about, is better than restating a name or a handle — those tell the reader nothing they could not have been handed. Some modes will not fit the entity in front of you at all; say so by choosing a different one.
+
+Respond with ONLY this JSON object, one entry per entity:
+{"references": [{"symbol": "$chat_0", "mode": "<mode id>"}]}
+
+------------------------------------------------------------------------------------------------
+-- USER PROMPT
+------------------------------------------------------------------------------------------------
+ENVIRONMENT
+  chat: Local mock chat app. Read and write tools operate on the rollout's ChatState.
+  deepwiki: Public DeepWiki MCP server: read-only GitHub-repo Q&A. Answers can be nondeterministic; requires the repo to be indexed by DeepWiki.
+  You act as one specific user. The acting user's id. Every write is attributed to this user; reads are scoped to it where noted.
+
+ENTITY TYPES IN THIS TASK
+  user — A person in the workspace. Display names may collide; handles never do.
+      id: string
+      name: string
+      handle: string
+  chat — A conversation the acting user takes part in. `name` is null for a DM.
+      id: string
+      kind: "dm" | "group"
+      name: string | null
+      member_ids: string[] (user ids)
+  message — One posted message. `reply_to` threads it under an earlier message in the same chat.
+      id: string
+      chat_id: string (chat id)
+      sender_id: string (user id)
+      text: string
+      ts: int (logical clock, not wall time)
+      reply_to: string | null (parent message id)
+      reactions: object (emoji -> user_id[])
+      read_by: string[] (user ids)
+
+ACTIONS THIS TASK USES
+  create_chat (write) — Create a new chat; the acting user is always included as a member.
+      member_ids: user ids to include (actor added automatically)
+      name: chat name; if set (or >2 members) the chat is a group, else a dm (optional)
+      returns: {id, kind, name, members}
+  read_wiki_contents (read) — View DeepWiki documentation for a GitHub repository.
+      repoName: GitHub repo in owner/repo form
+      returns: the repo's wiki DOCUMENTATION PROSE. It states what the project is for, how a subsystem works, what a concept means. It does NOT state licence, stars, maintainers or primary language, so a question about those has no obtainable answer here.
+  read_wiki_structure (read) — List the DeepWiki documentation topics for a GitHub repository.
+      repoName: GitHub repo in owner/repo form
+      returns: only the LIST OF DOCUMENTATION TOPIC TITLES. It can answer which areas the documentation covers, and nothing about repo metadata or the content of any page.
+  send_message (write) — Send a message from the acting user to a chat.
+      chat_id: destination chat
+      text: message body
+      returns: the created message view
+  add_reaction (write) — Add an emoji reaction from the acting user to a message.
+      message_id: the message to react to
+      emoji: reaction emoji, e.g. ':+1:'
+      returns: the updated message view
+  mark_read (write) — Mark every message in a chat as read by the acting user.
+      chat_id: chat to mark read
+      returns: {chat_id, marked_read: <count>}
+
+WORKSPACE
+You act as You (id u_me).
+
+People:
+  u_me  You @you
+  u_person0  Person 0 @person0
+  u_extra0  Extra 0 @extra0
+  u_extra1  Extra 1 @extra1
+  u_extra2  Extra 2 @extra2
+
+group room-0 (c_001) — members: You @you, Person 0 @person0, Extra 0 @extra0
+  m_001 [Person 0 @person0]: padding 0 mentions gadget 0 in passing  (UNREAD by you)
+  m_004 [Extra 0 @extra0]: padding 3 mentions gadget 3 in passing  (UNREAD by you)
+
+group room-1 (c_002) — members: You @you, Person 0 @person0, Extra 0 @extra0, Extra 1 @extra1
+  m_002 [Extra 0 @extra0]: padding 1 mentions gadget 1 in passing  (UNREAD by you)
+
+group room-2 (c_003) — members: You @you, Person 0 @person0, Extra 0 @extra0
+  m_003 [Person 0 @person0]: padding 2 mentions gadget 2 in passing  (UNREAD by you)
+
+ENTITIES TO DESCRIBE, AND THE MODES AVAILABLE FOR EACH
+  $user_0 = u_person0 (Person 0 @person0)
+      mode user_authored_text: reads as "whoever wrote the message about {text}" — the user who wrote the one message whose text contains {text}
+      mode user_most_messages: reads as "the person who has posted the most across all your chats" — the user who has written more messages than any other across the workspace (strictly more, so there is no tie)
+      mode user_by_display_name: reads as "the person called {name}" — the user whose display name is exactly {name}, and who is the only such user
+      mode user_by_handle: reads as "the person whose handle is @{handle}" — the user whose handle is exactly {handle}
+  $chat_0 = c_001 (group 'room-0' — members: You @you, Person 0 @person0, Extra 0 @extra0)
+      mode chat_containing_text: reads as "the conversation where {text} came up" — the chat containing a message whose text contains {text}
+      mode chat_only_with_unread: reads as "the one conversation you still have not caught up on" — the only chat holding at least one message the acting user has not read
+      mode chat_by_member_count: reads as "the conversation with exactly {count} people in it" — the chat that has exactly {count} members, and is the only chat with that many
+      mode chat_by_name: reads as "the {name} channel" — the chat whose title is exactly {name}
+  $chat_1 = c_002 (group 'room-1' — members: You @you, Person 0 @person0, Extra 0 @extra0, Extra 1 @extra1)
+      mode chat_containing_text: reads as "the conversation where {text} came up" — the chat containing a message whose text contains {text}
+      mode chat_only_with_unread: reads as "the one conversation you still have not caught up on" — the only chat holding at least one message the acting user has not read
+      mode chat_by_member_count: reads as "the conversation with exactly {count} people in it" — the chat that has exactly {count} members, and is the only chat with that many
+      mode chat_by_name: reads as "the {name} channel" — the chat whose title is exactly {name}
+  $chat_2 = c_003 (group 'room-2' — members: You @you, Person 0 @person0, Extra 0 @extra0)
+      mode chat_containing_text: reads as "the conversation where {text} came up" — the chat containing a message whose text contains {text}
+      mode chat_only_with_unread: reads as "the one conversation you still have not caught up on" — the only chat holding at least one message the acting user has not read
+      mode chat_by_member_count: reads as "the conversation with exactly {count} people in it" — the chat that has exactly {count} members, and is the only chat with that many
+      mode chat_by_name: reads as "the {name} channel" — the chat whose title is exactly {name}
+
+------------------------------------------------------------------------------------------------
+-- REPLY
+------------------------------------------------------------------------------------------------
+{
+  "references": []
+}

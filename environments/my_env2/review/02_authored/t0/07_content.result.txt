@@ -1,0 +1,16 @@
+Stage 7 runs LAST because it is the only stage whose output cannot invalidate anything:
+`signature` excludes text, emoji and chat names, so the expected state is already fixed
+by the time a single word is written.
+
+  $repoName_0
+      stripe/stripe-go
+  $question_0
+      What's the repository's license and primary programming language?
+  $text_0
+      On it — I'm checking stripe/stripe-go on DeepWiki for the repo license and primary language; will post results here.
+  $text_1
+      Per your request, I asked DeepWiki about stripe/stripe-go (repo: stripe/stripe-go). I'll send license and language as soon as I get it so you can forward to Legal.
+  $text_2
+      Got it — I'll forward the license and language to Legal once the DeepWiki answer comes back.
+  $emoji_0
+      :+1:

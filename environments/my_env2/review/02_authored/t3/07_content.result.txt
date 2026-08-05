@@ -1,0 +1,16 @@
+Stage 7 runs LAST because it is the only stage whose output cannot invalidate anything:
+`signature` excludes text, emoji and chat names, so the expected state is already fixed
+by the time a single word is written.
+
+  $name_0
+      ingest-schedule-sync
+  $text_0
+      Thanks — 02:00 works for me if ops can throttle noncritical retries during the window. @mae please post the hourly load so we can decide by EOD.
+  $text_1
+      Quick sync: can you both weigh in on 02:00 vs 03:30 for the S3→warehouse ingest? We need to decide by EOD.
+  $emoji_0
+      +1:
+  $emoji_1
+      :eyes:
+  $text_2
+      Lina, can you confirm there are no conflicts at 02:00? Ravi, any downstream SLA concerns if we keep it then?

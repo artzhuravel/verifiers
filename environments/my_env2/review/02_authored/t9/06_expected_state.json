@@ -1,0 +1,335 @@
+{
+  "me": "u_me",
+  "users": {
+    "u_me": {
+      "id": "u_me",
+      "name": "You",
+      "handle": "you"
+    },
+    "u_marco_s": {
+      "id": "u_marco_s",
+      "name": "Marco Silva",
+      "handle": "marco_s"
+    },
+    "u_lina_p": {
+      "id": "u_lina_p",
+      "name": "Lina Park",
+      "handle": "lina_p"
+    },
+    "u_jamal_r": {
+      "id": "u_jamal_r",
+      "name": "Jamal Reed",
+      "handle": "jamal_r"
+    },
+    "u_priya_d": {
+      "id": "u_priya_d",
+      "name": "Priya Desai",
+      "handle": "priya_d"
+    },
+    "u_carlos_v": {
+      "id": "u_carlos_v",
+      "name": "Carlos Vega",
+      "handle": "carlos_v"
+    },
+    "u_aisha_k": {
+      "id": "u_aisha_k",
+      "name": "Aisha Khan",
+      "handle": "aisha_k"
+    }
+  },
+  "chats": {
+    "c_001": {
+      "id": "c_001",
+      "kind": "group",
+      "name": "backend-architecture",
+      "member_ids": [
+        "u_me",
+        "u_marco_s",
+        "u_lina_p",
+        "u_jamal_r"
+      ]
+    },
+    "c_002": {
+      "id": "c_002",
+      "kind": "group",
+      "name": "oncall",
+      "member_ids": [
+        "u_me",
+        "u_marco_s",
+        "u_priya_d"
+      ]
+    },
+    "c_003": {
+      "id": "c_003",
+      "kind": "group",
+      "name": null,
+      "member_ids": [
+        "u_me",
+        "u_marco_s",
+        "u_carlos_v"
+      ]
+    }
+  },
+  "messages": [
+    {
+      "id": "m_001",
+      "chat_id": "c_001",
+      "sender_id": "u_marco_s",
+      "text": "We need to validate which exporter repos Lina owns before we finalize the deployment notes. Can someone enumerate the repos and docs we should cite?",
+      "ts": 1,
+      "reply_to": null,
+      "reactions": {
+        ":+1:": [
+          "u_jamal_r"
+        ]
+      },
+      "read_by": [
+        "u_marco_s",
+        "u_me"
+      ]
+    },
+    {
+      "id": "m_002",
+      "chat_id": "c_001",
+      "sender_id": "u_lina_p",
+      "text": "I can help with that — do you mean the low-level Rust exporter or the JS wrapper the frontend team uses?",
+      "ts": 2,
+      "reply_to": "m_001",
+      "reactions": {},
+      "read_by": [
+        "u_lina_p",
+        "u_me"
+      ]
+    },
+    {
+      "id": "m_003",
+      "chat_id": "c_001",
+      "sender_id": "u_lina_p",
+      "text": "Small aside: anyone up for coffee after the sync? 15 min break?",
+      "ts": 3,
+      "reply_to": null,
+      "reactions": {},
+      "read_by": [
+        "u_lina_p"
+      ]
+    },
+    {
+      "id": "m_004",
+      "chat_id": "c_001",
+      "sender_id": "u_jamal_r",
+      "text": "Lina — can you confirm which GitHub repo we should cite in the deployment notes? Also, who's the primary contact on your side (handle) for follow-ups?",
+      "ts": 4,
+      "reply_to": null,
+      "reactions": {},
+      "read_by": [
+        "u_jamal_r"
+      ]
+    },
+    {
+      "id": "m_005",
+      "chat_id": "c_001",
+      "sender_id": "u_jamal_r",
+      "text": "Quick non-blocking note: I put a comment on the exporter PR about metrics labels; someone should ack it.",
+      "ts": 5,
+      "reply_to": null,
+      "reactions": {},
+      "read_by": [
+        "u_jamal_r"
+      ]
+    },
+    {
+      "id": "m_006",
+      "chat_id": "c_001",
+      "sender_id": "u_marco_s",
+      "text": "We specifically need the repo used in the Docker image and the exporter docs page — both links.",
+      "ts": 6,
+      "reply_to": "m_004",
+      "reactions": {
+        ":+1:": [
+          "u_lina_p"
+        ]
+      },
+      "read_by": [
+        "u_marco_s",
+        "u_me"
+      ]
+    },
+    {
+      "id": "m_007",
+      "chat_id": "c_003",
+      "sender_id": "u_carlos_v",
+      "text": "hey — can you share that docker layering tip again? I keep rebuilding from scratch, u1.",
+      "ts": 7,
+      "reply_to": null,
+      "reactions": {},
+      "read_by": [
+        "u_carlos_v"
+      ]
+    },
+    {
+      "id": "m_008",
+      "chat_id": "c_002",
+      "sender_id": "u_priya_d",
+      "text": "Oncall: heads-up — prod latency spike on /api/orders. It coincides with the new exporter rollout. Jamal, can you take a look?",
+      "ts": 8,
+      "reply_to": null,
+      "reactions": {},
+      "read_by": [
+        "u_priya_d"
+      ]
+    },
+    {
+      "id": "m_009",
+      "chat_id": "c_001",
+      "sender_id": "u_lina_p",
+      "text": "Also, fyi the Rust exporter README mentions a sample config in examples/config.toml. I'll paste snippet later.",
+      "ts": 9,
+      "reply_to": null,
+      "reactions": {},
+      "read_by": [
+        "u_lina_p"
+      ]
+    },
+    {
+      "id": "m_010",
+      "chat_id": "c_001",
+      "sender_id": "u_lina_p",
+      "text": "I'll gather the exact repo names and the DeepWiki pages and paste them here in a bit — give me 20 mins.",
+      "ts": 10,
+      "reply_to": "m_004",
+      "reactions": {},
+      "read_by": [
+        "u_lina_p"
+      ]
+    },
+    {
+      "id": "m_011",
+      "chat_id": "c_002",
+      "sender_id": "u_priya_d",
+      "text": "Thanks — I'm looking at the logs now. The spike seems to start exactly at 14:12 UTC.",
+      "ts": 11,
+      "reply_to": "m_008",
+      "reactions": {},
+      "read_by": [
+        "u_priya_d"
+      ]
+    },
+    {
+      "id": "m_012",
+      "chat_id": "c_002",
+      "sender_id": "u_marco_s",
+      "text": "Priya — tagging you for postmortem. If this is the exporter rollout we may need to rollback.",
+      "ts": 12,
+      "reply_to": "m_008",
+      "reactions": {
+        ":+1:": [
+          "u_priya_d"
+        ]
+      },
+      "read_by": [
+        "u_marco_s",
+        "u_me"
+      ]
+    },
+    {
+      "id": "m_013",
+      "chat_id": "c_001",
+      "sender_id": "u_marco_s",
+      "text": "I'll need the exact filename paths to add to the Dockerfile; could you include those, u2?",
+      "ts": 13,
+      "reply_to": "m_009",
+      "reactions": {},
+      "read_by": [
+        "u_marco_s",
+        "u_me"
+      ]
+    },
+    {
+      "id": "m_014",
+      "chat_id": "c_001",
+      "sender_id": "u_jamal_r",
+      "text": "Thanks — when you post the wiki pages I'll update the deployment notes and the rollback plan.",
+      "ts": 14,
+      "reply_to": "m_004",
+      "reactions": {},
+      "read_by": [
+        "u_jamal_r"
+      ]
+    },
+    {
+      "id": "m_015",
+      "chat_id": "c_002",
+      "sender_id": "u_marco_s",
+      "text": "If it's the exporter, prep steps for rollback: disable feature flag then revert image.",
+      "ts": 15,
+      "reply_to": "m_011",
+      "reactions": {},
+      "read_by": [
+        "u_marco_s",
+        "u_me"
+      ]
+    },
+    {
+      "id": "m_016",
+      "chat_id": "c_001",
+      "sender_id": "u_lina_p",
+      "text": "To be clear: I'll post links to the DeepWiki pages 'Exporter Concepts' and 'Exporter Deployment' and then the exact GitHub repo names.",
+      "ts": 16,
+      "reply_to": "m_014",
+      "reactions": {},
+      "read_by": [
+        "u_lina_p"
+      ]
+    },
+    {
+      "id": "m_017",
+      "chat_id": "c_001",
+      "sender_id": "u_jamal_r",
+      "text": "Also tagging u2 — any ETA on the links? No rush; coordinating timelines.",
+      "ts": 17,
+      "reply_to": "m_010",
+      "reactions": {},
+      "read_by": [
+        "u_jamal_r"
+      ]
+    },
+    {
+      "id": "m_018",
+      "chat_id": "c_001",
+      "sender_id": "u_me",
+      "text": "$carried_c0a1_text",
+      "ts": 18,
+      "reply_to": "m_004",
+      "reactions": {},
+      "read_by": [
+        "u_me"
+      ]
+    },
+    {
+      "id": "m_019",
+      "chat_id": "c_002",
+      "sender_id": "u_me",
+      "text": "$carried_c0a2_text",
+      "ts": 19,
+      "reply_to": null,
+      "reactions": {},
+      "read_by": [
+        "u_me"
+      ]
+    },
+    {
+      "id": "m_020",
+      "chat_id": "c_001",
+      "sender_id": "u_me",
+      "text": "$carried_c1a1_text",
+      "ts": 20,
+      "reply_to": "m_004",
+      "reactions": {},
+      "read_by": [
+        "u_me"
+      ]
+    }
+  ],
+  "next_message_id": 21,
+  "next_chat_id": 4
+}

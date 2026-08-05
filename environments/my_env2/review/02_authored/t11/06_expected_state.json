@@ -1,0 +1,340 @@
+{
+  "me": "u_me",
+  "users": {
+    "u_me": {
+      "id": "u_me",
+      "name": "Jamie K.",
+      "handle": "you"
+    },
+    "u_alice_a": {
+      "id": "u_alice_a",
+      "name": "Alice Park",
+      "handle": "alice_a"
+    },
+    "u_ben_b": {
+      "id": "u_ben_b",
+      "name": "Ben Soto",
+      "handle": "ben_b"
+    },
+    "u_carol_c": {
+      "id": "u_carol_c",
+      "name": "Carol Nguyen",
+      "handle": "carol_c"
+    },
+    "u_dan_d": {
+      "id": "u_dan_d",
+      "name": "Dan Ortiz",
+      "handle": "dan_d"
+    },
+    "u_eve_m": {
+      "id": "u_eve_m",
+      "name": "Eve Marquez",
+      "handle": "eve_m"
+    },
+    "u_frank_l": {
+      "id": "u_frank_l",
+      "name": "Frank Li",
+      "handle": "frank_l"
+    }
+  },
+  "chats": {
+    "c_001": {
+      "id": "c_001",
+      "kind": "group",
+      "name": "backend-team",
+      "member_ids": [
+        "u_me",
+        "u_alice_a",
+        "u_ben_b",
+        "u_carol_c"
+      ]
+    },
+    "c_002": {
+      "id": "c_002",
+      "kind": "dm",
+      "name": null,
+      "member_ids": [
+        "u_me",
+        "u_carol_c"
+      ]
+    },
+    "c_003": {
+      "id": "c_003",
+      "kind": "group",
+      "name": "docs",
+      "member_ids": [
+        "u_me",
+        "u_ben_b",
+        "u_dan_d"
+      ]
+    },
+    "c_004": {
+      "id": "c_004",
+      "kind": "group",
+      "name": "random",
+      "member_ids": [
+        "u_me",
+        "u_alice_a",
+        "u_frank_l",
+        "u_dan_d"
+      ]
+    },
+    "c_005": {
+      "id": "c_005",
+      "kind": "group",
+      "name": null,
+      "member_ids": [
+        "u_me",
+        "u_alice_a",
+        "u_ben_b"
+      ]
+    }
+  },
+  "messages": [
+    {
+      "id": "m_001",
+      "chat_id": "c_001",
+      "sender_id": "u_alice_a",
+      "text": "Quick Q: where are the design notes for the event-sourcing module? Repo wiki or DeepWiki?",
+      "ts": 1,
+      "reply_to": null,
+      "reactions": {},
+      "read_by": [
+        "u_alice_a",
+        "u_me"
+      ]
+    },
+    {
+      "id": "m_002",
+      "chat_id": "c_001",
+      "sender_id": "u_ben_b",
+      "text": "They're in the repo wiki under docs/architecture. DeepWiki sometimes misses newest pages.",
+      "ts": 2,
+      "reply_to": "m_001",
+      "reactions": {},
+      "read_by": [
+        "u_ben_b",
+        "u_me"
+      ]
+    },
+    {
+      "id": "m_003",
+      "chat_id": "c_001",
+      "sender_id": "u_ben_b",
+      "text": "Heads up: CI flaked yesterday on the integration tests.",
+      "ts": 3,
+      "reply_to": null,
+      "reactions": {},
+      "read_by": [
+        "u_ben_b",
+        "u_me"
+      ]
+    },
+    {
+      "id": "m_004",
+      "chat_id": "c_001",
+      "sender_id": "u_carol_c",
+      "text": "Can someone pull the DeepWiki contents for acme/event-sourcing? I need the prose for integrating with docs.",
+      "ts": 4,
+      "reply_to": "m_002",
+      "reactions": {},
+      "read_by": [
+        "u_carol_c"
+      ]
+    },
+    {
+      "id": "m_005",
+      "chat_id": "c_003",
+      "sender_id": "u_dan_d",
+      "text": "Random: lunch pizza? (vote yes/no)",
+      "ts": 5,
+      "reply_to": null,
+      "reactions": {},
+      "read_by": [
+        "u_dan_d",
+        "u_me"
+      ]
+    },
+    {
+      "id": "m_006",
+      "chat_id": "c_001",
+      "sender_id": "u_ben_b",
+      "text": "I'm pretty sure it's acme/event-sourcing (the repo from the JIRA), but double-check before you run DeepWiki.",
+      "ts": 6,
+      "reply_to": "m_004",
+      "reactions": {},
+      "read_by": [
+        "u_ben_b"
+      ]
+    },
+    {
+      "id": "m_007",
+      "chat_id": "c_004",
+      "sender_id": "u_frank_l",
+      "text": "Welcome to random — feel free to drop memes and standups here.",
+      "ts": 7,
+      "reply_to": null,
+      "reactions": {},
+      "read_by": [
+        "u_frank_l",
+        "u_me"
+      ]
+    },
+    {
+      "id": "m_008",
+      "chat_id": "c_003",
+      "sender_id": "u_ben_b",
+      "text": "Docs sprint moved to Thursday — Dan, can you review API.md then?",
+      "ts": 8,
+      "reply_to": null,
+      "reactions": {},
+      "read_by": [
+        "u_ben_b",
+        "u_me"
+      ]
+    },
+    {
+      "id": "m_009",
+      "chat_id": "c_001",
+      "sender_id": "u_alice_a",
+      "text": "I'll file a hotfix for the migration script.",
+      "ts": 9,
+      "reply_to": "m_001",
+      "reactions": {},
+      "read_by": [
+        "u_alice_a",
+        "u_me"
+      ]
+    },
+    {
+      "id": "m_010",
+      "chat_id": "c_003",
+      "sender_id": "u_dan_d",
+      "text": "Yes; I'll take API.md and schema.md. Ben, can you extract the architecture prose into a single file?",
+      "ts": 10,
+      "reply_to": "m_008",
+      "reactions": {
+        ":+1:": [
+          "u_ben_b"
+        ]
+      },
+      "read_by": [
+        "u_dan_d",
+        "u_me"
+      ]
+    },
+    {
+      "id": "m_011",
+      "chat_id": "c_002",
+      "sender_id": "u_carol_c",
+      "text": "Have a sec? I need you to run DeepWiki on acme/event-sourcing and paste the page list here.",
+      "ts": 11,
+      "reply_to": null,
+      "reactions": {},
+      "read_by": [
+        "u_carol_c"
+      ]
+    },
+    {
+      "id": "m_012",
+      "chat_id": "c_001",
+      "sender_id": "u_carol_c",
+      "text": "Also, tagging for visibility on the migration notes.",
+      "ts": 12,
+      "reply_to": "m_006",
+      "reactions": {},
+      "read_by": [
+        "u_carol_c",
+        "u_me"
+      ]
+    },
+    {
+      "id": "m_013",
+      "chat_id": "c_001",
+      "sender_id": "u_alice_a",
+      "text": "If DeepWiki still misses pages, we can temporarily copy key docs into docs/architectures.md.",
+      "ts": 13,
+      "reply_to": "m_006",
+      "reactions": {},
+      "read_by": [
+        "u_alice_a"
+      ]
+    },
+    {
+      "id": "m_014",
+      "chat_id": "c_002",
+      "sender_id": "u_carol_c",
+      "text": "Just saw this. Paste away when ready and I'll check the pages.",
+      "ts": 14,
+      "reply_to": "m_011",
+      "reactions": {},
+      "read_by": [
+        "u_carol_c"
+      ]
+    },
+    {
+      "id": "m_015",
+      "chat_id": "c_003",
+      "sender_id": "u_dan_d",
+      "text": "Done reviewing API.md — left inline comments on the PR.",
+      "ts": 15,
+      "reply_to": "m_010",
+      "reactions": {},
+      "read_by": [
+        "u_dan_d",
+        "u_me"
+      ]
+    },
+    {
+      "id": "m_016",
+      "chat_id": "c_003",
+      "sender_id": "u_ben_b",
+      "text": "Reminder: sprint retro Friday, block time on calendars.",
+      "ts": 16,
+      "reply_to": "m_010",
+      "reactions": {},
+      "read_by": [
+        "u_ben_b",
+        "u_me"
+      ]
+    },
+    {
+      "id": "m_017",
+      "chat_id": "c_001",
+      "sender_id": "u_me",
+      "text": "$carried_c0a1_text",
+      "ts": 17,
+      "reply_to": "m_006",
+      "reactions": {},
+      "read_by": [
+        "u_me"
+      ]
+    },
+    {
+      "id": "m_018",
+      "chat_id": "c_002",
+      "sender_id": "u_me",
+      "text": "$carried_c1a1_text",
+      "ts": 18,
+      "reply_to": null,
+      "reactions": {},
+      "read_by": [
+        "u_me"
+      ]
+    },
+    {
+      "id": "m_019",
+      "chat_id": "c_005",
+      "sender_id": "u_me",
+      "text": "$text_0",
+      "ts": 19,
+      "reply_to": null,
+      "reactions": {},
+      "read_by": [
+        "u_me"
+      ]
+    }
+  ],
+  "next_message_id": 20,
+  "next_chat_id": 6
+}

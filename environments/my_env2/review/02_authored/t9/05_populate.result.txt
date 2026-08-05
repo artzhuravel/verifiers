@@ -1,0 +1,11 @@
+Stage 5 result. Filler is folded in ONE ENTITY AT A TIME and each addition kept only if
+every reference condition still resolves to exactly its own entity. Rejections are
+recorded, never silently dropped, and Stage 5 cannot fail the task.
+
+0 addition(s) rejected:
+  (none)
+
+CONDITIONS EVERY ADDITION HAD TO PRESERVE
+  the user whose handle is exactly lina_p  -> must keep matching exactly one user
+  the one message whose text contains confirm which GitHub repo  -> must keep matching exactly one message
+  the chat whose title is exactly oncall  -> must keep matching exactly one chat

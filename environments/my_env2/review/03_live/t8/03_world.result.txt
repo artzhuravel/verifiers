@@ -1,0 +1,35 @@
+Stage 3 result: the authored draft, built into a state.
+`seed.build` validates and never repairs — an undeclared sender, a reply across chats
+or an unbound placeholder rejects the whole draft and costs a correction round.
+
+topic: Coordinating a perf regression and upstream contact for the vendored data-toolkit
+
+You act as You (id u_me).
+
+People:
+  u_me  You @you
+  u_alice  Alice Kim @alice
+  u_ben  Ben Ortiz @ben
+  u_cara  Cara Singh @cara
+  u_dan  Dan Park @dan
+
+group spark-lib (c_001) — members: You @you, Alice Kim @alice, Ben Ortiz @ben, Cara Singh @cara
+  m_001 [Alice Kim @alice]: Heads-up: running the benchmark on 1.4 shows a ~30% regression in the map-reduce path since the last release. Any guesses what changed?
+  m_003 [Cara Singh @cara]: Yikes. I'll start a bisection tomorrow — could be the new serializer we merged last sprint.  (reply to m_001)
+  m_005 [Ben Ortiz @ben]: If Cara can bisect, great. Also — which upstream repo is the vendored data-toolkit at (owner/repo)? I couldn't find it in the docs.  (reply to m_003)
+  m_007 [Alice Kim @alice]: Ben — if you can find the owner/repo we can ask DeepWiki for the license and contributors to confirm the maintainer.  (reply to m_005)
+  m_009 [Ben Ortiz @ben]: Agree, bisect sounds right.  (reply to m_003; :+1: x1)
+
+group (dm) (c_002) — members: You @you, Ben Ortiz @ben, Dan Park @dan
+  m_002 [Ben Ortiz @ben]: Quick Q: who is the maintainer of the 'data-toolkit' repo we vendor? I don't have their GitHub handle — can you remind me?  (UNREAD by you)
+  m_006 [Dan Park @dan]: I'm not sure of the exact handle — I thought it was someone in infra. Worth looking up before we ping them.  (reply to m_002; UNREAD by you)
+
+group release-planning (c_003) — members: You @you, Alice Kim @alice, Dan Park @dan
+  m_004 [Dan Park @dan]: We need to loop in the upstream maintainer for licensing questions — does anyone have their contact (GitHub handle or org)?  (UNREAD by you)
+  m_008 [Alice Kim @alice]: Agree. Holding the release until we confirm licensing would be safer.  (reply to m_004; UNREAD by you)
+
+PLACEHOLDERS BOUND
+  $user_0              -> u_cara
+  $chat_0              -> c_001
+  $message_0           -> m_002
+  $message_1           -> m_004

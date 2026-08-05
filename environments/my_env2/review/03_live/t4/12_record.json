@@ -1,0 +1,1183 @@
+{
+  "task_id": "t4",
+  "idx": 4,
+  "topic": "Checking a third-party GitHub repo's license & maintainers before vendoring",
+  "seed": {
+    "me": "u_me",
+    "users": {
+      "u_me": {
+        "id": "u_me",
+        "name": "You",
+        "handle": "you"
+      },
+      "u_priya_p": {
+        "id": "u_priya_p",
+        "name": "Priya Nair",
+        "handle": "priya_p"
+      },
+      "u_mateo_r": {
+        "id": "u_mateo_r",
+        "name": "Mateo Ruiz",
+        "handle": "mateo_r"
+      },
+      "u_sarah_k": {
+        "id": "u_sarah_k",
+        "name": "Sarah Kim",
+        "handle": "sarah_k"
+      },
+      "u_jamal_b": {
+        "id": "u_jamal_b",
+        "name": "Jamal Brown",
+        "handle": "jamal_b"
+      },
+      "u_alex_p": {
+        "id": "u_alex_p",
+        "name": "Alex Park",
+        "handle": "alex_p"
+      }
+    },
+    "chats": {
+      "c_001": {
+        "id": "c_001",
+        "kind": "group",
+        "name": "frontend-team",
+        "member_ids": [
+          "u_me",
+          "u_priya_p",
+          "u_mateo_r",
+          "u_sarah_k"
+        ]
+      },
+      "c_002": {
+        "id": "c_002",
+        "kind": "group",
+        "name": "sec-ops",
+        "member_ids": [
+          "u_me",
+          "u_mateo_r",
+          "u_jamal_b"
+        ]
+      },
+      "c_003": {
+        "id": "c_003",
+        "kind": "dm",
+        "name": null,
+        "member_ids": [
+          "u_me",
+          "u_sarah_k"
+        ]
+      }
+    },
+    "messages": [
+      {
+        "id": "m_001",
+        "chat_id": "c_001",
+        "sender_id": "u_priya_p",
+        "text": "Can someone confirm the license and current maintainers for the GitHub repo loom/widget-lib before we vendor it into our codebase? Priya needs a definitive answer today.",
+        "ts": 1,
+        "reply_to": null,
+        "reactions": {},
+        "read_by": [
+          "u_priya_p"
+        ]
+      },
+      {
+        "id": "m_002",
+        "chat_id": "c_001",
+        "sender_id": "u_mateo_r",
+        "text": "Is that the same widget-lib we used in the legacy dashboard? There were two similarly named repos.",
+        "ts": 2,
+        "reply_to": "m_001",
+        "reactions": {},
+        "read_by": [
+          "u_mateo_r",
+          "u_me"
+        ]
+      },
+      {
+        "id": "m_003",
+        "chat_id": "c_002",
+        "sender_id": "u_jamal_b",
+        "text": "If it's MIT we're probably fine to vendor; GPL-3 would be a blocker. Whoever checks, please list the license file path and the org/people listed as maintainers.",
+        "ts": 3,
+        "reply_to": null,
+        "reactions": {},
+        "read_by": [
+          "u_jamal_b",
+          "u_me"
+        ]
+      },
+      {
+        "id": "m_004",
+        "chat_id": "c_001",
+        "sender_id": "u_mateo_r",
+        "text": "I'll check the org maintainers list and post links.",
+        "ts": 4,
+        "reply_to": "m_002",
+        "reactions": {},
+        "read_by": [
+          "u_mateo_r",
+          "u_me"
+        ]
+      },
+      {
+        "id": "m_005",
+        "chat_id": "c_001",
+        "sender_id": "u_sarah_k",
+        "text": "Do you mean loom/widget-lib (TypeScript) or loom/widget-lib-js? They have slightly different owners.",
+        "ts": 5,
+        "reply_to": "m_001",
+        "reactions": {},
+        "read_by": [
+          "u_sarah_k"
+        ]
+      },
+      {
+        "id": "m_006",
+        "chat_id": "c_001",
+        "sender_id": "u_sarah_k",
+        "text": "Found a packument entry that might list the publisher; saving it here for reference.",
+        "ts": 6,
+        "reply_to": "m_001",
+        "reactions": {},
+        "read_by": [
+          "u_sarah_k",
+          "u_me"
+        ]
+      },
+      {
+        "id": "m_007",
+        "chat_id": "c_003",
+        "sender_id": "u_sarah_k",
+        "text": "Hey — Priya asked the team to confirm loom/widget-lib's license. Can you pull the repo metadata (license, primary language, maintainers) when you have a moment?",
+        "ts": 7,
+        "reply_to": null,
+        "reactions": {},
+        "read_by": [
+          "u_sarah_k"
+        ]
+      },
+      {
+        "id": "m_008",
+        "chat_id": "c_002",
+        "sender_id": "u_jamal_b",
+        "text": "I couldn't find a LICENSE in the repo mirror; it might live in a monorepo root. Will keep digging.",
+        "ts": 8,
+        "reply_to": "m_003",
+        "reactions": {},
+        "read_by": [
+          "u_jamal_b",
+          "u_me"
+        ]
+      },
+      {
+        "id": "m_009",
+        "chat_id": "c_002",
+        "sender_id": "u_mateo_r",
+        "text": "Jamal, could you check npm/packument and GH owners for that package? Security wants an explicit maintainer list.",
+        "ts": 9,
+        "reply_to": "m_003",
+        "reactions": {},
+        "read_by": [
+          "u_mateo_r",
+          "u_me"
+        ]
+      },
+      {
+        "id": "m_010",
+        "chat_id": "c_001",
+        "sender_id": "u_priya_p",
+        "text": "Adding a note: check /LICENSE and the root package.json for declared authors.",
+        "ts": 10,
+        "reply_to": "m_005",
+        "reactions": {},
+        "read_by": [
+          "u_priya_p",
+          "u_me"
+        ]
+      },
+      {
+        "id": "m_011",
+        "chat_id": "c_001",
+        "sender_id": "u_priya_p",
+        "text": "Thanks — if someone can confirm by EOD that'd be great. We're trying to avoid a last-minute license mismatch.",
+        "ts": 11,
+        "reply_to": "m_002",
+        "reactions": {},
+        "read_by": [
+          "u_priya_p",
+          "u_me"
+        ]
+      },
+      {
+        "id": "m_012",
+        "chat_id": "c_002",
+        "sender_id": "u_mateo_r",
+        "text": "On it — I'll fetch the npm packument and paste the author/version details here.",
+        "ts": 12,
+        "reply_to": "m_009",
+        "reactions": {},
+        "read_by": [
+          "u_mateo_r",
+          "u_me"
+        ]
+      },
+      {
+        "id": "m_013",
+        "chat_id": "c_001",
+        "sender_id": "u_sarah_k",
+        "text": "I can take it after lunch unless @you are able to run a quick check now and post what you find.",
+        "ts": 13,
+        "reply_to": "m_001",
+        "reactions": {},
+        "read_by": [
+          "u_sarah_k"
+        ]
+      },
+      {
+        "id": "m_014",
+        "chat_id": "c_003",
+        "sender_id": "u_sarah_k",
+        "text": "Also pinged @priya_p to see if she remembers which variant we used months ago.",
+        "ts": 14,
+        "reply_to": "m_007",
+        "reactions": {},
+        "read_by": [
+          "u_sarah_k",
+          "u_me"
+        ]
+      },
+      {
+        "id": "m_015",
+        "chat_id": "c_002",
+        "sender_id": "u_jamal_b",
+        "text": "I'll scan the repo and check contributors + package.json authors. Will report back with links.",
+        "ts": 15,
+        "reply_to": "m_009",
+        "reactions": {},
+        "read_by": [
+          "u_jamal_b",
+          "u_me"
+        ]
+      }
+    ],
+    "next_message_id": 16,
+    "next_chat_id": 4
+  },
+  "expected": {
+    "me": "u_me",
+    "users": {
+      "u_me": {
+        "id": "u_me",
+        "name": "You",
+        "handle": "you"
+      },
+      "u_priya_p": {
+        "id": "u_priya_p",
+        "name": "Priya Nair",
+        "handle": "priya_p"
+      },
+      "u_mateo_r": {
+        "id": "u_mateo_r",
+        "name": "Mateo Ruiz",
+        "handle": "mateo_r"
+      },
+      "u_sarah_k": {
+        "id": "u_sarah_k",
+        "name": "Sarah Kim",
+        "handle": "sarah_k"
+      },
+      "u_jamal_b": {
+        "id": "u_jamal_b",
+        "name": "Jamal Brown",
+        "handle": "jamal_b"
+      },
+      "u_alex_p": {
+        "id": "u_alex_p",
+        "name": "Alex Park",
+        "handle": "alex_p"
+      }
+    },
+    "chats": {
+      "c_001": {
+        "id": "c_001",
+        "kind": "group",
+        "name": "frontend-team",
+        "member_ids": [
+          "u_me",
+          "u_priya_p",
+          "u_mateo_r",
+          "u_sarah_k"
+        ]
+      },
+      "c_002": {
+        "id": "c_002",
+        "kind": "group",
+        "name": "sec-ops",
+        "member_ids": [
+          "u_me",
+          "u_mateo_r",
+          "u_jamal_b"
+        ]
+      },
+      "c_003": {
+        "id": "c_003",
+        "kind": "dm",
+        "name": null,
+        "member_ids": [
+          "u_me",
+          "u_sarah_k"
+        ]
+      }
+    },
+    "messages": [
+      {
+        "id": "m_001",
+        "chat_id": "c_001",
+        "sender_id": "u_priya_p",
+        "text": "Can someone confirm the license and current maintainers for the GitHub repo loom/widget-lib before we vendor it into our codebase? Priya needs a definitive answer today.",
+        "ts": 1,
+        "reply_to": null,
+        "reactions": {},
+        "read_by": [
+          "u_priya_p"
+        ]
+      },
+      {
+        "id": "m_002",
+        "chat_id": "c_001",
+        "sender_id": "u_mateo_r",
+        "text": "Is that the same widget-lib we used in the legacy dashboard? There were two similarly named repos.",
+        "ts": 2,
+        "reply_to": "m_001",
+        "reactions": {},
+        "read_by": [
+          "u_mateo_r",
+          "u_me"
+        ]
+      },
+      {
+        "id": "m_003",
+        "chat_id": "c_002",
+        "sender_id": "u_jamal_b",
+        "text": "If it's MIT we're probably fine to vendor; GPL-3 would be a blocker. Whoever checks, please list the license file path and the org/people listed as maintainers.",
+        "ts": 3,
+        "reply_to": null,
+        "reactions": {},
+        "read_by": [
+          "u_jamal_b",
+          "u_me"
+        ]
+      },
+      {
+        "id": "m_004",
+        "chat_id": "c_001",
+        "sender_id": "u_mateo_r",
+        "text": "I'll check the org maintainers list and post links.",
+        "ts": 4,
+        "reply_to": "m_002",
+        "reactions": {},
+        "read_by": [
+          "u_mateo_r",
+          "u_me"
+        ]
+      },
+      {
+        "id": "m_005",
+        "chat_id": "c_001",
+        "sender_id": "u_sarah_k",
+        "text": "Do you mean loom/widget-lib (TypeScript) or loom/widget-lib-js? They have slightly different owners.",
+        "ts": 5,
+        "reply_to": "m_001",
+        "reactions": {},
+        "read_by": [
+          "u_sarah_k"
+        ]
+      },
+      {
+        "id": "m_006",
+        "chat_id": "c_001",
+        "sender_id": "u_sarah_k",
+        "text": "Found a packument entry that might list the publisher; saving it here for reference.",
+        "ts": 6,
+        "reply_to": "m_001",
+        "reactions": {},
+        "read_by": [
+          "u_sarah_k",
+          "u_me"
+        ]
+      },
+      {
+        "id": "m_007",
+        "chat_id": "c_003",
+        "sender_id": "u_sarah_k",
+        "text": "Hey — Priya asked the team to confirm loom/widget-lib's license. Can you pull the repo metadata (license, primary language, maintainers) when you have a moment?",
+        "ts": 7,
+        "reply_to": null,
+        "reactions": {},
+        "read_by": [
+          "u_sarah_k"
+        ]
+      },
+      {
+        "id": "m_008",
+        "chat_id": "c_002",
+        "sender_id": "u_jamal_b",
+        "text": "I couldn't find a LICENSE in the repo mirror; it might live in a monorepo root. Will keep digging.",
+        "ts": 8,
+        "reply_to": "m_003",
+        "reactions": {},
+        "read_by": [
+          "u_jamal_b",
+          "u_me"
+        ]
+      },
+      {
+        "id": "m_009",
+        "chat_id": "c_002",
+        "sender_id": "u_mateo_r",
+        "text": "Jamal, could you check npm/packument and GH owners for that package? Security wants an explicit maintainer list.",
+        "ts": 9,
+        "reply_to": "m_003",
+        "reactions": {},
+        "read_by": [
+          "u_mateo_r",
+          "u_me"
+        ]
+      },
+      {
+        "id": "m_010",
+        "chat_id": "c_001",
+        "sender_id": "u_priya_p",
+        "text": "Adding a note: check /LICENSE and the root package.json for declared authors.",
+        "ts": 10,
+        "reply_to": "m_005",
+        "reactions": {},
+        "read_by": [
+          "u_priya_p",
+          "u_me"
+        ]
+      },
+      {
+        "id": "m_011",
+        "chat_id": "c_001",
+        "sender_id": "u_priya_p",
+        "text": "Thanks — if someone can confirm by EOD that'd be great. We're trying to avoid a last-minute license mismatch.",
+        "ts": 11,
+        "reply_to": "m_002",
+        "reactions": {},
+        "read_by": [
+          "u_priya_p",
+          "u_me"
+        ]
+      },
+      {
+        "id": "m_012",
+        "chat_id": "c_002",
+        "sender_id": "u_mateo_r",
+        "text": "On it — I'll fetch the npm packument and paste the author/version details here.",
+        "ts": 12,
+        "reply_to": "m_009",
+        "reactions": {},
+        "read_by": [
+          "u_mateo_r",
+          "u_me"
+        ]
+      },
+      {
+        "id": "m_013",
+        "chat_id": "c_001",
+        "sender_id": "u_sarah_k",
+        "text": "I can take it after lunch unless @you are able to run a quick check now and post what you find.",
+        "ts": 13,
+        "reply_to": "m_001",
+        "reactions": {},
+        "read_by": [
+          "u_sarah_k"
+        ]
+      },
+      {
+        "id": "m_014",
+        "chat_id": "c_003",
+        "sender_id": "u_sarah_k",
+        "text": "Also pinged @priya_p to see if she remembers which variant we used months ago.",
+        "ts": 14,
+        "reply_to": "m_007",
+        "reactions": {},
+        "read_by": [
+          "u_sarah_k",
+          "u_me"
+        ]
+      },
+      {
+        "id": "m_015",
+        "chat_id": "c_002",
+        "sender_id": "u_jamal_b",
+        "text": "I'll scan the repo and check contributors + package.json authors. Will report back with links.",
+        "ts": 15,
+        "reply_to": "m_009",
+        "reactions": {},
+        "read_by": [
+          "u_jamal_b",
+          "u_me"
+        ]
+      },
+      {
+        "id": "m_016",
+        "chat_id": "c_001",
+        "sender_id": "u_me",
+        "text": "$text_0",
+        "ts": 16,
+        "reply_to": "m_001",
+        "reactions": {},
+        "read_by": [
+          "u_me"
+        ]
+      },
+      {
+        "id": "m_017",
+        "chat_id": "c_001",
+        "sender_id": "u_me",
+        "text": "$text_1",
+        "ts": 17,
+        "reply_to": "m_016",
+        "reactions": {
+          "$emoji_0": [
+            "u_me"
+          ]
+        },
+        "read_by": [
+          "u_me"
+        ]
+      },
+      {
+        "id": "m_018",
+        "chat_id": "c_001",
+        "sender_id": "u_me",
+        "text": "$carried_c1a0_text",
+        "ts": 18,
+        "reply_to": null,
+        "reactions": {},
+        "read_by": [
+          "u_me"
+        ]
+      },
+      {
+        "id": "m_019",
+        "chat_id": "c_001",
+        "sender_id": "u_me",
+        "text": "$text_2",
+        "ts": 19,
+        "reply_to": "m_001",
+        "reactions": {},
+        "read_by": [
+          "u_me"
+        ]
+      },
+      {
+        "id": "m_020",
+        "chat_id": "c_002",
+        "sender_id": "u_me",
+        "text": "$carried_c1a2_text",
+        "ts": 20,
+        "reply_to": null,
+        "reactions": {},
+        "read_by": [
+          "u_me"
+        ]
+      }
+    ],
+    "next_message_id": 21,
+    "next_chat_id": 4
+  },
+  "prompts": {
+    "1": "1. Call ask_question with repoName 'loom/widget-lib' and the question \"What is the repo's license, primary language, and who are listed as maintainers (from LICENSE, package.json, or GitHub)?\" and capture the free-text answer returned. 2. Reply to message m_001 in chat c_001 with the text: \"On it — I'll pull the license file path, primary language, and maintainer list for loom/widget-lib and post what I find shortly.\" 3. Reply to the message you create in step 2 with the text: \"Posting the findings in the channel below so everyone can review; will flag any concerns for licensing or maintainers.\" 4. Send a message to chat c_001 whose body includes the repository license, the primary language, and the full maintainer list exactly as returned by the ask_question call you made in step 1. 5. Reply to message m_001 in chat c_001 with the text: \"FYI — I’ll also paste the same findings into sec-ops so Jamal and Mateo can verify.\" 6. Add the ':+1:' reaction to the message you created in step 3. 7. Send a message to chat c_002 whose body includes the repository license, the primary language, and the full maintainer list exactly as returned by the ask_question call you made in step 1.",
+    "2": "Please perform these actions in order. First, ask an AI-grounded question about the GitHub repository loom/widget-lib using the exact question \"What is the repo's license, primary language, and who are listed as maintainers (from LICENSE, package.json, or GitHub)?\" and capture the free-text answer returned. Then post a threaded reply to the message about someone confirm the license with the text: \"On it — I'll pull the license file path, primary language, and maintainer list for loom/widget-lib and post what I find shortly.\" After that, post a reply to that reply with the text: \"Posting the findings in the channel below so everyone can review; will flag any concerns for licensing or maintainers.\" Next, post a message to the conversation where someone confirm the license came up whose body includes the repository license, the primary language, and the full maintainer list exactly as returned by the question you asked. Then post a threaded reply to the message about someone confirm the license that says: \"FYI — I’ll also paste the same findings into the conversation with exactly 3 people in it so Jamal and Mateo can verify.\" After posting that second threaded reply, add the ':+1:' reaction to the reply you made earlier. Finally, post a message to the conversation with exactly 3 people in it whose body includes the repository license, the primary language, and the full maintainer list exactly as returned by the earlier question.",
+    "3": "Use the AI-grounded query tool to ask about the GitHub repository loom/widget-lib with the exact question \"What is the repo's license, primary language, and who are listed as maintainers (from LICENSE, package.json, or GitHub)?\" Capture the free-text answer you receive. Reply in-thread to the message about someone confirm the license to say you will pull the license file path, the primary language, and the maintainer list for loom/widget-lib and post the findings shortly. Inside that same thread, post a follow-up reply saying you will post the findings in the channel for everyone to review and that you will flag any licensing or maintainer concerns. Post a message to the conversation where someone confirm the license came up whose body contains the repository license, the primary language, and the full maintainer list exactly as returned by your earlier query. Also post a threaded reply to the message about someone confirm the license noting you will paste the same findings into the conversation with exactly 3 people in it so the people there can verify. Add the ':+1:' reaction to the follow-up reply you posted in the thread. Finally send a message into the conversation with exactly 3 people in it whose body contains the repository license, the primary language, and the full maintainer list exactly as returned by the AI query.",
+    "4": "Run an AI-grounded query for the GitHub repo loom/widget-lib to determine its license, primary programming language, and who is listed as maintainers (check LICENSE, package.json, and GitHub). In the thread started by the message asking someone to confirm the license, post a reply that you will pull the license file path, the primary language, and the maintainer list for loom/widget-lib and will post the findings shortly. In the same thread, post a short follow-up reply that you will post the findings in the channel for everyone to review and that you will flag any licensing or maintainer concerns. Publish the query results into the conversation where that original request appeared: the message you post there must state the repository's license, its primary language, and the full maintainer list exactly as returned by the AI query. Also in the original thread, add a reply saying you will paste the same findings into the conversation with exactly three people in it so they can verify. Add a ':+1:' reaction to the follow-up reply you posted in the thread. Finally, send a message into the three-person conversation that contains the repository license, primary language, and the full maintainer list exactly as returned by the AI query."
+  },
+  "judge": {
+    "1": [
+      {
+        "id": "carry:c1a0:text",
+        "requirement": "the text of step 4 must carry what step 1 returned",
+        "expected": "The message sent to the frontend-team states that the repository's license is MIT, its primary language is TypeScript, and the maintainers listed are Alex Park (alex_p) and Priya Nair (priya_p).",
+        "hint": "Look in the message posted to chat c_001 in step 4; it should contain the license, primary language, and maintainer names.",
+        "delivered_in": "the message step 4 posts"
+      },
+      {
+        "id": "carry:c1a2:text",
+        "requirement": "the text of step 7 must carry what step 1 returned",
+        "expected": "The message sent to the sec-ops channel states that the repository's license is MIT, its primary language is TypeScript, and the maintainers listed are Alex Park (alex_p) and Priya Nair (priya_p).",
+        "hint": "Look in the message posted to chat c_002 in step 7; it should contain the same license, language, and maintainer list as step 4.",
+        "delivered_in": "the message step 7 posts"
+      }
+    ],
+    "2": [
+      {
+        "id": "carry:c1a0:text",
+        "requirement": "the text of step 4 must carry what step 1 returned",
+        "expected": "The message sent to the conversation where someone confirm the license came up states that the repository's license is MIT, its primary language is TypeScript, and the maintainers listed are Alex Park (alex_p) and Priya Nair (priya_p).",
+        "hint": "Look in the message posted to the conversation where someone confirm the license came up that contains the findings; it should include the license, primary language, and the maintainer names listed above.",
+        "delivered_in": "the message step 4 posts"
+      },
+      {
+        "id": "carry:c1a2:text",
+        "requirement": "the text of step 7 must carry what step 1 returned",
+        "expected": "The message sent to the conversation with exactly 3 people in it states that the repository's license is MIT, its primary language is TypeScript, and the maintainers listed are Alex Park (alex_p) and Priya Nair (priya_p).",
+        "hint": "Look in the message posted to the conversation with exactly 3 people in it that contains the findings; it should contain the same license, primary language, and maintainer list as the other findings message.",
+        "delivered_in": "the message step 7 posts"
+      }
+    ],
+    "3": [
+      {
+        "id": "carry:c1a0:text",
+        "requirement": "the text of step 4 must carry what step 1 returned",
+        "expected": "The message sent to the conversation where someone confirm the license came up states that the repository's license is MIT, its primary language is TypeScript, and the maintainers listed are Alex Park (alex_p) and Priya Nair (priya_p).",
+        "hint": "Look in the message posted to the conversation where someone confirm the license came up that contains the findings; it should include the license, primary language, and the maintainer names listed above.",
+        "delivered_in": "the message step 4 posts"
+      },
+      {
+        "id": "carry:c1a2:text",
+        "requirement": "the text of step 7 must carry what step 1 returned",
+        "expected": "The message sent to the conversation with exactly 3 people in it states that the repository's license is MIT, its primary language is TypeScript, and the maintainers listed are Alex Park (alex_p) and Priya Nair (priya_p).",
+        "hint": "Look in the message posted to the conversation with exactly 3 people in it that contains the findings; it should contain the same license, primary language, and maintainer list as the other findings message.",
+        "delivered_in": "the message step 7 posts"
+      }
+    ],
+    "4": [
+      {
+        "id": "carry:c1a0:text",
+        "requirement": "the text of step 4 must carry what step 1 returned",
+        "expected": "The message posted to the conversation where someone asked to confirm the license states that the repository's license is MIT, its primary language is TypeScript, and the maintainers listed are Alex Park (alex_p) and Priya Nair (priya_p).",
+        "hint": "Check the message in the conversation where the original license-confirm request appeared that contains the findings; it should include the license, the primary language, and the maintainer names listed above.",
+        "delivered_in": "the message step 4 posts"
+      },
+      {
+        "id": "carry:c1a2:text",
+        "requirement": "the text of step 7 must carry what step 1 returned",
+        "expected": "The message sent to the conversation with exactly three people in it states that the repository's license is MIT, its primary language is TypeScript, and the maintainers listed are Alex Park (alex_p) and Priya Nair (priya_p).",
+        "hint": "Check the message posted to the three-person conversation that contains the findings; it should include the same license, primary language, and maintainer list as the other findings message.",
+        "delivered_in": "the message step 7 posts"
+      }
+    ]
+  },
+  "steps": [
+    {
+      "key": "c0a0",
+      "chain": 0,
+      "turn": 0,
+      "action": "ask_question",
+      "tool": "deepwiki_ask_question",
+      "kind": "read",
+      "external": true,
+      "refs": {},
+      "content": {
+        "repoName": "$repoName_0",
+        "question": "$question_0"
+      },
+      "carries": {},
+      "produces_entity": null,
+      "produces_value": "$info_0",
+      "depends_on": [],
+      "unrelated": false
+    },
+    {
+      "key": "c2a0",
+      "chain": 2,
+      "turn": 0,
+      "action": "reply_to",
+      "tool": "chat_reply_to",
+      "kind": "write",
+      "external": false,
+      "refs": {
+        "message_id": "$message_0"
+      },
+      "content": {
+        "text": "$text_0"
+      },
+      "carries": {},
+      "produces_entity": "$new_message_0",
+      "produces_value": null,
+      "depends_on": [],
+      "unrelated": false
+    },
+    {
+      "key": "c0a1",
+      "chain": 0,
+      "turn": 1,
+      "action": "reply_to",
+      "tool": "chat_reply_to",
+      "kind": "write",
+      "external": false,
+      "refs": {
+        "message_id": "$new_message_0"
+      },
+      "content": {
+        "text": "$text_1"
+      },
+      "carries": {},
+      "produces_entity": "$new_message_1",
+      "produces_value": null,
+      "depends_on": [
+        {
+          "source": "c2a0",
+          "via": "object",
+          "param": "message_id",
+          "symbol": "$new_message_0"
+        }
+      ],
+      "unrelated": false
+    },
+    {
+      "key": "c1a0",
+      "chain": 1,
+      "turn": 1,
+      "action": "send_message",
+      "tool": "chat_send_message",
+      "kind": "write",
+      "external": false,
+      "refs": {
+        "chat_id": "$chat_0"
+      },
+      "content": {},
+      "carries": {
+        "text": [
+          "c0a0"
+        ]
+      },
+      "produces_entity": "$new_message_2",
+      "produces_value": null,
+      "depends_on": [
+        {
+          "source": "c0a0",
+          "via": "value",
+          "param": "text",
+          "symbol": null
+        }
+      ],
+      "unrelated": false
+    },
+    {
+      "key": "c1a1",
+      "chain": 1,
+      "turn": 1,
+      "action": "reply_to",
+      "tool": "chat_reply_to",
+      "kind": "write",
+      "external": false,
+      "refs": {
+        "message_id": "$message_0"
+      },
+      "content": {
+        "text": "$text_2"
+      },
+      "carries": {},
+      "produces_entity": "$new_message_3",
+      "produces_value": null,
+      "depends_on": [],
+      "unrelated": true
+    },
+    {
+      "key": "c0a2",
+      "chain": 0,
+      "turn": 2,
+      "action": "add_reaction",
+      "tool": "chat_add_reaction",
+      "kind": "write",
+      "external": false,
+      "refs": {
+        "message_id": "$new_message_1"
+      },
+      "content": {
+        "emoji": "$emoji_0"
+      },
+      "carries": {},
+      "produces_entity": null,
+      "produces_value": null,
+      "depends_on": [
+        {
+          "source": "c0a1",
+          "via": "object",
+          "param": "message_id",
+          "symbol": "$new_message_1"
+        }
+      ],
+      "unrelated": false
+    },
+    {
+      "key": "c1a2",
+      "chain": 1,
+      "turn": 2,
+      "action": "send_message",
+      "tool": "chat_send_message",
+      "kind": "write",
+      "external": false,
+      "refs": {
+        "chat_id": "$chat_1"
+      },
+      "content": {},
+      "carries": {
+        "text": [
+          "c0a0"
+        ]
+      },
+      "produces_entity": "$new_message_4",
+      "produces_value": null,
+      "depends_on": [
+        {
+          "source": "c0a0",
+          "via": "value",
+          "param": "text",
+          "symbol": null
+        }
+      ],
+      "unrelated": false
+    }
+  ],
+  "manifest": [
+    {
+      "symbol": "$message_0",
+      "entity_type": "message",
+      "origin": "seed",
+      "created_by": null,
+      "roles": [
+        {
+          "step": "c2a0",
+          "action": "reply_to",
+          "param": "message_id",
+          "kind": "write",
+          "description": "Reply to an existing message in its chat (threaded)."
+        },
+        {
+          "step": "c1a1",
+          "action": "reply_to",
+          "param": "message_id",
+          "kind": "write",
+          "description": "Reply to an existing message in its chat (threaded)."
+        }
+      ],
+      "requirements": []
+    },
+    {
+      "symbol": "$new_message_0",
+      "entity_type": "message",
+      "origin": "rollout",
+      "created_by": "c2a0",
+      "roles": [
+        {
+          "step": "c0a1",
+          "action": "reply_to",
+          "param": "message_id",
+          "kind": "write",
+          "description": "Reply to an existing message in its chat (threaded)."
+        }
+      ],
+      "requirements": []
+    },
+    {
+      "symbol": "$new_message_1",
+      "entity_type": "message",
+      "origin": "rollout",
+      "created_by": "c0a1",
+      "roles": [
+        {
+          "step": "c0a2",
+          "action": "add_reaction",
+          "param": "message_id",
+          "kind": "write",
+          "description": "Add an emoji reaction from the acting user to a message."
+        }
+      ],
+      "requirements": [
+        "the acting user has not already reacted to this message, and no other step of the task reacts to it — a second reaction writes a fact that is already true and so is worth nothing."
+      ]
+    },
+    {
+      "symbol": "$chat_0",
+      "entity_type": "chat",
+      "origin": "seed",
+      "created_by": null,
+      "roles": [
+        {
+          "step": "c1a0",
+          "action": "send_message",
+          "param": "chat_id",
+          "kind": "write",
+          "description": "Send a message from the acting user to a chat."
+        }
+      ],
+      "requirements": []
+    },
+    {
+      "symbol": "$new_message_2",
+      "entity_type": "message",
+      "origin": "rollout",
+      "created_by": "c1a0",
+      "roles": [],
+      "requirements": []
+    },
+    {
+      "symbol": "$new_message_3",
+      "entity_type": "message",
+      "origin": "rollout",
+      "created_by": "c1a1",
+      "roles": [],
+      "requirements": []
+    },
+    {
+      "symbol": "$chat_1",
+      "entity_type": "chat",
+      "origin": "seed",
+      "created_by": null,
+      "roles": [
+        {
+          "step": "c1a2",
+          "action": "send_message",
+          "param": "chat_id",
+          "kind": "write",
+          "description": "Send a message from the acting user to a chat."
+        }
+      ],
+      "requirements": []
+    },
+    {
+      "symbol": "$new_message_4",
+      "entity_type": "message",
+      "origin": "rollout",
+      "created_by": "c1a2",
+      "roles": [],
+      "requirements": []
+    }
+  ],
+  "slots": [
+    {
+      "key": "c0a0",
+      "param": "repoName",
+      "kind": "content",
+      "description": "GitHub repo in owner/repo form (or a list, max 10)",
+      "sources": []
+    },
+    {
+      "key": "c0a0",
+      "param": "question",
+      "kind": "content",
+      "description": "the question to ask",
+      "sources": []
+    },
+    {
+      "key": "c2a0",
+      "param": "text",
+      "kind": "content",
+      "description": "reply body",
+      "sources": []
+    },
+    {
+      "key": "c0a1",
+      "param": "text",
+      "kind": "content",
+      "description": "reply body",
+      "sources": []
+    },
+    {
+      "key": "c1a0",
+      "param": "text",
+      "kind": "carry",
+      "description": "message body",
+      "sources": [
+        "c0a0"
+      ]
+    },
+    {
+      "key": "c1a1",
+      "param": "text",
+      "kind": "content",
+      "description": "reply body",
+      "sources": []
+    },
+    {
+      "key": "c0a2",
+      "param": "emoji",
+      "kind": "content",
+      "description": "reaction emoji, e.g. ':+1:'",
+      "sources": []
+    },
+    {
+      "key": "c1a2",
+      "param": "text",
+      "kind": "carry",
+      "description": "message body",
+      "sources": [
+        "c0a0"
+      ]
+    }
+  ],
+  "binding": {
+    "$chat_0": "c_001",
+    "$chat_1": "c_002",
+    "$message_0": "m_001",
+    "$new_message_0": "m_016",
+    "$new_message_1": "m_017",
+    "$new_message_2": "m_018",
+    "$new_message_3": "m_019",
+    "$new_message_4": "m_020"
+  },
+  "references": {
+    "$message_0": {
+      "mode": "message_by_text",
+      "params": {
+        "text": "someone confirm the license"
+      },
+      "phrase": "the message about someone confirm the license",
+      "predicate": "the one message whose text contains someone confirm the license",
+      "proposed": "message_by_text"
+    },
+    "$chat_0": {
+      "mode": "chat_containing_text",
+      "params": {
+        "text": "someone confirm the license"
+      },
+      "phrase": "the conversation where someone confirm the license came up",
+      "predicate": "the chat containing a message whose text contains someone confirm the license",
+      "proposed": "chat_containing_text"
+    },
+    "$chat_1": {
+      "mode": "chat_by_member_count",
+      "params": {
+        "count": 3
+      },
+      "phrase": "the conversation with exactly 3 people in it",
+      "predicate": "the chat that has exactly 3 members, and is the only chat with that many",
+      "proposed": "chat_by_member_count"
+    }
+  },
+  "content": {
+    "$repoName_0": "loom/widget-lib",
+    "$question_0": "What is the repo's license, primary language, and who are listed as maintainers (from LICENSE, package.json, or GitHub)?",
+    "$text_0": "On it — I'll pull the license file path, primary language, and maintainer list for loom/widget-lib and post what I find shortly.",
+    "$text_1": "Posting the findings in the channel below so everyone can review; will flag any concerns for licensing or maintainers.",
+    "$text_2": "FYI — I’ll also paste the same findings into sec-ops so Jamal and Mateo can verify.",
+    "$emoji_0": ":+1:"
+  },
+  "observed": {},
+  "args": {
+    "c2a0": {
+      "message_id": "m_001",
+      "text": "$text_0"
+    },
+    "c0a1": {
+      "message_id": "m_016",
+      "text": "$text_1"
+    },
+    "c1a0": {
+      "chat_id": "c_001",
+      "text": "$carried_c1a0_text"
+    },
+    "c1a1": {
+      "message_id": "m_001",
+      "text": "$text_2"
+    },
+    "c0a2": {
+      "message_id": "m_017",
+      "emoji": "$emoji_0"
+    },
+    "c1a2": {
+      "chat_id": "c_002",
+      "text": "$carried_c1a2_text"
+    }
+  },
+  "step_deltas": {
+    "c2a0": [
+      "('new_msg', 'c_001', 'u_me', 'm_001', 1)"
+    ],
+    "c0a1": [
+      "('new_msg', 'c_001', 'u_me', ('new_msg', 'c_001', 'u_me', 'm_001', 1), 1)"
+    ],
+    "c1a0": [
+      "('new_msg', 'c_001', 'u_me', None, 1)"
+    ],
+    "c1a1": [
+      "('new_msg', 'c_001', 'u_me', 'm_001', 2)"
+    ],
+    "c0a2": [
+      "('react', ('new_msg', 'c_001', 'u_me', ('new_msg', 'c_001', 'u_me', 'm_001', 1), 1), 'u_me')"
+    ],
+    "c1a2": [
+      "('new_msg', 'c_002', 'u_me', None, 1)"
+    ]
+  },
+  "turn_diffs": [
+    {
+      "turn": 0,
+      "added": [
+        "('new_msg', 'c_001', 'u_me', 'm_001', 1)"
+      ]
+    },
+    {
+      "turn": 1,
+      "added": [
+        "('new_msg', 'c_001', 'u_me', 'm_001', 2)",
+        "('new_msg', 'c_001', 'u_me', ('new_msg', 'c_001', 'u_me', 'm_001', 1), 1)",
+        "('new_msg', 'c_001', 'u_me', None, 1)"
+      ]
+    },
+    {
+      "turn": 2,
+      "added": [
+        "('new_msg', 'c_002', 'u_me', None, 1)",
+        "('react', ('new_msg', 'c_001', 'u_me', ('new_msg', 'c_001', 'u_me', 'm_001', 1), 1), 'u_me')"
+      ]
+    }
+  ],
+  "expected_facts": [
+    "('new_msg', 'c_001', 'u_me', 'm_001', 1)",
+    "('new_msg', 'c_001', 'u_me', 'm_001', 2)",
+    "('new_msg', 'c_001', 'u_me', ('new_msg', 'c_001', 'u_me', 'm_001', 1), 1)",
+    "('new_msg', 'c_001', 'u_me', None, 1)",
+    "('new_msg', 'c_002', 'u_me', None, 1)",
+    "('react', ('new_msg', 'c_001', 'u_me', ('new_msg', 'c_001', 'u_me', 'm_001', 1), 1), 'u_me')"
+  ],
+  "shape": {
+    "threads": 3,
+    "turns": 3,
+    "steps": 7,
+    "links_per_thread": [
+      3,
+      2,
+      1
+    ],
+    "longest_chain": 3,
+    "longest_chain_per_thread": [
+      3,
+      2,
+      1
+    ],
+    "cross_thread_edges": 3,
+    "object_edges": 2,
+    "value_edges": 2,
+    "fan_in": {
+      "1": 4
+    },
+    "fan_out": {
+      "1": 2,
+      "2": 1
+    },
+    "external_steps": 1,
+    "write_steps": 6,
+    "distractors": 1,
+    "actions": {
+      "add_reaction": 1,
+      "ask_question": 1,
+      "reply_to": 3,
+      "send_message": 2
+    }
+  },
+  "warnings": [
+    "stage 5 dropped: chat n2: would make 'the chat that has exactly 3 members, and is the only chat with that many' stop singling out $chat_1",
+    "stage 5 dropped: message n9: message 'n9' is in undeclared chat 'n2'",
+    "v2: pasted the description 'the message about someone confirm the license' 2 times; introduce a thing once, then refer back to it",
+    "v2: pasted the description 'the conversation with exactly 3 people in it' 2 times; introduce a thing once, then refer back to it",
+    "v3: pasted the description 'the message about someone confirm the license' 2 times; introduce a thing once, then refer back to it",
+    "v3: pasted the description 'the conversation with exactly 3 people in it' 2 times; introduce a thing once, then refer back to it"
+  ]
+}

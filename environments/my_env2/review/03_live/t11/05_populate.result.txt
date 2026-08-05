@@ -1,0 +1,43 @@
+Stage 5 result. Filler is folded in ONE ENTITY AT A TIME and each addition kept only if
+every reference condition still resolves to exactly its own entity. Rejections are
+recorded, never silently dropped, and Stage 5 cannot fail the task — a world without
+padding is weaker, not broken.
+
+core     : 4 people, 3 chats, 6 messages
+populated: 6 people, 4 chats, 13 messages
+
+REJECTED ADDITIONS
+  message n10: message 'n10' is from 'u1', who is not in 'c2'
+
+THE SEED THAT SHIPS
+You act as Sam Harper (id u_me).
+
+People:
+  u_me  Sam Harper @you
+  u_pri  Priya Sinha @pri
+  u_marco  Marco Li @marco
+  u_dana  Dana Ortiz @dana
+  u_owen  Owen Brooks @owen
+  u_lina  Lina Park @lina
+  u_elliot  Elliot Kim @elliot
+
+group backend-team (c_001) — members: Sam Harper @you, Priya Sinha @pri, Marco Li @marco, Dana Ortiz @dana
+  m_001 [Priya Sinha @pri]: Heads-up: We need to sync the payment-service runbook with the DeepWiki architecture page before Friday. Who can pull the current docs for owner/acme/payment-service?  (UNREAD by you)
+  m_002 [Dana Ortiz @dana]: I can fetch it and paste the main sections here. Any specific pages to prioritize (architecture, runbook, or API)?  (reply to m_001; UNREAD by you)
+  m_004 [Marco Li @marco]: I'll do a repo-wide structure check; interested in architecture and the API topics first. I can post the list of topics once I have it.  (reply to m_001; UNREAD by you; :+1: x1)
+  m_005 [Dana Ortiz @dana]: I'll grab the API topic list tonight and drop links here, plus a short summary.  (reply to m_002; UNREAD by you)
+  m_008 [Priya Sinha @pri]: Also, does anyone know if the staging env has the same hooks for webhooks? I had a failed delivery yesterday.
+  m_010 [Marco Li @marco]: Staging does mirror prod for hooks, but the delivery logs rotate faster. I can pull them if you point me to the timeframe.  (reply to m_008; UNREAD by you)
+
+dm (dm) (c_002) — members: Sam Harper @you, Owen Brooks @owen
+  m_012 [Owen Brooks @owen]: I pushed a small update to the runbook branch but didn't touch DeepWiki. If someone needs the topic list for acme/payment-service, ping me and I'll point them to the pages I checked locally.  (UNREAD by you)
+
+group deploy-ops (c_003) — members: Sam Harper @you, Marco Li @marco, Dana Ortiz @dana
+  m_006 [Marco Li @marco]: Also ran into an unexpected permission error on the CI runner this morning — filing a ticket.  (UNREAD by you)
+  m_007 [Marco Li @marco]: Deployment checklist needs the list of doc topics for owner/acme/deploy-scripts—does the repo have a wiki section for 'rollback' or 'hotfix'?
+  m_009 [Dana Ortiz @dana]: I couldn't find that in the repo; Owen might have the last edit on deploy-scripts doc and could confirm.  (reply to m_007)
+  m_011 [Dana Ortiz @dana]: Ticket number? I'll attach it to the deploy-scripts issue so we track it.  (reply to m_006)
+  m_013 [Marco Li @marco]: T-1023. Also can someone confirm if rollback mentions a db migration step? I couldn't find 'rollback' doc.  (reply to m_007; UNREAD by you)
+
+group lunch-plans (c_004) — members: Sam Harper @you, Priya Sinha @pri, Lina Park @lina
+  m_003 [Lina Park @lina]: Who wants dumplings Friday? I can reserve a table for 6.  (UNREAD by you)

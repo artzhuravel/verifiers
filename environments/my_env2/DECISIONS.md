@@ -300,6 +300,60 @@ environment with different external tools then needs no code change.
 **The taskset has no live-generate mode.** A world invented during an eval could not have had its
 references checked for uniqueness first, which is the one thing the whole design rests on.
 
+## The ladder — a fourth rung, and what the rewrites got wrong
+
+**The judge specification is rewritten at every rung, not authored once.** It used to be authored
+alongside v1 and shipped unchanged to all three levels. But v1 is the rung that names steps and
+ids, so that is the language the items were written in: over twelve tasks the hints read like
+*"Look at the message the agent sent to chat c_001 (step 4)"* — handed to a grader reading an L3
+rollout in which nothing is called `c_001` and there are no steps. Each rewrite stage is now given
+the rung below's items and must restate each one's `expected` and `hint`. `TaskRecord.judge` is
+keyed by level as a result.
+
+`id`, `requirement` and `delivered_in` are **not** rewritable. An author allowed to restate the
+requirement weakens one; an author allowed to choose the delivery target invents a message the plan
+does not contain, which the state reward then punishes the agent for obeying. That was already a
+measured failure of the previous pipeline and there was no reason to reintroduce it here.
+
+**A description introduces a thing once; it is not a substitution token.** The old instruction was
+"replace every identifier with the description supplied for that entity", and the model did exactly
+that: 40 of 81 phrase uses across twelve tasks were the same description pasted again. In t1, v1
+named `c_002` three times and *also* said "in that chat" once — v2 produced the full phrase four
+times, having de-anaphorised the one place v1 had a pronoun. In t8 one phrase appears five times.
+
+That is not only ugly. `chat_only_with_unread` reads "the one conversation you still have not caught
+up on", and t1's third step marks that conversation read — so the third and fourth uses are false.
+`stale_references` re-resolves every reference against `expected` and the rewrite stages are told
+which ones the work invalidates, so such a thing can be introduced before the step that breaks it
+and referred back to afterwards. The rule names its replacements ("that conversation", "there",
+"the same thread") rather than only prohibiting the repeat, because a prohibition without a
+replacement is what produced the de-anaphorising in the first place.
+
+**A fourth rung rather than a stricter third.** L3 was asked to raise the level of abstraction and
+did the locally sensible thing: it added a goal sentence and left the step sequence underneath it
+intact, still narrating hand-offs ("retain the full array of message views returned for later use")
+and still dictating quoted questions. Tightening L3 would have moved the rung rather than added
+one, and the L1→L2→L3 numbers already collected would no longer be comparable. L4 keeps L3 as it
+is and asks for three further things: fold actions that exist only to feed each other into one
+request, drop hand-off language entirely, and stop dictating content — say what a question needs to
+find out instead of quoting it. A repository *name* still has to survive verbatim, because that is
+what the expected answer is keyed to; the question around it no longer does, which is exactly why
+the judge items have to be restated at this rung.
+
+**Sequencing connectives are checked at L3 and L4 only.** `_complaints` never noticed that 6 of 12
+v3 prompts chained their steps with `; ` or ` then ` while passing every other check, because it
+only looked for line-start enumeration. v2 is prose and is allowed to read sequentially, so the
+check is gated per rung rather than applied everywhere.
+
+**The judge grades over the whole rollout.** It used to be shown the full trace as "context only"
+and told to grade against a delivered-output section alone. The instinct behind that is right — an
+answer sitting in a tool result the agent never passed on is not delivered — but the framing made
+the final reply the de facto target, when most items are about information landing in a message
+partway through. The judge is now told to use the whole trace, with both halves stated explicitly:
+the information has to appear where the item's hint says, *and* it has to match what the tools
+actually returned, since that is the only way to tell a retrieved answer from an invented one. The
+delivered-output section survives as an index into a long transcript, not as a narrower target.
+
 ## Deferred — tracked, not built
 
 - **Filler entities carry no reference properties.** Only task-relevant entities are unusually

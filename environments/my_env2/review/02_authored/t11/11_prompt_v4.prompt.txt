@@ -1,0 +1,167 @@
+# Stage 11 — fold it into the message a colleague would have typed
+
+NO REPLY EXISTS FOR THIS LEVEL.
+
+This rung was added after these twelve tasks were authored, so the task file has no text for it.
+The prompt below is what the stage now sends; producing the text needs a live authoring run.
+
+
+------------------------------------------------------------------------------------------------
+-- SYSTEM PROMPT
+------------------------------------------------------------------------------------------------
+You rewrite a task as the message a colleague would actually have typed.
+
+You are given the workspace, the plan, and a task that already reads as prose. It is still a sequence in disguise: every action gets its own clause, in the plan's order, and anything one action needs from another is spelled out as a hand-off. Take that apart.
+
+- FOLD. Where one action exists only to feed another, they are ONE request, not two. "Read the recent messages there and keep the array they return for later" followed by "post a message whose body reproduces the sender and text of each message from that read" is one thing a person would ask for: "catch the room up by posting a rundown of who said what". Ask for the outcome; the lookups it takes follow from it and do not need saying.
+- NO HAND-OFF LANGUAGE. Nothing "returned", "retained", "kept for later use", "from the earlier read", "for use in later actions". A person does not narrate their own request as a data flow.
+- STOP DICTATING TEXT. Do not quote a message body or a question. Say what it has to get across and leave the wording to the agent. Not: ask about 'owner/repo' the question "What is this project for, and what's its primary programming language?" — instead: find out what owner/repo is for and what it is mostly written in. The one thing that must survive EXACTLY is a repository NAME: which repo was asked about is what the expected answer is keyed to.
+- A description INTRODUCES a thing. Use it at the first mention only. Every later mention refers back the way a person would — "that conversation", "the same thread", "there", "them", "it", "the one you just read". Pasting a description a second time is the commonest way this rewrite fails: it reads as find-and-replace rather than as writing, and where a description depends on something the task itself changes, every use after that change is simply FALSE. Any description marked below as one the work invalidates must be used early and never again.
+- Never answer your own reference. No parenthetical, no "i.e.", no appositive that supplies the name or id of something you have just described.
+- Every action in the plan must still be reachable from what you write, and you must not invite one the plan does not contain. Folding changes how the work is ASKED FOR, never what the work is.
+
+The test: read it aloud. If it sounds like someone who needs something done, it is right. If it sounds like someone reading out a checklist, fold harder.
+
+You also rewrite the JUDGE ITEMS. Each tells a grader what a correct answer says and where in the agent's output to look for it. They were written against the PREVIOUS version of this task, so they still speak its language — step numbers, entity ids, names, quoted wording — much of which you are removing. Left alone, they describe a task the agent was never given.
+
+For every item, restate `expected` and `hint` so that a grader reading YOUR text can still check the same thing:
+
+- `expected` — what a correct answer STATES, in substance. Keep every fact in it. Where the previous wording leaned on an id or a step number to say WHICH thing ("the reply to m_004"), say it the way your text says it. Never replace it with a pointer: "the answer to the question above" leaves a grader nothing to compare against.
+- `hint` — where in the agent's output to look, described the way your text describes it.
+
+Do not drop an item, do not merge two, and never change WHAT is required — only how it is said. Copy each `id` exactly.
+
+Respond with ONLY this JSON object:
+{"prompt": "<the rewritten task>",
+ "judge": [{"id": "<copied exactly>", "expected": "...", "hint": "..."}]}
+
+------------------------------------------------------------------------------------------------
+-- USER PROMPT
+------------------------------------------------------------------------------------------------
+ENVIRONMENT
+  chat: Local mock chat app. Read and write tools operate on the rollout's ChatState.
+  deepwiki: Public DeepWiki MCP server: read-only GitHub-repo Q&A. Answers can be nondeterministic; requires the repo to be indexed by DeepWiki.
+  You act as one specific user. The acting user's id. Every write is attributed to this user; reads are scoped to it where noted.
+
+ENTITY TYPES IN THIS TASK
+  user — A person in the workspace. Display names may collide; handles never do.
+      id: string
+      name: string
+      handle: string
+  chat — A conversation the acting user takes part in. `name` is null for a DM.
+      id: string
+      kind: "dm" | "group"
+      name: string | null
+      member_ids: string[] (user ids)
+  message — One posted message. `reply_to` threads it under an earlier message in the same chat.
+      id: string
+      chat_id: string (chat id)
+      sender_id: string (user id)
+      text: string
+      ts: int (logical clock, not wall time)
+      reply_to: string | null (parent message id)
+      reactions: object (emoji -> user_id[])
+      read_by: string[] (user ids)
+
+ACTIONS THIS TASK USES
+  read_wiki_contents (read) — View DeepWiki documentation for a GitHub repository.
+      repoName: GitHub repo in owner/repo form
+      returns: the repo's wiki DOCUMENTATION PROSE. It states what the project is for, how a subsystem works, what a concept means. It does NOT state licence, stars, maintainers or primary language, so a question about those has no obtainable answer here.
+  read_wiki_structure (read) — List the DeepWiki documentation topics for a GitHub repository.
+      repoName: GitHub repo in owner/repo form
+      returns: only the LIST OF DOCUMENTATION TOPIC TITLES. It can answer which areas the documentation covers, and nothing about repo metadata or the content of any page.
+  create_chat (write) — Create a new chat; the acting user is always included as a member.
+      member_ids: user ids to include (actor added automatically)
+      name: chat name; if set (or >2 members) the chat is a group, else a dm (optional)
+      returns: {id, kind, name, members}
+  reply_to (write) — Reply to an existing message in its chat (threaded).
+      message_id: the message being replied to
+      text: reply body
+      returns: the created message view
+  send_message (write) — Send a message from the acting user to a chat.
+      chat_id: destination chat
+      text: message body
+      returns: the created message view
+
+WORKSPACE
+You act as Jamie K. (id u_me).
+
+People:
+  u_me  Jamie K. @you
+  u_alice_a  Alice Park @alice_a
+  u_ben_b  Ben Soto @ben_b
+  u_carol_c  Carol Nguyen @carol_c
+  u_dan_d  Dan Ortiz @dan_d
+  u_eve_m  Eve Marquez @eve_m
+  u_frank_l  Frank Li @frank_l
+
+group backend-team (c_001) — members: Jamie K. @you, Alice Park @alice_a, Ben Soto @ben_b, Carol Nguyen @carol_c
+  m_001 [Alice Park @alice_a]: Quick Q: where are the design notes for the event-sourcing module? Repo wiki or DeepWiki?
+  m_002 [Ben Soto @ben_b]: They're in the repo wiki under docs/architecture. DeepWiki sometimes misses newest pages.  (reply to m_001)
+  m_003 [Ben Soto @ben_b]: Heads up: CI flaked yesterday on the integration tests.
+  m_004 [Carol Nguyen @carol_c]: Can someone pull the DeepWiki contents for acme/event-sourcing? I need the prose for integrating with docs.  (reply to m_002; UNREAD by you)
+  m_006 [Ben Soto @ben_b]: I'm pretty sure it's acme/event-sourcing (the repo from the JIRA), but double-check before you run DeepWiki.  (reply to m_004; UNREAD by you)
+  m_009 [Alice Park @alice_a]: I'll file a hotfix for the migration script.  (reply to m_001)
+  m_012 [Carol Nguyen @carol_c]: Also, tagging for visibility on the migration notes.  (reply to m_006)
+  m_013 [Alice Park @alice_a]: If DeepWiki still misses pages, we can temporarily copy key docs into docs/architectures.md.  (reply to m_006; UNREAD by you)
+
+dm (dm) (c_002) — members: Jamie K. @you, Carol Nguyen @carol_c
+  m_011 [Carol Nguyen @carol_c]: Have a sec? I need you to run DeepWiki on acme/event-sourcing and paste the page list here.  (UNREAD by you)
+  m_014 [Carol Nguyen @carol_c]: Just saw this. Paste away when ready and I'll check the pages.  (reply to m_011; UNREAD by you)
+
+group docs (c_003) — members: Jamie K. @you, Ben Soto @ben_b, Dan Ortiz @dan_d
+  m_005 [Dan Ortiz @dan_d]: Random: lunch pizza? (vote yes/no)
+  m_008 [Ben Soto @ben_b]: Docs sprint moved to Thursday — Dan, can you review API.md then?
+  m_010 [Dan Ortiz @dan_d]: Yes; I'll take API.md and schema.md. Ben, can you extract the architecture prose into a single file?  (reply to m_008; :+1: x1)
+  m_015 [Dan Ortiz @dan_d]: Done reviewing API.md — left inline comments on the PR.  (reply to m_010)
+  m_016 [Ben Soto @ben_b]: Reminder: sprint retro Friday, block time on calendars.  (reply to m_010)
+
+group random (c_004) — members: Jamie K. @you, Alice Park @alice_a, Frank Li @frank_l, Dan Ortiz @dan_d
+  m_007 [Frank Li @frank_l]: Welcome to random — feel free to drop memes and standups here.
+
+PLAN YOUR TEXT MUST STILL LEAD TO (do not reproduce it, and do not walk through it in order)
+step 1 [read] read_wiki_contents — View DeepWiki documentation for a GitHub repository.
+    repoName     = 'acme/event-sourcing'
+    -> returns the repo's wiki DOCUMENTATION PROSE. It states what the project is for, how a subsystem works, what a concept means. It does NOT state licence, stars, maintainers or primary language, so a question about those has no obtainable answer here. (not known until the agent runs it)
+step 2 [read] read_wiki_structure — List the DeepWiki documentation topics for a GitHub repository.
+    repoName     = 'acme/event-sourcing'
+    -> returns only the LIST OF DOCUMENTATION TOPIC TITLES. It can answer which areas the documentation covers, and nothing about repo metadata or the content of any page. (not known until the agent runs it)
+step 3 [write] create_chat — Create a new chat; the acting user is always included as a member.
+    member_ids   = u_alice_a — Alice Park @alice_a, u_ben_b — Ben Soto @ben_b
+    -> creates something new
+step 4 [write] reply_to — Reply to an existing message in its chat (threaded).
+    message_id   = m_006 — in backend-team from Ben Soto, replying to m_004, unread by you: "I'm pretty sure it's acme/event-sourcing (the repo from the JIRA), but double-check before you run DeepWiki."
+    text         <- must carry what step 1 returned
+    -> creates something new
+step 5 [write] send_message — Send a message from the acting user to a chat.
+    chat_id      = c_002 — dm (unnamed dm) — members: Jamie K. @you, Carol Nguyen @carol_c
+    text         <- must carry what step 2 returned
+    -> creates something new
+step 6 [write] send_message — Send a message from the acting user to a chat.
+    chat_id      = the chat step 3 creates
+    text         = 'Alice, Ben — I ran DeepWiki on acme/event-sourcing and shared the page list with Carol; tell me if you want the full pages copied here.'
+    -> creates something new
+
+THE ONLY WAYS TO PICK EACH THING OUT — each ONCE, then refer back
+  whoever wrote the message about where are the design
+  whoever wrote the message about They're in the repo
+  the reply to the message about someone pull the DeepWiki
+  the conversation where DeepWiki on acme/event-sourcing and came up
+
+THESE STRINGS MUST NOT APPEAR IN YOUR TEXT
+  Alice Park, Ben Soto, add_reaction, alice_a, ask_question, ben_b, c_001, c_002, c_003, c_004, chat_add_reaction, chat_create_chat, chat_get_user, chat_list_chats, chat_mark_read, chat_read_messages, chat_reply_to, chat_send_message, create_chat, deepwiki_ask_question, deepwiki_read_wiki_contents, deepwiki_read_wiki_structure, get_user, list_chats, m_001, m_002, m_003, m_004, m_005, m_006, m_007, m_008, m_009, m_010, m_011, m_012, m_013, m_014, m_015, m_016, mark_read, read_messages, read_wiki_contents, read_wiki_structure, reply_to, send_message, u_alice_a, u_ben_b, u_carol_c, u_dan_d, u_eve_m, u_frank_l, u_me
+
+JUDGE ITEMS — REWRITE EACH ONE'S expected AND hint FOR YOUR TEXT
+  carry:c0a1:text
+      requirement (FIXED, do not change): the text of step 4 must carry what step 1 returned
+      must be delivered in (FIXED): the message step 4 posts
+      expected — RESTATE FOR YOUR TEXT: The reply to message m_006 contains the repository's documentation prose describing what acme/event-sourcing is for, how its event-sourcing subsystem works, and explanations of the repository's key concepts.
+      hint     — RESTATE FOR YOUR TEXT: Look at the message posted as a reply to m_006 in the backend-team chat (the step 4 reply).
+  carry:c1a1:text
+      requirement (FIXED, do not change): the text of step 5 must carry what step 2 returned
+      must be delivered in (FIXED): the message step 5 posts
+      expected — RESTATE FOR YOUR TEXT: The DM sent to chat c_002 lists the documentation topic titles (the page list) that were returned by read_wiki_structure for acme/event-sourcing.
+      hint     — RESTATE FOR YOUR TEXT: Look at the message sent to chat c_002 (the DM to Carol) created in step 5.
+
+CURRENT TASK TEXT (rewrite this)
+Run DeepWiki on acme/event-sourcing to retrieve the repository's documentation prose and keep that prose available for later use, and also fetch the list of documentation topic titles and keep that list available. Create a new chat that includes whoever wrote the message about where are the design and whoever wrote the message about They're in the repo, then reply in the reply to the message about someone pull the DeepWiki with the full documentation prose you obtained, explicitly stating what the repo documentation says about what the project is for, how the event-sourcing subsystem works, and the meanings of key concepts. Send the list of documentation topic titles to the conversation where DeepWiki on acme/event-sourcing and came up. Finally, post to the chat you created the following text: whoever wrote the message about where are the design, whoever wrote the message about They're in the repo — I ran DeepWiki on acme/event-sourcing and shared the page list with the conversation where DeepWiki on acme/event-sourcing and came up; tell me if you want the full pages copied here.

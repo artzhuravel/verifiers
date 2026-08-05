@@ -1,0 +1,484 @@
+# Stage 5 — pad the world with filler
+
+2 model call(s).
+
+================================================================================================
+== call 1 of 2
+================================================================================================
+
+------------------------------------------------------------------------------------------------
+-- SYSTEM PROMPT
+------------------------------------------------------------------------------------------------
+You pad out a workspace so it looks lived-in.
+
+You are given a workspace that was built around one specific task. It is too tidy: everything in it is there for a reason, which is itself a giveaway. Add ordinary, unrelated traffic — a few more colleagues, another conversation or two, and messages that have nothing to do with anything.
+
+Put most of the new messages in the conversations that already exist, from the people already in them. A separate room full of strangers hides nothing; unrelated chatter alongside the real thing does.
+
+Three hard rules:
+- Do NOT touch or restate what is already there. You are only adding.
+- Refer to existing people, conversations and messages by the SHORT KEY shown on the left of each line (`u2`, `c1`, `m4`) — never by a name or by anything else. New entries you add get their own new keys.
+- Each CONDITION listed below must still pick out exactly the entity it picks out now. If adding a person whose handle collides, or a message repeating a distinctive phrase, would make a condition match two things, do not add it. Anything that breaks a condition is discarded, so being careless here just wastes your work.
+
+Give messages `order` values spread across the existing range so the new history interleaves with the old rather than piling up after it. A reply must have a higher `order` than the message it replies to.
+
+Every entry you return is a NEW one and needs a key nothing else uses — start them all with "n". Do not return an entry for anything already in the workspace; it is already there, and repeating it is the one thing that makes this call useless.
+
+Respond with ONLY this JSON object:
+{"new_users": [{"ref": "n1", "name": "...", "handle": "..."}],
+ "new_chats": [{"ref": "n2", "name": "...", "members": ["u1", "n1"]}],
+ "new_messages": [{"ref": "n3", "chat": "c1", "sender": "u2", "text": "...", "order": 4,
+                   "reply_to": null, "read_by_actor": true, "reactors": []}]}
+
+------------------------------------------------------------------------------------------------
+-- USER PROMPT
+------------------------------------------------------------------------------------------------
+ENVIRONMENT
+  chat: Local mock chat app. Read and write tools operate on the rollout's ChatState.
+  deepwiki: Public DeepWiki MCP server: read-only GitHub-repo Q&A. Answers can be nondeterministic; requires the repo to be indexed by DeepWiki.
+  You act as one specific user. The acting user's id. Every write is attributed to this user; reads are scoped to it where noted.
+
+ENTITY TYPES IN THIS TASK
+  user — A person in the workspace. Display names may collide; handles never do.
+      id: string
+      name: string
+      handle: string
+  chat — A conversation the acting user takes part in. `name` is null for a DM.
+      id: string
+      kind: "dm" | "group"
+      name: string | null
+      member_ids: string[] (user ids)
+  message — One posted message. `reply_to` threads it under an earlier message in the same chat.
+      id: string
+      chat_id: string (chat id)
+      sender_id: string (user id)
+      text: string
+      ts: int (logical clock, not wall time)
+      reply_to: string | null (parent message id)
+      reactions: object (emoji -> user_id[])
+      read_by: string[] (user ids)
+
+ACTIONS THIS TASK USES
+  list_chats (read) — List the chats the acting user is a member of.
+      returns: array of {id, kind, name, members} for chats where actor is in member_ids
+  create_chat (write) — Create a new chat; the acting user is always included as a member.
+      member_ids: user ids to include (actor added automatically)
+      name: chat name; if set (or >2 members) the chat is a group, else a dm (optional)
+      returns: {id, kind, name, members}
+  send_message (write) — Send a message from the acting user to a chat.
+      chat_id: destination chat
+      text: message body
+      returns: the created message view
+  reply_to (write) — Reply to an existing message in its chat (threaded).
+      message_id: the message being replied to
+      text: reply body
+      returns: the created message view
+
+WORKSPACE SO FAR
+You are Alex Morgan @you, and a member of every chat.
+
+People (refer to them by the key on the left):
+  u1     Maya Singh @mg_singh
+  u2     Carlos Rivera @crivera
+  u3     Jen Park @jpark
+  u4     Amir Qureshi @amirq
+
+Chat c1     launch-team — members: u1, u2
+  m1     order 1   [u1]: We need to finalize the beta list by Friday. Current candidate count: 42. Thoughts on prioritization?  (UNREAD by you)
+  m2     order 2   [actor]: I can run the segmentation this afternoon and share a prioritized list.  (reply to m1)
+  m3     order 3   [u2]: I'm worried about capacity for tier B; we should cap at 30 unless ops can extend.  (UNREAD by you)
+  m9     order 9   [u2]: Thanks — segmentation would help. Also looping ops in case we need capacity.  (reply to m2; UNREAD by you)
+
+Chat c2     (a dm) — members: u3
+  m4     order 4   [u3]: Do you have the final assets from design?  (UNREAD by you)
+  m5     order 5   [actor]: Not yet; Amir said he'd push icons by EOD.  (reply to m4)
+
+Chat c3     design-queue — members: u4, u1
+  m6     order 6   [u4]: Pushed the revised hero banner to /design-assets/banner_v3 — feedback welcome.  (UNREAD by you)
+  m7     order 7   [u1]: Nice. The CTA needs stronger contrast though.  (reply to m6; UNREAD by you)
+  m8     order 8   [actor]: I'll coordinate a quick accessibility pass and return notes by noon.  (reply to m6)
+
+CONDITIONS
+  the user who wrote the one message whose text contains finalize the beta list  -> must keep matching exactly one user
+  the user who wrote the one message whose text contains worried about capacity for  -> must keep matching exactly one user
+  the user who wrote the one message whose text contains final assets from design  -> must keep matching exactly one user
+  the user who wrote the one message whose text contains Pushed the revised hero  -> must keep matching exactly one user
+  the chat containing a message whose text contains finalize the beta list  -> must keep matching exactly one chat
+  the one message whose text contains worried about capacity for  -> must keep matching exactly one message
+  the one message whose text contains Pushed the revised hero  -> must keep matching exactly one message
+
+------------------------------------------------------------------------------------------------
+-- REPLY
+------------------------------------------------------------------------------------------------
+{
+  "new_users": [
+    {
+      "ref": "n1",
+      "name": "Sofia Lin",
+      "handle": "s_lin"
+    },
+    {
+      "ref": "n2",
+      "name": "Devon Park",
+      "handle": "devon_p"
+    },
+    {
+      "ref": "n3",
+      "name": "Liam O'Connor",
+      "handle": "loconnor"
+    }
+  ],
+  "new_chats": [
+    {
+      "ref": "n4",
+      "name": "watercooler",
+      "members": [
+        "u3",
+        "n1",
+        "n2"
+      ]
+    }
+  ],
+  "new_messages": [
+    {
+      "ref": "n5",
+      "chat": "c1",
+      "sender": "u2",
+      "text": "If we cap at 30, we should run a risk analysis on rollback plans.",
+      "order": 3.5,
+      "reply_to": "m3",
+      "read_by_actor": false,
+      "reactors": []
+    },
+    {
+      "ref": "n6",
+      "chat": "c1",
+      "sender": "actor",
+      "text": "I'll draft the ops blurb and cc you, then share the updated list.",
+      "order": 4.2,
+      "reply_to": "m2",
+      "read_by_actor": true,
+      "reactors": []
+    },
+    {
+      "ref": "n7",
+      "chat": "c2",
+      "sender": "u3",
+      "text": "Also, do we need SVG and PNG versions for each icon?",
+      "order": 4.8,
+      "reply_to": "m4",
+      "read_by_actor": false,
+      "reactors": []
+    },
+    {
+      "ref": "n8",
+      "chat": "c2",
+      "sender": "actor",
+      "text": "SVGs are preferred for scaling; can ask Amir for export settings.",
+      "order": 5.5,
+      "reply_to": "n7",
+      "read_by_actor": true,
+      "reactors": []
+    },
+    {
+      "ref": "n9",
+      "chat": "c3",
+      "sender": "u1",
+      "text": "Also check mobile cropping; the focal point shifts on smaller screens.",
+      "order": 6.5,
+      "reply_to": "m6",
+      "read_by_actor": false,
+      "reactors": []
+    },
+    {
+      "ref": "n10",
+      "chat": "c3",
+      "sender": "actor",
+      "text": "I'll include a note for QA on viewport tests.",
+      "order": 7.5,
+      "reply_to": "n9",
+      "read_by_actor": true,
+      "reactors": []
+    },
+    {
+      "ref": "n11",
+      "chat": "n4",
+      "sender": "n2",
+      "text": "Morning! Anyone tried the new coffee in the breakroom?",
+      "order": 2.3,
+      "reply_to": null,
+      "read_by_actor": false,
+      "reactors": []
+    },
+    {
+      "ref": "n12",
+      "chat": "n4",
+      "sender": "actor",
+      "text": "Not yet — I'll grab a cup later.",
+      "order": 3.7,
+      "reply_to": "n11",
+      "read_by_actor": true,
+      "reactors": []
+    },
+    {
+      "ref": "n13",
+      "chat": "c1",
+      "sender": "u1",
+      "text": "I'll update the candidate spreadsheet with tiers and tags; should help segmentation.",
+      "order": 2.2,
+      "reply_to": "m1",
+      "read_by_actor": false,
+      "reactors": []
+    }
+  ]
+}
+
+================================================================================================
+== call 2 of 2  (correction round: the previous reply was rejected, see the tail of USER)
+================================================================================================
+
+------------------------------------------------------------------------------------------------
+-- SYSTEM PROMPT
+------------------------------------------------------------------------------------------------
+You pad out a workspace so it looks lived-in.
+
+You are given a workspace that was built around one specific task. It is too tidy: everything in it is there for a reason, which is itself a giveaway. Add ordinary, unrelated traffic — a few more colleagues, another conversation or two, and messages that have nothing to do with anything.
+
+Put most of the new messages in the conversations that already exist, from the people already in them. A separate room full of strangers hides nothing; unrelated chatter alongside the real thing does.
+
+Three hard rules:
+- Do NOT touch or restate what is already there. You are only adding.
+- Refer to existing people, conversations and messages by the SHORT KEY shown on the left of each line (`u2`, `c1`, `m4`) — never by a name or by anything else. New entries you add get their own new keys.
+- Each CONDITION listed below must still pick out exactly the entity it picks out now. If adding a person whose handle collides, or a message repeating a distinctive phrase, would make a condition match two things, do not add it. Anything that breaks a condition is discarded, so being careless here just wastes your work.
+
+Give messages `order` values spread across the existing range so the new history interleaves with the old rather than piling up after it. A reply must have a higher `order` than the message it replies to.
+
+Every entry you return is a NEW one and needs a key nothing else uses — start them all with "n". Do not return an entry for anything already in the workspace; it is already there, and repeating it is the one thing that makes this call useless.
+
+Respond with ONLY this JSON object:
+{"new_users": [{"ref": "n1", "name": "...", "handle": "..."}],
+ "new_chats": [{"ref": "n2", "name": "...", "members": ["u1", "n1"]}],
+ "new_messages": [{"ref": "n3", "chat": "c1", "sender": "u2", "text": "...", "order": 4,
+                   "reply_to": null, "read_by_actor": true, "reactors": []}]}
+
+------------------------------------------------------------------------------------------------
+-- USER PROMPT
+------------------------------------------------------------------------------------------------
+ENVIRONMENT
+  chat: Local mock chat app. Read and write tools operate on the rollout's ChatState.
+  deepwiki: Public DeepWiki MCP server: read-only GitHub-repo Q&A. Answers can be nondeterministic; requires the repo to be indexed by DeepWiki.
+  You act as one specific user. The acting user's id. Every write is attributed to this user; reads are scoped to it where noted.
+
+ENTITY TYPES IN THIS TASK
+  user — A person in the workspace. Display names may collide; handles never do.
+      id: string
+      name: string
+      handle: string
+  chat — A conversation the acting user takes part in. `name` is null for a DM.
+      id: string
+      kind: "dm" | "group"
+      name: string | null
+      member_ids: string[] (user ids)
+  message — One posted message. `reply_to` threads it under an earlier message in the same chat.
+      id: string
+      chat_id: string (chat id)
+      sender_id: string (user id)
+      text: string
+      ts: int (logical clock, not wall time)
+      reply_to: string | null (parent message id)
+      reactions: object (emoji -> user_id[])
+      read_by: string[] (user ids)
+
+ACTIONS THIS TASK USES
+  list_chats (read) — List the chats the acting user is a member of.
+      returns: array of {id, kind, name, members} for chats where actor is in member_ids
+  create_chat (write) — Create a new chat; the acting user is always included as a member.
+      member_ids: user ids to include (actor added automatically)
+      name: chat name; if set (or >2 members) the chat is a group, else a dm (optional)
+      returns: {id, kind, name, members}
+  send_message (write) — Send a message from the acting user to a chat.
+      chat_id: destination chat
+      text: message body
+      returns: the created message view
+  reply_to (write) — Reply to an existing message in its chat (threaded).
+      message_id: the message being replied to
+      text: reply body
+      returns: the created message view
+
+WORKSPACE SO FAR
+You are Alex Morgan @you, and a member of every chat.
+
+People (refer to them by the key on the left):
+  u1     Maya Singh @mg_singh
+  u2     Carlos Rivera @crivera
+  u3     Jen Park @jpark
+  u4     Amir Qureshi @amirq
+
+Chat c1     launch-team — members: u1, u2
+  m1     order 1   [u1]: We need to finalize the beta list by Friday. Current candidate count: 42. Thoughts on prioritization?  (UNREAD by you)
+  m2     order 2   [actor]: I can run the segmentation this afternoon and share a prioritized list.  (reply to m1)
+  m3     order 3   [u2]: I'm worried about capacity for tier B; we should cap at 30 unless ops can extend.  (UNREAD by you)
+  m9     order 9   [u2]: Thanks — segmentation would help. Also looping ops in case we need capacity.  (reply to m2; UNREAD by you)
+
+Chat c2     (a dm) — members: u3
+  m4     order 4   [u3]: Do you have the final assets from design?  (UNREAD by you)
+  m5     order 5   [actor]: Not yet; Amir said he'd push icons by EOD.  (reply to m4)
+
+Chat c3     design-queue — members: u4, u1
+  m6     order 6   [u4]: Pushed the revised hero banner to /design-assets/banner_v3 — feedback welcome.  (UNREAD by you)
+  m7     order 7   [u1]: Nice. The CTA needs stronger contrast though.  (reply to m6; UNREAD by you)
+  m8     order 8   [actor]: I'll coordinate a quick accessibility pass and return notes by noon.  (reply to m6)
+
+CONDITIONS
+  the user who wrote the one message whose text contains finalize the beta list  -> must keep matching exactly one user
+  the user who wrote the one message whose text contains worried about capacity for  -> must keep matching exactly one user
+  the user who wrote the one message whose text contains final assets from design  -> must keep matching exactly one user
+  the user who wrote the one message whose text contains Pushed the revised hero  -> must keep matching exactly one user
+  the chat containing a message whose text contains finalize the beta list  -> must keep matching exactly one chat
+  the one message whose text contains worried about capacity for  -> must keep matching exactly one message
+  the one message whose text contains Pushed the revised hero  -> must keep matching exactly one message
+
+YOUR PREVIOUS ANSWER WAS REJECTED: 9 validation errors for WorldDraft
+messages.0.order
+  Input should be a valid integer, got a number with a fractional part [type=int_from_float, input_value=3.5, input_type=float]
+    For further information visit https://errors.pydantic.dev/2.13/v/int_from_float
+messages.1.order
+  Input should be a valid integer, got a number with a fractional part [type=int_from_float, input_value=4.2, input_type=float]
+    For further information visit https://errors.pydantic.dev/2.13/v/int_from_float
+messages.2.order
+  Input should be a valid integer, got a number with a fractional part [type=int_from_float, input_value=4.8, input_type=float]
+    For further information visit https://errors.pydantic.dev/2.13/v/int_from_float
+messages.3.order
+  Input should be a valid integer, got a number with a fractional part [type=int_from_float, input_value=5.5, input_type=float]
+    For further information visit https://errors.pydantic.dev/2.13/v/int_from_float
+messages.4.order
+  Input should be a valid integer, got a number with a fractional part [type=int_from_float, input_value=6.5, input_type=float]
+    For further information visit https://errors.pydantic.dev/2.13/v/int_from_float
+messages.5.order
+  Input should be a valid integer, got a number with a fractional part [type=int_from_float, input_value=7.5, input_type=float]
+    For further information visit https://errors.pydantic.dev/2.13/v/int_from_float
+messages.6.order
+  Input should be a valid integer, got a number with a fractional part [type=int_from_float, input_value=2.3, input_type=float]
+    For further information visit https://errors.pydantic.dev/2.13/v/int_from_float
+messages.7.order
+  Input should be a valid integer, got a number with a fractional part [type=int_from_float, input_value=3.7, input_type=float]
+    For further information visit https://errors.pydantic.dev/2.13/v/int_from_float
+messages.8.order
+  Input should be a valid integer, got a number with a fractional part [type=int_from_float, input_value=2.2, input_type=float]
+    For further information visit https://errors.pydantic.dev/2.13/v/int_from_float
+Return the whole object again, corrected. Change only what the rejection names; keep everything else as it was.
+
+------------------------------------------------------------------------------------------------
+-- REPLY
+------------------------------------------------------------------------------------------------
+{
+  "new_users": [
+    {
+      "ref": "n1",
+      "name": "Samir Patel",
+      "handle": "spatel"
+    }
+  ],
+  "new_chats": [
+    {
+      "ref": "n2",
+      "name": "coffee-corner",
+      "members": [
+        "u1",
+        "n1"
+      ]
+    }
+  ],
+  "new_messages": [
+    {
+      "ref": "n3",
+      "chat": "c1",
+      "sender": "u1",
+      "text": "Also, can we add a quick note about international locales?",
+      "order": 2,
+      "reply_to": "m1",
+      "read_by_actor": false,
+      "reactors": []
+    },
+    {
+      "ref": "n4",
+      "chat": "c1",
+      "sender": "u2",
+      "text": "If ops can extend they'll need a list of proposed users per tier.",
+      "order": 4,
+      "reply_to": "m3",
+      "read_by_actor": false,
+      "reactors": []
+    },
+    {
+      "ref": "n5",
+      "chat": "c2",
+      "sender": "u3",
+      "text": "Design pushed a small update — I'll resend the asset links once exported.",
+      "order": 6,
+      "reply_to": "m4",
+      "read_by_actor": false,
+      "reactors": []
+    },
+    {
+      "ref": "n6",
+      "chat": "c2",
+      "sender": "u3",
+      "text": "Quick Q: do you want PNGs or SVGs for the icons?",
+      "order": 7,
+      "reply_to": "n5",
+      "read_by_actor": false,
+      "reactors": []
+    },
+    {
+      "ref": "n7",
+      "chat": "c3",
+      "sender": "u4",
+      "text": "I'm happy to review contrast changes after your pass.",
+      "order": 8,
+      "reply_to": "m6",
+      "read_by_actor": false,
+      "reactors": []
+    },
+    {
+      "ref": "n8",
+      "chat": "c3",
+      "sender": "u1",
+      "text": "Thanks — can you note exact color values in the doc?",
+      "order": 9,
+      "reply_to": "n7",
+      "read_by_actor": false,
+      "reactors": []
+    },
+    {
+      "ref": "n9",
+      "chat": "c1",
+      "sender": "u2",
+      "text": "Also, FYI I put a note in the project board about potential capacity spikes.",
+      "order": 3,
+      "reply_to": "m2",
+      "read_by_actor": false,
+      "reactors": []
+    },
+    {
+      "ref": "n10",
+      "chat": "c1",
+      "sender": "u1",
+      "text": "Good catch, Carlos. I'll draft the list template.",
+      "order": 5,
+      "reply_to": "n9",
+      "read_by_actor": false,
+      "reactors": []
+    },
+    {
+      "ref": "n11",
+      "chat": "n2",
+      "sender": "n1",
+      "text": "Hey — thought it would be nice to have a casual chat for breaks and random links.",
+      "order": 1,
+      "reply_to": null,
+      "read_by_actor": true,
+      "reactors": []
+    }
+  ]
+}

@@ -1,0 +1,7 @@
+Stage 7 result. This runs LAST because it is the only stage whose output cannot
+invalidate anything: `signature` excludes text, so the expected state is already fixed.
+
+  $name_0
+      beta-prioritization
+  $name_1
+      design-assets

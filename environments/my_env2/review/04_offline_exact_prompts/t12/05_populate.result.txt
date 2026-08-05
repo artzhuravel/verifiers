@@ -1,0 +1,34 @@
+Stage 5 result. Filler is folded in ONE ENTITY AT A TIME and each addition kept only if
+every reference condition still resolves to exactly its own entity. Rejections are
+recorded, never silently dropped, and Stage 5 cannot fail the task — a world without
+padding is weaker, not broken.
+
+core     : 4 people, 3 chats, 4 messages
+populated: 5 people, 4 chats, 5 messages
+
+REJECTED ADDITIONS
+  (none)
+
+THE SEED THAT SHIPS
+You act as You (id u_me).
+
+People:
+  u_me  You @you
+  u_person0  Person 0 @person0
+  u_extra0  Extra 0 @extra0
+  u_extra1  Extra 1 @extra1
+  u_extra2  Extra 2 @extra2
+  u_filler1  Filler One @filler1
+
+group room-0 (c_001) — members: You @you, Person 0 @person0, Extra 0 @extra0
+  m_001 [Person 0 @person0]: padding 0 mentions gadget 0 in passing  (UNREAD by you)
+  m_004 [Extra 0 @extra0]: padding 3 mentions gadget 3 in passing  (UNREAD by you)
+
+group room-1 (c_002) — members: You @you, Person 0 @person0, Extra 0 @extra0, Extra 1 @extra1
+  m_002 [Extra 0 @extra0]: padding 1 mentions gadget 1 in passing  (UNREAD by you)
+
+group room-2 (c_003) — members: You @you, Person 0 @person0, Extra 0 @extra0
+  m_003 [Person 0 @person0]: padding 2 mentions gadget 2 in passing  (UNREAD by you)
+
+group watercooler (c_004) — members: You @you, Person 0 @person0, Filler One @filler1
+  m_005 [Filler One @filler1]: unrelated chatter about the coffee machine

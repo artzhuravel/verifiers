@@ -1,0 +1,151 @@
+# Stage 10 — rewrite as a goal
+
+1 model call(s).
+
+================================================================================================
+== call 1 of 1
+================================================================================================
+
+------------------------------------------------------------------------------------------------
+-- SYSTEM PROMPT
+------------------------------------------------------------------------------------------------
+You rewrite a task as the request a person would actually have sent.
+
+You are given the workspace, the underlying plan, and a task written as connected prose. Raise its level of abstraction: say what you are trying to ACHIEVE and let the steps follow from it.
+
+- No enumeration. No numbered or bulleted steps, and no sentence that reads as "and then".
+- Nothing quoted or dictated word for word — except repository names and questions, which must survive exactly, because the expected answers are keyed to them.
+- Individual steps must stop being individually identifiable. Fold them into the goal.
+- Keep every reference resolvable: an agent reading this must still be able to work out which things you mean.
+- Refer to things the way the list below does, and never by name. A description with the answer bolted on — "Alice Rivera (the author of the message about the freeze)" — is worse than either half of it alone: it hands back the very step the description existed to create.
+- A description INTRODUCES a thing. Use it at the first mention only. Every later mention refers back the way a person would — "that conversation", "the same thread", "there", "them", "it", "the one you just read". Pasting a description a second time is the commonest way this rewrite fails: it reads as find-and-replace rather than as writing, and where a description depends on something the task itself changes, every use after that change is simply FALSE. Any description marked below as one the work invalidates must be used early and never again.
+- Never answer your own reference. No parenthetical, no "i.e.", no appositive that supplies the name or id of something you have just described.
+- You are shown the plan so you can check your text still leads to those actions. It is not something to reproduce, and none of it should be recognisable as a list.
+
+The test is simple: a colleague reading this should see a normal ask, and an agent following it should end up doing the same work.
+
+You also rewrite the JUDGE ITEMS. Each tells a grader what a correct answer says and where in the agent's output to look for it. They were written against the PREVIOUS version of this task, so they still speak its language — step numbers, entity ids, names, quoted wording — much of which you are removing. Left alone, they describe a task the agent was never given.
+
+For every item, restate `expected` and `hint` so that a grader reading YOUR text can still check the same thing:
+
+- `expected` — what a correct answer STATES, in substance. Keep every fact in it. Where the previous wording leaned on an id or a step number to say WHICH thing ("the reply to m_004"), say it the way your text says it. Never replace it with a pointer: "the answer to the question above" leaves a grader nothing to compare against.
+- `hint` — where in the agent's output to look, described the way your text describes it.
+
+Do not drop an item, do not merge two, and never change WHAT is required — only how it is said. Copy each `id` exactly.
+
+Respond with ONLY this JSON object:
+{"prompt": "<the rewritten task>",
+ "judge": [{"id": "<copied exactly>", "expected": "...", "hint": "..."}]}
+
+------------------------------------------------------------------------------------------------
+-- USER PROMPT
+------------------------------------------------------------------------------------------------
+ENVIRONMENT
+  chat: Local mock chat app. Read and write tools operate on the rollout's ChatState.
+  deepwiki: Public DeepWiki MCP server: read-only GitHub-repo Q&A. Answers can be nondeterministic; requires the repo to be indexed by DeepWiki.
+  You act as one specific user. The acting user's id. Every write is attributed to this user; reads are scoped to it where noted.
+
+ENTITY TYPES IN THIS TASK
+  user — A person in the workspace. Display names may collide; handles never do.
+      id: string
+      name: string
+      handle: string
+  chat — A conversation the acting user takes part in. `name` is null for a DM.
+      id: string
+      kind: "dm" | "group"
+      name: string | null
+      member_ids: string[] (user ids)
+  message — One posted message. `reply_to` threads it under an earlier message in the same chat.
+      id: string
+      chat_id: string (chat id)
+      sender_id: string (user id)
+      text: string
+      ts: int (logical clock, not wall time)
+      reply_to: string | null (parent message id)
+      reactions: object (emoji -> user_id[])
+      read_by: string[] (user ids)
+
+ACTIONS THIS TASK USES
+  create_chat (write) — Create a new chat; the acting user is always included as a member.
+      member_ids: user ids to include (actor added automatically)
+      name: chat name; if set (or >2 members) the chat is a group, else a dm (optional)
+      returns: {id, kind, name, members}
+  send_message (write) — Send a message from the acting user to a chat.
+      chat_id: destination chat
+      text: message body
+      returns: the created message view
+  add_reaction (write) — Add an emoji reaction from the acting user to a message.
+      message_id: the message to react to
+      emoji: reaction emoji, e.g. ':+1:'
+      returns: the updated message view
+  reply_to (write) — Reply to an existing message in its chat (threaded).
+      message_id: the message being replied to
+      text: reply body
+      returns: the created message view
+
+WORKSPACE
+You act as You (id u_me).
+
+People:
+  u_me  You @you
+  u_person0  Person 0 @person0
+  u_person1  Person 1 @person1
+  u_extra0  Extra 0 @extra0
+  u_extra1  Extra 1 @extra1
+  u_extra2  Extra 2 @extra2
+  u_filler1  Filler One @filler1
+
+group room-0 (c_001) — members: You @you, Person 0 @person0, Person 1 @person1
+  m_001 [Person 0 @person0]: padding 0 mentions gadget 0 in passing  (UNREAD by you)
+  m_002 [Person 1 @person1]: padding 1 mentions gadget 1 in passing  (UNREAD by you)
+  m_003 [Person 0 @person0]: padding 2 mentions gadget 2 in passing  (UNREAD by you)
+  m_004 [Person 1 @person1]: padding 3 mentions gadget 3 in passing  (UNREAD by you)
+
+group watercooler (c_002) — members: You @you, Person 0 @person0, Filler One @filler1
+  m_005 [Filler One @filler1]: unrelated chatter about the coffee machine
+
+PLAN YOUR TEXT MUST STILL LEAD TO (do not reproduce it)
+step 1 [write] create_chat — Create a new chat; the acting user is always included as a member.
+    member_ids   = u_person0 — Person 0 @person0, u_person1 — Person 1 @person1
+    name         = 'canned text for $name_0'
+    -> creates something new
+step 2 [write] send_message — Send a message from the acting user to a chat.
+    chat_id      = c_001 — group 'room-0' — members: You @you, Person 0 @person0, Person 1 @person1
+    text         = 'canned text for $text_0'
+    -> creates something new
+step 3 [write] send_message — Send a message from the acting user to a chat.
+    chat_id      = the chat step 1 creates
+    text         = 'canned text for $text_1'
+    -> creates something new
+step 4 [write] add_reaction — Add an emoji reaction from the acting user to a message.
+    message_id   = the message step 3 creates
+    emoji        = 'canned text for $emoji_0'
+step 5 [write] add_reaction — Add an emoji reaction from the acting user to a message.
+    message_id   = the message step 2 creates
+    emoji        = 'canned text for $emoji_1'
+step 6 [write] reply_to — Reply to an existing message in its chat (threaded).
+    message_id   = the message step 3 creates
+    text         = 'canned text for $text_2'
+    -> creates something new
+
+KEEP REFERRING TO THINGS THIS WAY, AND NEVER BY NAME — each ONCE, then refer back
+  whoever wrote the message about padding 0 mentions gadget
+  whoever wrote the message about padding 1 mentions gadget
+  the conversation where padding 0 mentions gadget came up
+
+THESE STRINGS MUST NOT APPEAR IN YOUR TEXT
+  Person 0, Person 1, add_reaction, ask_question, c_001, c_002, chat_add_reaction, chat_create_chat, chat_get_user, chat_list_chats, chat_mark_read, chat_read_messages, chat_reply_to, chat_send_message, create_chat, deepwiki_ask_question, deepwiki_read_wiki_contents, deepwiki_read_wiki_structure, get_user, list_chats, m_001, m_002, m_003, m_004, m_005, mark_read, person0, person1, read_messages, read_wiki_contents, read_wiki_structure, reply_to, room-0, send_message, u_extra0, u_extra1, u_extra2, u_filler1, u_me, u_person0, u_person1
+
+JUDGE ITEMS — REWRITE EACH ONE'S expected AND hint FOR YOUR TEXT
+  (none — nothing in this task needs a judge, so there is nothing to restate)
+
+CURRENT TASK TEXT (rewrite this)
+CANNED prompt_v2 text — this run exists for the prompts.
+
+------------------------------------------------------------------------------------------------
+-- REPLY
+------------------------------------------------------------------------------------------------
+{
+  "prompt": "CANNED prompt_v3 text — this run exists for the prompts.",
+  "judge": []
+}

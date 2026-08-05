@@ -1,0 +1,34 @@
+Stage 3 result: the authored draft, built into a state.
+`seed.build` validates and never repairs — an undeclared sender, a reply across chats
+or an unbound placeholder rejects the whole draft and costs a correction round.
+
+topic: Checking a third-party GitHub repo's license & maintainers before vendoring
+
+You act as You (id u_me).
+
+People:
+  u_me  You @you
+  u_priya_p  Priya Nair @priya_p
+  u_mateo_r  Mateo Ruiz @mateo_r
+  u_sarah_k  Sarah Kim @sarah_k
+  u_jamal_b  Jamal Brown @jamal_b
+
+group frontend-team (c_001) — members: You @you, Priya Nair @priya_p, Mateo Ruiz @mateo_r, Sarah Kim @sarah_k
+  m_001 [Priya Nair @priya_p]: Can someone confirm the license and current maintainers for the GitHub repo loom/widget-lib before we vendor it into our codebase? Priya needs a definitive answer today.  (UNREAD by you)
+  m_002 [Mateo Ruiz @mateo_r]: Is that the same widget-lib we used in the legacy dashboard? There were two similarly named repos.  (reply to m_001)
+  m_004 [Sarah Kim @sarah_k]: Do you mean loom/widget-lib (TypeScript) or loom/widget-lib-js? They have slightly different owners.  (reply to m_001; UNREAD by you)
+  m_007 [Priya Nair @priya_p]: Thanks — if someone can confirm by EOD that'd be great. We're trying to avoid a last-minute license mismatch.  (reply to m_002)
+  m_008 [Sarah Kim @sarah_k]: I can take it after lunch unless @you are able to run a quick check now and post what you find.  (reply to m_001; UNREAD by you)
+
+group sec-ops (c_002) — members: You @you, Mateo Ruiz @mateo_r, Jamal Brown @jamal_b
+  m_003 [Jamal Brown @jamal_b]: If it's MIT we're probably fine to vendor; GPL-3 would be a blocker. Whoever checks, please list the license file path and the org/people listed as maintainers.
+  m_006 [Mateo Ruiz @mateo_r]: Jamal, could you check npm/packument and GH owners for that package? Security wants an explicit maintainer list.  (reply to m_003)
+  m_009 [Jamal Brown @jamal_b]: I'll scan the repo and check contributors + package.json authors. Will report back with links.  (reply to m_006)
+
+dm (dm) (c_003) — members: You @you, Sarah Kim @sarah_k
+  m_005 [Sarah Kim @sarah_k]: Hey — Priya asked the team to confirm loom/widget-lib's license. Can you pull the repo metadata (license, primary language, maintainers) when you have a moment?  (UNREAD by you)
+
+PLACEHOLDERS BOUND
+  $chat_0              -> c_001
+  $chat_1              -> c_002
+  $message_0           -> m_001

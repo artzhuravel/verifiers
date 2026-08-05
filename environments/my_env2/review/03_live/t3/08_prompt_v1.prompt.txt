@@ -1,0 +1,139 @@
+# Stage 8 — v1 prompt and the judge specification
+
+1 model call(s).
+
+================================================================================================
+== call 1 of 1
+================================================================================================
+
+------------------------------------------------------------------------------------------------
+-- SYSTEM PROMPT
+------------------------------------------------------------------------------------------------
+You turn a plan into a task, written as an explicit numbered sequence.
+
+You are given a workspace, and the exact actions an agent should perform in it with every detail already decided. Write the request the agent will receive.
+
+- One numbered step per action, in the given order — but write SENTENCES. The plan you are given is a machine listing; do not reproduce its layout, its bracketed tags, its parameter lines or its "returns" notes. Those are notes to you. Ask for the thing, using the ids shown.
+- Every step is work that must happen, including any marked as an aside. The plan is the complete and exact set of actions: never ask for anything it does not contain, and never leave one out. An unplanned message is an unexpected change to the workspace, and a missing one costs the agent credit for obeying you.
+- Where a step's text must CARRY what an earlier step returned, say so plainly: the agent has to look that up and say it in the message. Ask for the information, not for a transcript — a person asks a colleague to pass on what a thread said, never to paste the raw tool output. Never guess the value yourself.
+- Where a step looks something up and no later step posts what it found, ask the agent to report that back to you in its reply.
+
+You also write the JUDGE SPECIFICATION. You are given the items that need checking, each with where its answer must appear. For each one return:
+- expected: THE ANSWER ITSELF, in a sentence. Two ways to get this wrong, and both make the item useless. Do not write "the text returned by step N" or "the answer to the question above" — a grader given that has nothing to compare against. And do not paste the returned value back verbatim — say what a correct answer STATES, in your own words, so that a grader can recognise one that is worded differently. Where the item shows what the step actually returned, draw the facts out of it ("names all three of X, Y and Z"); where the answer comes from outside the workspace, give it as best you know it.
+- hint: where in the agent's output a grader should look for it.
+
+Respond with ONLY this JSON object:
+{"prompt": "<the task text>",
+ "judge": [{"id": "<item id, copied exactly>", "expected": "...", "hint": "..."}]}
+
+------------------------------------------------------------------------------------------------
+-- USER PROMPT
+------------------------------------------------------------------------------------------------
+ENVIRONMENT
+  chat: Local mock chat app. Read and write tools operate on the rollout's ChatState.
+  deepwiki: Public DeepWiki MCP server: read-only GitHub-repo Q&A. Answers can be nondeterministic; requires the repo to be indexed by DeepWiki.
+  You act as one specific user. The acting user's id. Every write is attributed to this user; reads are scoped to it where noted.
+
+ENTITY TYPES IN THIS TASK
+  user — A person in the workspace. Display names may collide; handles never do.
+      id: string
+      name: string
+      handle: string
+  chat — A conversation the acting user takes part in. `name` is null for a DM.
+      id: string
+      kind: "dm" | "group"
+      name: string | null
+      member_ids: string[] (user ids)
+  message — One posted message. `reply_to` threads it under an earlier message in the same chat.
+      id: string
+      chat_id: string (chat id)
+      sender_id: string (user id)
+      text: string
+      ts: int (logical clock, not wall time)
+      reply_to: string | null (parent message id)
+      reactions: object (emoji -> user_id[])
+      read_by: string[] (user ids)
+
+ACTIONS THIS TASK USES
+  create_chat (write) — Create a new chat; the acting user is always included as a member.
+      member_ids: user ids to include (actor added automatically)
+      name: chat name; if set (or >2 members) the chat is a group, else a dm (optional)
+      returns: {id, kind, name, members}
+  send_message (write) — Send a message from the acting user to a chat.
+      chat_id: destination chat
+      text: message body
+      returns: the created message view
+  add_reaction (write) — Add an emoji reaction from the acting user to a message.
+      message_id: the message to react to
+      emoji: reaction emoji, e.g. ':+1:'
+      returns: the updated message view
+  reply_to (write) — Reply to an existing message in its chat (threaded).
+      message_id: the message being replied to
+      text: reply body
+      returns: the created message view
+
+WORKSPACE
+You act as Avery Chen (id u_me).
+
+People:
+  u_me  Avery Chen @you
+  u_lena  Lena Cho @lena
+  u_rafael  Rafael Gomez @rafael
+  u_maya  Maya Patel @maya
+  u_tom  Tom Briggs @tom
+  u_ben  Ben Lee @ben
+  u_sana  Sana Iqbal @sana
+
+group Product Research (c_001) — members: Avery Chen @you, Lena Cho @lena, Maya Patel @maya, Tom Briggs @tom
+  m_001 [Maya Patel @maya]: Quick check: can we compress the 12 planned usability sessions into two days (6/day)? Our recruiter said they can only guarantee 8 participants right now.  (UNREAD by you)
+  m_002 [Tom Briggs @tom]: If we drop to 8, we'll need to rewrite the script into two shorter blocks; otherwise the analysis gets heavier and risk of fatigue rises.  (reply to m_001; UNREAD by you)
+  m_004 [Lena Cho @lena]: Where are we sourcing participants from? Slack gave low yield last month — should we budget for a panel hire or paid ads?  (reply to m_002; UNREAD by you)
+  m_006 [Maya Patel @maya]: Also, FYI the usability lab's projector is being serviced Friday; we might need to switch rooms.  (UNREAD by you)
+  m_008 [Tom Briggs @tom]: If we change rooms, can we keep the observation mirror? That's critical for a couple of tasks.  (reply to m_006; UNREAD by you)
+  m_011 [Maya Patel @maya]: I can pull from our panel and push Slack again, but we'd still need a small ad boost to hit 12 reliably. Is that acceptable?  (reply to m_004; UNREAD by you)
+  m_013 [Tom Briggs @tom]: Ad boost requires approval and a lead time. Someone needs to confirm whether we lock to 12 or cut to 8 so I can finalize the timeline.  (reply to m_011; UNREAD by you)
+
+group Research Tools (c_002) — members: Avery Chen @you, Rafael Gomez @rafael, Maya Patel @maya
+  m_005 [Rafael Gomez @rafael]: Vendor quote came back: $60 per participant. At 12 that's $720; at 8 it's $480. Thought you'd want the raw numbers for budgeting.
+  m_007 [Avery Chen @you]: Can we reallocate ~$250 from travel to incentives so we can secure 12 sessions if recruitment needs it?
+  m_009 [Rafael Gomez @rafael]: Possible, but I'll need a quick sign-off from Finance. I'll loop them in — copying Maya to confirm panel availability.  (reply to m_007; :+1: x1)
+  m_010 [Maya Patel @maya]: Panel availability looks clear for the second week — I can confirm exact times by EOD.  (reply to m_005)
+  m_012 [Rafael Gomez @rafael]: Finance responded: they'll review the reallocation tomorrow morning.  (reply to m_009)
+
+group Book Club (c_003) — members: Avery Chen @you, Maya Patel @maya, Ben Lee @ben
+  m_003 [Ben Lee @ben]: Anyone up for discussing chapter 4 on Monday? Coffee afterwards?
+
+PLAN (perform in this order)
+step 1 [write] create_chat — Create a new chat; the acting user is always included as a member.
+    member_ids   = u_lena — Lena Cho @lena, u_rafael — Rafael Gomez @rafael
+    name         = 'Usability Recruiting'
+    -> creates something new
+step 2 [write] send_message — Send a message from the acting user to a chat.
+    chat_id      = c_001 — group 'Product Research' — members: Avery Chen @you, Lena Cho @lena, Maya Patel @maya, Tom Briggs @tom
+    text         = 'Quick decision needed: should we lock to 12 sessions if Finance approves reallocating ~$250 for incentives, or cut to 8? I recommend locking to 12—any objections?'
+    -> creates something new
+step 3 [write] send_message — Send a message from the acting user to a chat.
+    chat_id      = the chat step 1 creates
+    text         = 'Finance will review the $250 reallocation tomorrow. Rafael, please confirm when they respond; Lena, can you confirm panel/paying options so we can commit to 12 if approved?'
+    -> creates something new
+step 4 [write] add_reaction — Add an emoji reaction from the acting user to a message.
+    message_id   = the message step 3 creates
+    emoji        = ' :+1:'
+step 5 [write] add_reaction — Add an emoji reaction from the acting user to a message.
+    message_id   = the message step 2 creates
+    emoji        = ' :+1:'
+step 6 [write] reply_to — Reply to an existing message in its chat (threaded).
+    message_id   = the message step 3 creates
+    text         = "Thanks — I'll hold off booking until Finance and Lena confirm."
+    -> creates something new
+
+ITEMS THAT NEED CHECKING
+  (none — nothing in this task needs a judge)
+
+------------------------------------------------------------------------------------------------
+-- REPLY
+------------------------------------------------------------------------------------------------
+{
+  "prompt": "1. Call create_chat with member_ids = [u_lena, u_rafael] and name = 'Usability Recruiting'; keep the id returned by this call for use in step 3.\n2. Call send_message to chat_id = c_001 with text \"Quick decision needed: should we lock to 12 sessions if Finance approves reallocating ~$250 for incentives, or cut to 8? I recommend locking to 12—any objections?\" and keep the id returned by this call for use in step 5.\n3. Call send_message to the chat created in step 1 (use the id returned by step 1) with text \"Finance will review the $250 reallocation tomorrow. Rafael, please confirm when they respond; Lena, can you confirm panel/paying options so we can commit to 12 if approved?\" and keep the id returned by this call for use in steps 4 and 6.\n4. Call add_reaction with message_id = the id returned by step 3 and emoji = ':+1:'.\n5. Call add_reaction with message_id = the id returned by step 2 and emoji = ':+1:'.\n6. Call reply_to with message_id = the id returned by step 3 and text \"Thanks — I'll hold off booking until Finance and Lena confirm.\".",
+  "judge": []
+}

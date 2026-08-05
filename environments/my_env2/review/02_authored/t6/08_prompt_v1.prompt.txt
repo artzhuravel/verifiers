@@ -1,0 +1,152 @@
+# Stage 8 — v1 prompt and the judge specification
+
+This is EXACTLY the prompt the authoring model received. Every input to it is stored
+in the task record, so it is a reconstruction only in the sense that it was rebuilt rather
+than logged.
+
+------------------------------------------------------------------------------------------------
+-- SYSTEM PROMPT
+------------------------------------------------------------------------------------------------
+You turn a plan into a task, written as an explicit numbered sequence.
+
+You are given a workspace, and the exact actions an agent should perform in it with every detail already decided. Write the request the agent will receive.
+
+- One numbered step per action, in the given order — but write SENTENCES. The plan you are given is a machine listing; do not reproduce its layout, its bracketed tags, its parameter lines or its "returns" notes. Those are notes to you. Ask for the thing, using the ids shown.
+- Every step is work that must happen, including any marked as an aside. The plan is the complete and exact set of actions: never ask for anything it does not contain, and never leave one out. An unplanned message is an unexpected change to the workspace, and a missing one costs the agent credit for obeying you.
+- Where a step's text must CARRY what an earlier step returned, say so plainly: the agent has to look that up and say it in the message. Ask for the information, not for a transcript — a person asks a colleague to pass on what a thread said, never to paste the raw tool output. Never guess the value yourself.
+- Where a step looks something up and no later step posts what it found, ask the agent to report that back to you in its reply.
+
+You also write the JUDGE SPECIFICATION. You are given the items that need checking, each with where its answer must appear. For each one return:
+- expected: THE ANSWER ITSELF, in a sentence. Two ways to get this wrong, and both make the item useless. Do not write "the text returned by step N" or "the answer to the question above" — a grader given that has nothing to compare against. And do not paste the returned value back verbatim — say what a correct answer STATES, in your own words, so that a grader can recognise one that is worded differently. Where the item shows what the step actually returned, draw the facts out of it ("names all three of X, Y and Z"); where the answer comes from outside the workspace, give it as best you know it.
+- hint: where in the agent's output a grader should look for it.
+
+Respond with ONLY this JSON object:
+{"prompt": "<the task text>",
+ "judge": [{"id": "<item id, copied exactly>", "expected": "...", "hint": "..."}]}
+
+------------------------------------------------------------------------------------------------
+-- USER PROMPT
+------------------------------------------------------------------------------------------------
+ENVIRONMENT
+  chat: Local mock chat app. Read and write tools operate on the rollout's ChatState.
+  deepwiki: Public DeepWiki MCP server: read-only GitHub-repo Q&A. Answers can be nondeterministic; requires the repo to be indexed by DeepWiki.
+  You act as one specific user. The acting user's id. Every write is attributed to this user; reads are scoped to it where noted.
+
+ENTITY TYPES IN THIS TASK
+  message — One posted message. `reply_to` threads it under an earlier message in the same chat.
+      id: string
+      chat_id: string (chat id)
+      sender_id: string (user id)
+      text: string
+      ts: int (logical clock, not wall time)
+      reply_to: string | null (parent message id)
+      reactions: object (emoji -> user_id[])
+      read_by: string[] (user ids)
+  chat — A conversation the acting user takes part in. `name` is null for a DM.
+      id: string
+      kind: "dm" | "group"
+      name: string | null
+      member_ids: string[] (user ids)
+
+ACTIONS THIS TASK USES
+  read_wiki_contents (read) — View DeepWiki documentation for a GitHub repository.
+      repoName: GitHub repo in owner/repo form
+      returns: the repo's wiki DOCUMENTATION PROSE. It states what the project is for, how a subsystem works, what a concept means. It does NOT state licence, stars, maintainers or primary language, so a question about those has no obtainable answer here.
+  add_reaction (write) — Add an emoji reaction from the acting user to a message.
+      message_id: the message to react to
+      emoji: reaction emoji, e.g. ':+1:'
+      returns: the updated message view
+  send_message (write) — Send a message from the acting user to a chat.
+      chat_id: destination chat
+      text: message body
+      returns: the created message view
+  reply_to (write) — Reply to an existing message in its chat (threaded).
+      message_id: the message being replied to
+      text: reply body
+      returns: the created message view
+
+WORKSPACE
+You act as Sam Cho (id u_me).
+
+People:
+  u_me  Sam Cho @you
+  u_alice  Alice Nguyen @alice
+  u_benp  Ben Park @benp
+  u_carl  Carlos Ruiz @carl
+  u_danali  Dana Li @danali
+  u_jlee  Jin Lee @jlee
+
+dm (dm) (c_001) — members: Sam Cho @you, Alice Nguyen @alice
+  m_005 [Alice Nguyen @alice]: Sam, could you read the wiki for owner/scheduler and paste the prose into the infra channel? We need the subsystem explanation in full.  (UNREAD by you)
+  m_010 [Alice Nguyen @alice]: Repo name someone mentioned owner/scheduler earlier — confirm? I can ping on GH but would be faster if you paste the wiki here.  (reply to m_005; UNREAD by you)
+  m_013 [Alice Nguyen @alice]: I pinged GH to confirm the repo name; they responded with a link.  (reply to m_010)
+  m_016 [Alice Nguyen @alice]: Also note: DeepWiki often shows conceptual info only — we may need to follow links to code for specifics.  (UNREAD by you)
+
+group infra (c_002) — members: Sam Cho @you, Alice Nguyen @alice, Ben Park @benp, Carlos Ruiz @carl, Dana Li @danali
+  m_001 [Alice Nguyen @alice]: Heads-up: we need the wiki for ops/scheduler to update the runbook. Anyone knows the repo name?
+  m_003 [Ben Park @benp]: I think it's ops/scheduler-service? The README points to a wiki. Can someone pull the DeepWiki page?  (reply to m_001; UNREAD by you; :+1: x1)
+  m_004 [Carlos Ruiz @carl]: FWIW I left the notes from the toggle rollout in /docs/rollouts — check there before we duplicate effort.
+  m_006 [Ben Park @benp]: Thanks — @carl can you skim the leader-election section once Sam pastes the wiki?  (reply to m_003)
+  m_007 [Carlos Ruiz @carl]: If it's owner/scheduler we should include section on lifecycle and leader-election. The wiki usually has that.  (reply to m_003)
+  m_008 [Dana Li @danali]: Also note the wiki doesn't include deployment notes — maybe add them after we paste the docs.  (reply to m_001; :+1: x1)
+  m_009 [Dana Li @danali]: Noted. I'll add a deployment stub to the runbook after we have the wiki text.  (reply to m_001)
+  m_011 [Alice Nguyen @alice]: Please include the lifecycle section verbatim when you paste, compliance needs it.  (reply to m_007)
+  m_012 [Ben Park @benp]: Quick request: once Sam posts the wiki, I'll start extracting config keys.  (reply to m_007; UNREAD by you; :+1: x2)
+  m_014 [Alice Nguyen @alice]: Okay—waiting on Sam. Whoever can confirm the exact GH repo name, call it out here.  (reply to m_012; UNREAD by you)
+  m_015 [Carlos Ruiz @carl]: Also, coffee machine on floor 4 is back online. Save your mornings!  (reply to m_012)
+
+group (dm) (c_003) — members: Sam Cho @you, Alice Nguyen @alice, Jin Lee @jlee
+  m_002 [Jin Lee @jlee]: Hey Alice, do you have a minute to go over the onboarding checklist?
+
+PLAN (perform in this order)
+step 1 [read] read_wiki_contents — View DeepWiki documentation for a GitHub repository.
+    repoName     = 'kubernetes/kubernetes'
+    -> returns the repo's wiki DOCUMENTATION PROSE. It states what the project is for, how a subsystem works, what a concept means. It does NOT state licence, stars, maintainers or primary language, so a question about those has no obtainable answer here. (not known until the agent runs it)
+step 2 [write] add_reaction — Add an emoji reaction from the acting user to a message.
+    message_id   = m_003 — in infra from Ben Park, replying to m_001, unread by you: "I think it's ops/scheduler-service? The README points to a wiki. Can someone pull the DeepWiki page?"
+    emoji        = '+1:'
+step 3 [write] send_message — Send a message from the acting user to a chat.
+    chat_id      = c_001 — dm (unnamed dm) — members: Sam Cho @you, Alice Nguyen @alice
+    text         <- must carry what step 1 returned
+    -> creates something new
+step 4 [write] reply_to — Reply to an existing message in its chat (threaded).
+    message_id   = m_005 — in c_001 from Alice Nguyen, unread by you: 'Sam, could you read the wiki for owner/scheduler and paste the prose into the infra channel? We need the subsystem explanation in full.'
+    text         = 'Done — I pasted the wiki prose into the infra channel and included the lifecycle section verbatim.'
+    -> creates something new
+step 5 [write] send_message — Send a message from the acting user to a chat.
+    chat_id      = c_002 — group 'infra' — members: Sam Cho @you, Alice Nguyen @alice, Ben Park @benp, Carlos Ruiz @carl, Dana Li @danali
+    text         <- must carry what step 1 returned
+    -> creates something new
+step 6 [write] reply_to — Reply to an existing message in its chat (threaded).
+    message_id   = the message step 5 creates
+    text         = 'Lifecycle section is verbatim above per Alice. @benp please start extracting config keys; @carl please skim the leader-election section.'
+    -> creates something new
+
+ITEMS THAT NEED CHECKING
+  carry:c0a1:text
+      the text of step 3 must carry what step 1 returned
+      delivered in: the message step 3 posts
+      step 1 (read_wiki_contents) returns the repo's wiki DOCUMENTATION PROSE. It states what the project is for, how a subsystem works, what a concept means. It does NOT state licence, stars, maintainers or primary language, so a question about those has no obtainable answer here.
+  carry:c0a2:text
+      the text of step 5 must carry what step 1 returned
+      delivered in: the message step 5 posts
+      step 1 (read_wiki_contents) returns the repo's wiki DOCUMENTATION PROSE. It states what the project is for, how a subsystem works, what a concept means. It does NOT state licence, stars, maintainers or primary language, so a question about those has no obtainable answer here.
+
+------------------------------------------------------------------------------------------------
+-- WHAT THE MODEL RETURNED (the shipped artifact)
+------------------------------------------------------------------------------------------------
+{
+  "prompt": "1. Call read_wiki_contents with repoName='kubernetes/kubernetes' and save the returned wiki DOCUMENTATION PROSE for use in later steps.\n2. Add a reaction '+1:' to message m_003 by calling add_reaction with message_id='m_003' and emoji='+1:'.\n3. Send a message to chat c_001 by calling send_message with chat_id='c_001' and set the message text to include the wiki DOCUMENTATION PROSE returned by step 1 in full; the body must carry that prose.\n4. Reply to message m_005 in chat c_001 by calling reply_to with message_id='m_005' and text='Done — I pasted the wiki prose into the infra channel and included the lifecycle section verbatim.'\n5. Send a message to chat c_002 by calling send_message with chat_id='c_002' and set the message text to include the wiki DOCUMENTATION PROSE returned by step 1 in full; the body must carry that prose.\n6. Reply to the message you created in step 5 by calling reply_to with message_id equal to the id of that created message and text='Lifecycle section is verbatim above per Alice. @benp please start extracting config keys; @carl please skim the leader-election section.'",
+  "judge": [
+    {
+      "id": "carry:c0a1:text",
+      "expected": "The message posted to chat c_001 contains the DeepWiki wiki documentation prose for the kubernetes/kubernetes repository — specifically the repository's documentation describing the project's purpose and explanations of its subsystems (including lifecycle and leader-election material if present).",
+      "hint": "Look at the text field of the message created by step 3 (the send_message to chat c_001)."
+    },
+    {
+      "id": "carry:c0a2:text",
+      "expected": "The message posted to chat c_002 contains the DeepWiki wiki documentation prose for the kubernetes/kubernetes repository — specifically the repository's documentation describing the project's purpose and explanations of its subsystems (including lifecycle and leader-election material if present).",
+      "hint": "Look at the text field of the message created by step 5 (the send_message to chat c_002)."
+    }
+  ]
+}

@@ -1,0 +1,326 @@
+{
+  "me": "u_me",
+  "users": {
+    "u_me": {
+      "id": "u_me",
+      "name": "You",
+      "handle": "you"
+    },
+    "u_priya_p": {
+      "id": "u_priya_p",
+      "name": "Priya Nair",
+      "handle": "priya_p"
+    },
+    "u_mateo_r": {
+      "id": "u_mateo_r",
+      "name": "Mateo Ruiz",
+      "handle": "mateo_r"
+    },
+    "u_sarah_k": {
+      "id": "u_sarah_k",
+      "name": "Sarah Kim",
+      "handle": "sarah_k"
+    },
+    "u_jamal_b": {
+      "id": "u_jamal_b",
+      "name": "Jamal Brown",
+      "handle": "jamal_b"
+    },
+    "u_alex_p": {
+      "id": "u_alex_p",
+      "name": "Alex Park",
+      "handle": "alex_p"
+    }
+  },
+  "chats": {
+    "c_001": {
+      "id": "c_001",
+      "kind": "group",
+      "name": "frontend-team",
+      "member_ids": [
+        "u_me",
+        "u_priya_p",
+        "u_mateo_r",
+        "u_sarah_k"
+      ]
+    },
+    "c_002": {
+      "id": "c_002",
+      "kind": "group",
+      "name": "sec-ops",
+      "member_ids": [
+        "u_me",
+        "u_mateo_r",
+        "u_jamal_b"
+      ]
+    },
+    "c_003": {
+      "id": "c_003",
+      "kind": "dm",
+      "name": null,
+      "member_ids": [
+        "u_me",
+        "u_sarah_k"
+      ]
+    }
+  },
+  "messages": [
+    {
+      "id": "m_001",
+      "chat_id": "c_001",
+      "sender_id": "u_priya_p",
+      "text": "Can someone confirm the license and current maintainers for the GitHub repo loom/widget-lib before we vendor it into our codebase? Priya needs a definitive answer today.",
+      "ts": 1,
+      "reply_to": null,
+      "reactions": {},
+      "read_by": [
+        "u_priya_p"
+      ]
+    },
+    {
+      "id": "m_002",
+      "chat_id": "c_001",
+      "sender_id": "u_mateo_r",
+      "text": "Is that the same widget-lib we used in the legacy dashboard? There were two similarly named repos.",
+      "ts": 2,
+      "reply_to": "m_001",
+      "reactions": {},
+      "read_by": [
+        "u_mateo_r",
+        "u_me"
+      ]
+    },
+    {
+      "id": "m_003",
+      "chat_id": "c_002",
+      "sender_id": "u_jamal_b",
+      "text": "If it's MIT we're probably fine to vendor; GPL-3 would be a blocker. Whoever checks, please list the license file path and the org/people listed as maintainers.",
+      "ts": 3,
+      "reply_to": null,
+      "reactions": {},
+      "read_by": [
+        "u_jamal_b",
+        "u_me"
+      ]
+    },
+    {
+      "id": "m_004",
+      "chat_id": "c_001",
+      "sender_id": "u_mateo_r",
+      "text": "I'll check the org maintainers list and post links.",
+      "ts": 4,
+      "reply_to": "m_002",
+      "reactions": {},
+      "read_by": [
+        "u_mateo_r",
+        "u_me"
+      ]
+    },
+    {
+      "id": "m_005",
+      "chat_id": "c_001",
+      "sender_id": "u_sarah_k",
+      "text": "Do you mean loom/widget-lib (TypeScript) or loom/widget-lib-js? They have slightly different owners.",
+      "ts": 5,
+      "reply_to": "m_001",
+      "reactions": {},
+      "read_by": [
+        "u_sarah_k"
+      ]
+    },
+    {
+      "id": "m_006",
+      "chat_id": "c_001",
+      "sender_id": "u_sarah_k",
+      "text": "Found a packument entry that might list the publisher; saving it here for reference.",
+      "ts": 6,
+      "reply_to": "m_001",
+      "reactions": {},
+      "read_by": [
+        "u_sarah_k",
+        "u_me"
+      ]
+    },
+    {
+      "id": "m_007",
+      "chat_id": "c_003",
+      "sender_id": "u_sarah_k",
+      "text": "Hey — Priya asked the team to confirm loom/widget-lib's license. Can you pull the repo metadata (license, primary language, maintainers) when you have a moment?",
+      "ts": 7,
+      "reply_to": null,
+      "reactions": {},
+      "read_by": [
+        "u_sarah_k"
+      ]
+    },
+    {
+      "id": "m_008",
+      "chat_id": "c_002",
+      "sender_id": "u_jamal_b",
+      "text": "I couldn't find a LICENSE in the repo mirror; it might live in a monorepo root. Will keep digging.",
+      "ts": 8,
+      "reply_to": "m_003",
+      "reactions": {},
+      "read_by": [
+        "u_jamal_b",
+        "u_me"
+      ]
+    },
+    {
+      "id": "m_009",
+      "chat_id": "c_002",
+      "sender_id": "u_mateo_r",
+      "text": "Jamal, could you check npm/packument and GH owners for that package? Security wants an explicit maintainer list.",
+      "ts": 9,
+      "reply_to": "m_003",
+      "reactions": {},
+      "read_by": [
+        "u_mateo_r",
+        "u_me"
+      ]
+    },
+    {
+      "id": "m_010",
+      "chat_id": "c_001",
+      "sender_id": "u_priya_p",
+      "text": "Adding a note: check /LICENSE and the root package.json for declared authors.",
+      "ts": 10,
+      "reply_to": "m_005",
+      "reactions": {},
+      "read_by": [
+        "u_priya_p",
+        "u_me"
+      ]
+    },
+    {
+      "id": "m_011",
+      "chat_id": "c_001",
+      "sender_id": "u_priya_p",
+      "text": "Thanks — if someone can confirm by EOD that'd be great. We're trying to avoid a last-minute license mismatch.",
+      "ts": 11,
+      "reply_to": "m_002",
+      "reactions": {},
+      "read_by": [
+        "u_priya_p",
+        "u_me"
+      ]
+    },
+    {
+      "id": "m_012",
+      "chat_id": "c_002",
+      "sender_id": "u_mateo_r",
+      "text": "On it — I'll fetch the npm packument and paste the author/version details here.",
+      "ts": 12,
+      "reply_to": "m_009",
+      "reactions": {},
+      "read_by": [
+        "u_mateo_r",
+        "u_me"
+      ]
+    },
+    {
+      "id": "m_013",
+      "chat_id": "c_001",
+      "sender_id": "u_sarah_k",
+      "text": "I can take it after lunch unless @you are able to run a quick check now and post what you find.",
+      "ts": 13,
+      "reply_to": "m_001",
+      "reactions": {},
+      "read_by": [
+        "u_sarah_k"
+      ]
+    },
+    {
+      "id": "m_014",
+      "chat_id": "c_003",
+      "sender_id": "u_sarah_k",
+      "text": "Also pinged @priya_p to see if she remembers which variant we used months ago.",
+      "ts": 14,
+      "reply_to": "m_007",
+      "reactions": {},
+      "read_by": [
+        "u_sarah_k",
+        "u_me"
+      ]
+    },
+    {
+      "id": "m_015",
+      "chat_id": "c_002",
+      "sender_id": "u_jamal_b",
+      "text": "I'll scan the repo and check contributors + package.json authors. Will report back with links.",
+      "ts": 15,
+      "reply_to": "m_009",
+      "reactions": {},
+      "read_by": [
+        "u_jamal_b",
+        "u_me"
+      ]
+    },
+    {
+      "id": "m_016",
+      "chat_id": "c_001",
+      "sender_id": "u_me",
+      "text": "$text_0",
+      "ts": 16,
+      "reply_to": "m_001",
+      "reactions": {},
+      "read_by": [
+        "u_me"
+      ]
+    },
+    {
+      "id": "m_017",
+      "chat_id": "c_001",
+      "sender_id": "u_me",
+      "text": "$text_1",
+      "ts": 17,
+      "reply_to": "m_016",
+      "reactions": {
+        "$emoji_0": [
+          "u_me"
+        ]
+      },
+      "read_by": [
+        "u_me"
+      ]
+    },
+    {
+      "id": "m_018",
+      "chat_id": "c_001",
+      "sender_id": "u_me",
+      "text": "$carried_c1a0_text",
+      "ts": 18,
+      "reply_to": null,
+      "reactions": {},
+      "read_by": [
+        "u_me"
+      ]
+    },
+    {
+      "id": "m_019",
+      "chat_id": "c_001",
+      "sender_id": "u_me",
+      "text": "$text_2",
+      "ts": 19,
+      "reply_to": "m_001",
+      "reactions": {},
+      "read_by": [
+        "u_me"
+      ]
+    },
+    {
+      "id": "m_020",
+      "chat_id": "c_002",
+      "sender_id": "u_me",
+      "text": "$carried_c1a2_text",
+      "ts": 20,
+      "reply_to": null,
+      "reactions": {},
+      "read_by": [
+        "u_me"
+      ]
+    }
+  ],
+  "next_message_id": 21,
+  "next_chat_id": 4
+}

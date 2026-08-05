@@ -1,0 +1,197 @@
+# Stage 11 — fold it into the message a colleague would have typed
+
+1 model call(s).
+
+================================================================================================
+== call 1 of 1
+================================================================================================
+
+------------------------------------------------------------------------------------------------
+-- SYSTEM PROMPT
+------------------------------------------------------------------------------------------------
+You rewrite a task as the message a colleague would actually have typed.
+
+You are given the workspace, the plan, and a task that already reads as prose. It is still a sequence in disguise: every action gets its own clause, in the plan's order, and anything one action needs from another is spelled out as a hand-off. Take that apart.
+
+- FOLD. Where one action exists only to feed another, they are ONE request, not two. "Read the recent messages there and keep the array they return for later" followed by "post a message whose body reproduces the sender and text of each message from that read" is one thing a person would ask for: "catch the room up by posting a rundown of who said what". Ask for the outcome; the lookups it takes follow from it and do not need saying.
+- NO HAND-OFF LANGUAGE. Nothing "returned", "retained", "kept for later use", "from the earlier read", "for use in later actions". A person does not narrate their own request as a data flow.
+- STOP DICTATING TEXT. Do not quote a message body or a question. Say what it has to get across and leave the wording to the agent. Not: ask about 'owner/repo' the question "What is this project for, and what's its primary programming language?" — instead: find out what owner/repo is for and what it is mostly written in. The one thing that must survive EXACTLY is a repository NAME: which repo was asked about is what the expected answer is keyed to.
+- A description INTRODUCES a thing. Use it at the first mention only. Every later mention refers back the way a person would — "that conversation", "the same thread", "there", "them", "it", "the one you just read". Pasting a description a second time is the commonest way this rewrite fails: it reads as find-and-replace rather than as writing, and where a description depends on something the task itself changes, every use after that change is simply FALSE. Any description marked below as one the work invalidates must be used early and never again.
+- Never answer your own reference. No parenthetical, no "i.e.", no appositive that supplies the name or id of something you have just described.
+- Every action in the plan must still be reachable from what you write, and you must not invite one the plan does not contain. Folding changes how the work is ASKED FOR, never what the work is.
+
+The test: read it aloud. If it sounds like someone who needs something done, it is right. If it sounds like someone reading out a checklist, fold harder.
+
+You also rewrite the JUDGE ITEMS. Each tells a grader what a correct answer says and where in the agent's output to look for it. They were written against the PREVIOUS version of this task, so they still speak its language — step numbers, entity ids, names, quoted wording — much of which you are removing. Left alone, they describe a task the agent was never given.
+
+For every item, restate `expected` and `hint` so that a grader reading YOUR text can still check the same thing:
+
+- `expected` — what a correct answer STATES, in substance. Keep every fact in it. Where the previous wording leaned on an id or a step number to say WHICH thing ("the reply to m_004"), say it the way your text says it. Never replace it with a pointer: "the answer to the question above" leaves a grader nothing to compare against.
+- `hint` — where in the agent's output to look, described the way your text describes it.
+
+Do not drop an item, do not merge two, and never change WHAT is required — only how it is said. Copy each `id` exactly.
+
+Respond with ONLY this JSON object:
+{"prompt": "<the rewritten task>",
+ "judge": [{"id": "<copied exactly>", "expected": "...", "hint": "..."}]}
+
+------------------------------------------------------------------------------------------------
+-- USER PROMPT
+------------------------------------------------------------------------------------------------
+ENVIRONMENT
+  chat: Local mock chat app. Read and write tools operate on the rollout's ChatState.
+  deepwiki: Public DeepWiki MCP server: read-only GitHub-repo Q&A. Answers can be nondeterministic; requires the repo to be indexed by DeepWiki.
+  You act as one specific user. The acting user's id. Every write is attributed to this user; reads are scoped to it where noted.
+
+ENTITY TYPES IN THIS TASK
+  user — A person in the workspace. Display names may collide; handles never do.
+      id: string
+      name: string
+      handle: string
+  chat — A conversation the acting user takes part in. `name` is null for a DM.
+      id: string
+      kind: "dm" | "group"
+      name: string | null
+      member_ids: string[] (user ids)
+  message — One posted message. `reply_to` threads it under an earlier message in the same chat.
+      id: string
+      chat_id: string (chat id)
+      sender_id: string (user id)
+      text: string
+      ts: int (logical clock, not wall time)
+      reply_to: string | null (parent message id)
+      reactions: object (emoji -> user_id[])
+      read_by: string[] (user ids)
+
+ACTIONS THIS TASK USES
+  list_chats (read) — List the chats the acting user is a member of.
+      returns: array of {id, kind, name, members} for chats where actor is in member_ids
+  create_chat (write) — Create a new chat; the acting user is always included as a member.
+      member_ids: user ids to include (actor added automatically)
+      name: chat name; if set (or >2 members) the chat is a group, else a dm (optional)
+      returns: {id, kind, name, members}
+  send_message (write) — Send a message from the acting user to a chat.
+      chat_id: destination chat
+      text: message body
+      returns: the created message view
+  reply_to (write) — Reply to an existing message in its chat (threaded).
+      message_id: the message being replied to
+      text: reply body
+      returns: the created message view
+
+WORKSPACE
+You act as Alex Morgan (id u_me).
+
+People:
+  u_me  Alex Morgan @you
+  u_mg_singh  Maya Singh @mg_singh
+  u_crivera  Carlos Rivera @crivera
+  u_jpark  Jen Park @jpark
+  u_amirq  Amir Qureshi @amirq
+  u_spatel  Samir Patel @spatel
+
+group launch-team (c_001) — members: Alex Morgan @you, Maya Singh @mg_singh, Carlos Rivera @crivera
+  m_001 [Maya Singh @mg_singh]: We need to finalize the beta list by Friday. Current candidate count: 42. Thoughts on prioritization?  (UNREAD by you)
+  m_003 [Alex Morgan @you]: I can run the segmentation this afternoon and share a prioritized list.  (reply to m_001)
+  m_004 [Maya Singh @mg_singh]: Also, can we add a quick note about international locales?  (reply to m_001; UNREAD by you)
+  m_005 [Carlos Rivera @crivera]: I'm worried about capacity for tier B; we should cap at 30 unless ops can extend.  (UNREAD by you)
+  m_006 [Carlos Rivera @crivera]: Also, FYI I put a note in the project board about potential capacity spikes.  (reply to m_003; UNREAD by you)
+  m_008 [Carlos Rivera @crivera]: If ops can extend they'll need a list of proposed users per tier.  (reply to m_005; UNREAD by you)
+  m_010 [Maya Singh @mg_singh]: Good catch, Carlos. I'll draft the list template.  (reply to m_006; UNREAD by you)
+  m_017 [Carlos Rivera @crivera]: Thanks — segmentation would help. Also looping ops in case we need capacity.  (reply to m_003; UNREAD by you)
+
+dm (dm) (c_002) — members: Alex Morgan @you, Jen Park @jpark
+  m_007 [Jen Park @jpark]: Do you have the final assets from design?  (UNREAD by you)
+  m_009 [Alex Morgan @you]: Not yet; Amir said he'd push icons by EOD.  (reply to m_007)
+  m_012 [Jen Park @jpark]: Design pushed a small update — I'll resend the asset links once exported.  (reply to m_007; UNREAD by you)
+  m_014 [Jen Park @jpark]: Quick Q: do you want PNGs or SVGs for the icons?  (reply to m_012; UNREAD by you)
+
+group design-queue (c_003) — members: Alex Morgan @you, Amir Qureshi @amirq, Maya Singh @mg_singh
+  m_011 [Amir Qureshi @amirq]: Pushed the revised hero banner to /design-assets/banner_v3 — feedback welcome.  (UNREAD by you)
+  m_013 [Maya Singh @mg_singh]: Nice. The CTA needs stronger contrast though.  (reply to m_011; UNREAD by you)
+  m_015 [Alex Morgan @you]: I'll coordinate a quick accessibility pass and return notes by noon.  (reply to m_011)
+  m_016 [Amir Qureshi @amirq]: I'm happy to review contrast changes after your pass.  (reply to m_011; UNREAD by you)
+  m_018 [Maya Singh @mg_singh]: Thanks — can you note exact color values in the doc?  (reply to m_016; UNREAD by you)
+
+group coffee-corner (c_004) — members: Alex Morgan @you, Maya Singh @mg_singh, Samir Patel @spatel
+  m_002 [Samir Patel @spatel]: Hey — thought it would be nice to have a casual chat for breaks and random links.
+
+PLAN YOUR TEXT MUST STILL LEAD TO (do not reproduce it, and do not walk through it in order)
+step 1 [read] list_chats — List the chats the acting user is a member of.
+    -> returns: [{"id": "c_001", "kind": "group", "name": "launch-team", "members": ["u_me", "u_mg_singh", "u_crivera"]}, {"id": "c_002", "kind": "dm", "name": "c_002", "members": ["u_me", "u_jpark"]}, {"id": "c_003", "kind": "group", "name": "design-queue", "members": ["u_me", "u_amirq", "u_mg_singh"]}, {"id": "c_004", "kind": "group", "name": "coffee-corner", "members": ["u_me", "u_mg_singh", "u_spatel"]}]
+step 2 [write] create_chat — Create a new chat; the acting user is always included as a member.
+    member_ids   = u_mg_singh — Maya Singh @mg_singh, u_crivera — Carlos Rivera @crivera
+    name         = 'beta-prioritization'
+    -> creates something new
+step 3 [write] create_chat — Create a new chat; the acting user is always included as a member.
+    member_ids   = u_jpark — Jen Park @jpark, u_amirq — Amir Qureshi @amirq
+    name         = 'design-assets'
+    -> creates something new
+step 4 [write] send_message — Send a message from the acting user to a chat.
+    chat_id      = c_001 — group 'launch-team' — members: Alex Morgan @you, Maya Singh @mg_singh, Carlos Rivera @crivera
+    text         <- must carry what step 1 returned
+    -> creates something new
+step 5 [write] reply_to — Reply to an existing message in its chat (threaded).
+    message_id   = m_005 — in launch-team from Carlos Rivera, unread by you: "I'm worried about capacity for tier B; we should cap at 30 unless ops can extend."
+    text         <- must carry what step 1 returned
+    -> creates something new
+step 6 [write] reply_to — Reply to an existing message in its chat (threaded).
+    message_id   = m_011 — in design-queue from Amir Qureshi, unread by you: 'Pushed the revised hero banner to /design-assets/banner_v3 — feedback welcome.'
+    text         <- must carry what step 1 returned
+    -> creates something new
+
+THE ONLY WAYS TO PICK EACH THING OUT — each ONCE, then refer back
+  whoever wrote the message about finalize the beta list
+  whoever wrote the message about worried about capacity for
+  whoever wrote the message about final assets from design
+  whoever wrote the message about Pushed the revised hero
+  the conversation where finalize the beta list came up
+  the message about worried about capacity for
+  the message about Pushed the revised hero
+
+THESE STRINGS MUST NOT APPEAR IN YOUR TEXT
+  Amir Qureshi, Carlos Rivera, Jen Park, Maya Singh, add_reaction, amirq, ask_question, c_001, c_002, c_003, c_004, chat_add_reaction, chat_create_chat, chat_get_user, chat_list_chats, chat_mark_read, chat_read_messages, chat_reply_to, chat_send_message, create_chat, crivera, deepwiki_ask_question, deepwiki_read_wiki_contents, deepwiki_read_wiki_structure, get_user, jpark, launch-team, list_chats, m_001, m_002, m_003, m_004, m_005, m_006, m_007, m_008, m_009, m_010, m_011, m_012, m_013, m_014, m_015, m_016, m_017, m_018, mark_read, mg_singh, read_messages, read_wiki_contents, read_wiki_structure, reply_to, send_message, u_amirq, u_crivera, u_jpark, u_me, u_mg_singh, u_spatel
+
+JUDGE ITEMS — REWRITE EACH ONE'S expected AND hint FOR YOUR TEXT
+  carry:c0a1:text
+      requirement (FIXED, do not change): the text of step 4 must carry what step 1 returned
+      must be delivered in (FIXED): the message step 4 posts
+      expected — RESTATE FOR YOUR TEXT: The message posted into the conversation where finalize the beta list came up states that the acting user belongs to four chats: a group conversation that is the conversation where finalize the beta list came up whose members are the acting user, whoever wrote the message about finalize the beta list, and whoever wrote the message about worried about capacity for; a direct one-on-one conversation between the acting user and whoever wrote the message about final assets from design; a group conversation whose members are the acting user, whoever wrote the message about Pushed the revised hero, and whoever wrote the message about finalize the beta list; and a group conversation for casual breaks and random links whose members are the acting user, whoever wrote the message about finalize the beta list, and the person who started the casual chat for breaks and random links.
+      hint     — RESTATE FOR YOUR TEXT: Look in the text of the message you posted into the conversation where finalize the beta list came up (the message sent into that conversation).
+  carry:c1a1:text
+      requirement (FIXED, do not change): the text of step 5 must carry what step 1 returned
+      must be delivered in (FIXED): the message step 5 posts
+      expected — RESTATE FOR YOUR TEXT: The reply made to the message about worried about capacity for states that the acting user belongs to four chats: a group conversation that is the conversation where finalize the beta list came up whose members are the acting user, whoever wrote the message about finalize the beta list, and whoever wrote the message about worried about capacity for; a direct one-on-one conversation between the acting user and whoever wrote the message about final assets from design; a group conversation whose members are the acting user, whoever wrote the message about Pushed the revised hero, and whoever wrote the message about finalize the beta list; and a group conversation for casual breaks and random links whose members are the acting user, whoever wrote the message about finalize the beta list, and the person who started the casual chat for breaks and random links.
+      hint     — RESTATE FOR YOUR TEXT: Look in the text of the reply you posted in response to the message about worried about capacity for (the threaded reply to that message).
+  carry:c0a2:text
+      requirement (FIXED, do not change): the text of step 6 must carry what step 1 returned
+      must be delivered in (FIXED): the message step 6 posts
+      expected — RESTATE FOR YOUR TEXT: The reply made to the message about Pushed the revised hero states that the acting user belongs to four chats: a group conversation that is the conversation where finalize the beta list came up whose members are the acting user, whoever wrote the message about finalize the beta list, and whoever wrote the message about worried about capacity for; a direct one-on-one conversation between the acting user and whoever wrote the message about final assets from design; a group conversation whose members are the acting user, whoever wrote the message about Pushed the revised hero, and whoever wrote the message about finalize the beta list; and a group conversation for casual breaks and random links whose members are the acting user, whoever wrote the message about finalize the beta list, and the person who started the casual chat for breaks and random links.
+      hint     — RESTATE FOR YOUR TEXT: Look in the text of the reply you posted in response to the message about Pushed the revised hero (the threaded reply to that message).
+
+CURRENT TASK TEXT (rewrite this)
+I need a short workflow completed: gather my current chat memberships and use that information to create two focused group spaces and broadcast the results into the relevant threads. First, identify the chats I belong to by enumerating my memberships. Create a group called 'beta-prioritization' that includes whoever wrote the message about finalize the beta list — the person who asked to finalize the beta candidate list by Friday — and whoever wrote the message about worried about capacity for — the person who raised capacity concerns for tier B. Create another group called 'design-assets' that includes whoever wrote the message about final assets from design — the person who asked if the final assets were ready — and whoever wrote the message about Pushed the revised hero — the person who posted the revised hero banner. Post a concise summary of the chat-list output into the conversation where finalize the beta list came up — the group thread where that request appears — and post that same concise summary as a threaded reply to the message about worried about capacity for — the capacity-concern message — and as a threaded reply to the message about Pushed the revised hero — the banner post. Return the two newly created group chats and the three messages you posted.
+
+------------------------------------------------------------------------------------------------
+-- REPLY
+------------------------------------------------------------------------------------------------
+{
+  "prompt": "Please run this short workflow as me.\n\n1) Enumerate the chats I belong to.\n2) Make a new group called 'beta-prioritization' and include the person who asked to finalize the beta candidate list by Friday and the person who raised the capacity concern for tier B.\n3) Make another new group called 'design-assets' and include the person who asked whether the final design assets were ready and the person who posted the revised hero banner.\n4) Post a concise summary of which chats I belong to into the group where the finalize-the-beta-list request was posted, and also post that exact concise summary as threaded replies to (a) the message that raised the tier-B capacity concern and (b) the message that posted the revised hero banner.\n\nThe concise summary should state that I belong to four chats: (a) the group where the finalize-the-beta-list request appears, whose members are me, the author of the finalize-the-beta-list message, and the author of the capacity-concern message; (b) a one-on-one DM between me and the author of the final-assets question; (c) a group whose members are me, the author of the revised-hero post, and the author of the finalize-the-beta-list message; and (d) the casual-breaks group whose members are me, the author of the finalize-the-beta-list message, and the person who started that casual-breaks chat.\n\nReturn the two newly created group objects and the three messages you posted (the broadcast plus the two threaded replies).",
+  "judge": [
+    {
+      "id": "carry:c0a1:text",
+      "expected": "The message posted into the group where the finalize-the-beta-list request appears states that the acting user belongs to four chats: (1) the group where the finalize-the-beta-list request appears, whose members are the acting user, the author of the finalize-the-beta-list message, and the author of the capacity-concern message; (2) a one-on-one DM between the acting user and the author of the final-assets question; (3) a group whose members are the acting user, the author of the revised-hero post, and the author of the finalize-the-beta-list message; and (4) the casual-breaks group whose members are the acting user, the author of the finalize-the-beta-list message, and the person who started that casual-breaks chat.",
+      "hint": "Look in the body of the message posted into the group where the finalize-the-beta-list request was made."
+    },
+    {
+      "id": "carry:c1a1:text",
+      "expected": "The threaded reply posted in response to the capacity-concern message states that the acting user belongs to four chats: (1) the group where the finalize-the-beta-list request appears, whose members are the acting user, the author of the finalize-the-beta-list message, and the author of the capacity-concern message; (2) a one-on-one DM between the acting user and the author of the final-assets question; (3) a group whose members are the acting user, the author of the revised-hero post, and the author of the finalize-the-beta-list message; and (4) the casual-breaks group whose members are the acting user, the author of the finalize-the-beta-list message, and the person who started that casual-breaks chat.",
+      "hint": "Look in the text of the threaded reply posted to the capacity-concern message."
+    },
+    {
+      "id": "carry:c0a2:text",
+      "expected": "The threaded reply posted in response to the revised-hero post states that the acting user belongs to four chats: (1) the group where the finalize-the-beta-list request appears, whose members are the acting user, the author of the finalize-the-beta-list message, and the author of the capacity-concern message; (2) a one-on-one DM between the acting user and the author of the final-assets question; (3) a group whose members are the acting user, the author of the revised-hero post, and the author of the finalize-the-beta-list message; and (4) the casual-breaks group whose members are the acting user, the author of the finalize-the-beta-list message, and the person who started that casual-breaks chat.",
+      "hint": "Look in the text of the threaded reply posted to the revised-hero message."
+    }
+  ]
+}

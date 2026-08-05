@@ -1,0 +1,338 @@
+{
+  "me": "u_me",
+  "users": {
+    "u_me": {
+      "id": "u_me",
+      "name": "Sam Cho",
+      "handle": "you"
+    },
+    "u_alice": {
+      "id": "u_alice",
+      "name": "Alice Nguyen",
+      "handle": "alice"
+    },
+    "u_benp": {
+      "id": "u_benp",
+      "name": "Ben Park",
+      "handle": "benp"
+    },
+    "u_carl": {
+      "id": "u_carl",
+      "name": "Carlos Ruiz",
+      "handle": "carl"
+    },
+    "u_danali": {
+      "id": "u_danali",
+      "name": "Dana Li",
+      "handle": "danali"
+    },
+    "u_jlee": {
+      "id": "u_jlee",
+      "name": "Jin Lee",
+      "handle": "jlee"
+    }
+  },
+  "chats": {
+    "c_001": {
+      "id": "c_001",
+      "kind": "dm",
+      "name": null,
+      "member_ids": [
+        "u_me",
+        "u_alice"
+      ]
+    },
+    "c_002": {
+      "id": "c_002",
+      "kind": "group",
+      "name": "infra",
+      "member_ids": [
+        "u_me",
+        "u_alice",
+        "u_benp",
+        "u_carl",
+        "u_danali"
+      ]
+    },
+    "c_003": {
+      "id": "c_003",
+      "kind": "group",
+      "name": null,
+      "member_ids": [
+        "u_me",
+        "u_alice",
+        "u_jlee"
+      ]
+    }
+  },
+  "messages": [
+    {
+      "id": "m_001",
+      "chat_id": "c_002",
+      "sender_id": "u_alice",
+      "text": "Heads-up: we need the wiki for ops/scheduler to update the runbook. Anyone knows the repo name?",
+      "ts": 1,
+      "reply_to": null,
+      "reactions": {},
+      "read_by": [
+        "u_alice",
+        "u_me"
+      ]
+    },
+    {
+      "id": "m_002",
+      "chat_id": "c_003",
+      "sender_id": "u_jlee",
+      "text": "Hey Alice, do you have a minute to go over the onboarding checklist?",
+      "ts": 2,
+      "reply_to": null,
+      "reactions": {},
+      "read_by": [
+        "u_jlee",
+        "u_me"
+      ]
+    },
+    {
+      "id": "m_003",
+      "chat_id": "c_002",
+      "sender_id": "u_benp",
+      "text": "I think it's ops/scheduler-service? The README points to a wiki. Can someone pull the DeepWiki page?",
+      "ts": 3,
+      "reply_to": "m_001",
+      "reactions": {
+        ":+1:": [
+          "u_carl"
+        ],
+        "$emoji_0": [
+          "u_me"
+        ]
+      },
+      "read_by": [
+        "u_benp"
+      ]
+    },
+    {
+      "id": "m_004",
+      "chat_id": "c_002",
+      "sender_id": "u_carl",
+      "text": "FWIW I left the notes from the toggle rollout in /docs/rollouts — check there before we duplicate effort.",
+      "ts": 4,
+      "reply_to": null,
+      "reactions": {},
+      "read_by": [
+        "u_carl",
+        "u_me"
+      ]
+    },
+    {
+      "id": "m_005",
+      "chat_id": "c_001",
+      "sender_id": "u_alice",
+      "text": "Sam, could you read the wiki for owner/scheduler and paste the prose into the infra channel? We need the subsystem explanation in full.",
+      "ts": 5,
+      "reply_to": null,
+      "reactions": {},
+      "read_by": [
+        "u_alice"
+      ]
+    },
+    {
+      "id": "m_006",
+      "chat_id": "c_002",
+      "sender_id": "u_benp",
+      "text": "Thanks — @carl can you skim the leader-election section once Sam pastes the wiki?",
+      "ts": 6,
+      "reply_to": "m_003",
+      "reactions": {},
+      "read_by": [
+        "u_benp",
+        "u_me"
+      ]
+    },
+    {
+      "id": "m_007",
+      "chat_id": "c_002",
+      "sender_id": "u_carl",
+      "text": "If it's owner/scheduler we should include section on lifecycle and leader-election. The wiki usually has that.",
+      "ts": 7,
+      "reply_to": "m_003",
+      "reactions": {},
+      "read_by": [
+        "u_carl",
+        "u_me"
+      ]
+    },
+    {
+      "id": "m_008",
+      "chat_id": "c_002",
+      "sender_id": "u_danali",
+      "text": "Also note the wiki doesn't include deployment notes — maybe add them after we paste the docs.",
+      "ts": 8,
+      "reply_to": "m_001",
+      "reactions": {
+        ":+1:": [
+          "u_benp"
+        ]
+      },
+      "read_by": [
+        "u_danali",
+        "u_me"
+      ]
+    },
+    {
+      "id": "m_009",
+      "chat_id": "c_002",
+      "sender_id": "u_danali",
+      "text": "Noted. I'll add a deployment stub to the runbook after we have the wiki text.",
+      "ts": 9,
+      "reply_to": "m_001",
+      "reactions": {},
+      "read_by": [
+        "u_danali",
+        "u_me"
+      ]
+    },
+    {
+      "id": "m_010",
+      "chat_id": "c_001",
+      "sender_id": "u_alice",
+      "text": "Repo name someone mentioned owner/scheduler earlier — confirm? I can ping on GH but would be faster if you paste the wiki here.",
+      "ts": 10,
+      "reply_to": "m_005",
+      "reactions": {},
+      "read_by": [
+        "u_alice"
+      ]
+    },
+    {
+      "id": "m_011",
+      "chat_id": "c_002",
+      "sender_id": "u_alice",
+      "text": "Please include the lifecycle section verbatim when you paste, compliance needs it.",
+      "ts": 11,
+      "reply_to": "m_007",
+      "reactions": {},
+      "read_by": [
+        "u_alice",
+        "u_me"
+      ]
+    },
+    {
+      "id": "m_012",
+      "chat_id": "c_002",
+      "sender_id": "u_benp",
+      "text": "Quick request: once Sam posts the wiki, I'll start extracting config keys.",
+      "ts": 12,
+      "reply_to": "m_007",
+      "reactions": {
+        ":+1:": [
+          "u_alice",
+          "u_carl"
+        ]
+      },
+      "read_by": [
+        "u_benp"
+      ]
+    },
+    {
+      "id": "m_013",
+      "chat_id": "c_001",
+      "sender_id": "u_alice",
+      "text": "I pinged GH to confirm the repo name; they responded with a link.",
+      "ts": 13,
+      "reply_to": "m_010",
+      "reactions": {},
+      "read_by": [
+        "u_alice",
+        "u_me"
+      ]
+    },
+    {
+      "id": "m_014",
+      "chat_id": "c_002",
+      "sender_id": "u_alice",
+      "text": "Okay—waiting on Sam. Whoever can confirm the exact GH repo name, call it out here.",
+      "ts": 14,
+      "reply_to": "m_012",
+      "reactions": {},
+      "read_by": [
+        "u_alice"
+      ]
+    },
+    {
+      "id": "m_015",
+      "chat_id": "c_002",
+      "sender_id": "u_carl",
+      "text": "Also, coffee machine on floor 4 is back online. Save your mornings!",
+      "ts": 15,
+      "reply_to": "m_012",
+      "reactions": {},
+      "read_by": [
+        "u_carl",
+        "u_me"
+      ]
+    },
+    {
+      "id": "m_016",
+      "chat_id": "c_001",
+      "sender_id": "u_alice",
+      "text": "Also note: DeepWiki often shows conceptual info only — we may need to follow links to code for specifics.",
+      "ts": 16,
+      "reply_to": null,
+      "reactions": {},
+      "read_by": [
+        "u_alice"
+      ]
+    },
+    {
+      "id": "m_017",
+      "chat_id": "c_001",
+      "sender_id": "u_me",
+      "text": "$carried_c0a1_text",
+      "ts": 17,
+      "reply_to": null,
+      "reactions": {},
+      "read_by": [
+        "u_me"
+      ]
+    },
+    {
+      "id": "m_018",
+      "chat_id": "c_001",
+      "sender_id": "u_me",
+      "text": "$text_0",
+      "ts": 18,
+      "reply_to": "m_005",
+      "reactions": {},
+      "read_by": [
+        "u_me"
+      ]
+    },
+    {
+      "id": "m_019",
+      "chat_id": "c_002",
+      "sender_id": "u_me",
+      "text": "$carried_c0a2_text",
+      "ts": 19,
+      "reply_to": null,
+      "reactions": {},
+      "read_by": [
+        "u_me"
+      ]
+    },
+    {
+      "id": "m_020",
+      "chat_id": "c_002",
+      "sender_id": "u_me",
+      "text": "$text_1",
+      "ts": 20,
+      "reply_to": "m_019",
+      "reactions": {},
+      "read_by": [
+        "u_me"
+      ]
+    }
+  ],
+  "next_message_id": 21,
+  "next_chat_id": 4
+}

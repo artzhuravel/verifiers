@@ -1,0 +1,30 @@
+{
+  "model": "openai/gpt-5-mini",
+  "authored": [
+    0,
+    1,
+    2,
+    3,
+    4,
+    5,
+    6,
+    7,
+    8,
+    9,
+    10,
+    11
+  ],
+  "dropped": [],
+  "model_calls": 103,
+  "cache_hits": 0,
+  "calls_by_stage": {
+    "world": 13,
+    "references": 12,
+    "populate": 19,
+    "content": 11,
+    "prompt_v1": 12,
+    "prompt_v2": 12,
+    "prompt_v3": 12,
+    "prompt_v4": 12
+  }
+}

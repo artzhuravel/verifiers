@@ -52,19 +52,30 @@ def state_diff(seed, expected, trace, adapter) -> float:
 _JUDGE_PROMPT = """You grade whether an agent delivered specific pieces of information.
 
 Each numbered item is something the agent had to find out and then put somewhere. You are given \
-the requirement, what a correct answer says, and where in the agent's output to look for it. \
-Decide whether the agent's output contains a correct answer there — matching in substance, \
-wording may differ. Judge correctness only, never style.
+the requirement, what a correct answer says, and where in the agent's output to look for it.
 
-The agent's output has two parts. Grade against the DELIVERED OUTPUT section alone: an answer \
-sitting in a tool result that the agent never delivered where the hint says does NOT count. The \
-FULL ROLLOUT section is context — use it to tell a genuinely retrieved answer from a guess, \
-never as the answer itself.
+You are given the WHOLE ROLLOUT: every tool call the agent made, every result that came back, \
+every message it sent, and its final reply. Use all of it. Do not grade off the final reply alone \
+— most of these items are about information landing in a message partway through, and a rollout \
+that did the work correctly and said little at the end is not a failure.
+
+Two things to hold together for each item:
+
+- **It has to be where the item says.** The hint names the place. Information that only ever \
+appears in a tool result, and was never passed on, is not delivered — no matter how clearly the \
+agent retrieved it.
+- **It has to be the same information.** That is a question about the whole trace: compare what \
+the agent said against what the tools actually returned. A value the agent invented rather than \
+retrieved is wrong even when it looks plausible, and a correct answer worded differently is \
+right.
+
+Match on substance. Never judge style, length, or phrasing. An item is correct when a reader of \
+the place the hint names would come away with the facts the expected answer states.
 
 Items:
 {items}
 
-Agent output:
+The rollout:
 {transcript}
 
 Respond with ONLY a JSON array of booleans, one per item in order (true = correct).
@@ -83,12 +94,16 @@ class DeliveryJudge(vf.Judge[list, vf.JudgeConfig]):
 
 
 def transcript(trace: vf.Trace, seeded: set[str]) -> str:
-    """What the judge sees: the whole rollout, then the part that counts for grading.
+    """What the judge sees: the whole rollout, and then an index of what the agent delivered.
 
-    The full trace lets the judge tell work from invention — an answer the agent guessed is not
-    an answer it retrieved. Grading still targets delivered output only: messages the agent sent
-    during this rollout plus its final reply, because every judge item is about delivery.
-    Seeded messages are excluded, since the world ships with history the acting user "wrote".
+    The judge grades over the *whole* trace — every tool call and every result — because that is
+    the only way to tell a retrieved answer from an invented one, and because most items are about
+    information landing in a message partway through rather than in the final reply.
+
+    The second section is not a narrower grading target but an index: the messages the agent sent
+    are scattered through a long transcript, and every judge item is about delivery, so collecting
+    them saves the judge from having to reconstruct them. Seeded messages are excluded, since the
+    world ships with history the acting user "wrote".
     """
     state = trace.state
     sent = []
@@ -98,10 +113,10 @@ def transcript(trace: vf.Trace, seeded: set[str]) -> str:
             label = chat.name if chat and chat.name else message.chat_id
             sent.append(f"[{label}] {message.text}")
     return (
-        "FULL ROLLOUT — every tool call the agent made and what came back. Context only:\n"
+        "=== FULL ROLLOUT — every tool call the agent made and every result that came back ===\n"
         f"{trace.transcript}\n\n"
-        "=== DELIVERED OUTPUT — grade against this section alone ===\n"
-        f"Messages the agent sent:\n{chr(10).join(sent) or '(none)'}\n\n"
+        "=== WHAT THE AGENT DELIVERED — the same messages, collected for convenience ===\n"
+        f"Messages the agent sent during this rollout:\n{chr(10).join(sent) or '(none)'}\n\n"
         f"Agent's final reply:\n{trace.last_reply or ''}"
     )
 

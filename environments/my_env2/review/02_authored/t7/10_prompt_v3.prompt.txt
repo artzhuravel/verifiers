@@ -1,0 +1,184 @@
+# Stage 10 — rewrite as a goal
+
+NOTE ON FIDELITY — the instruction below is CURRENT; the reply below is HISTORICAL.
+
+These twelve tasks are the evidence that made the rewrite stages change. The system prompt shown
+here is the one now in the code — it asks for a description to be used once and referred back to
+afterwards, and it asks for the judge specification to be restated. The task text shown as the
+reply was produced by the PREVIOUS version of this stage, which asked for per-occurrence
+substitution and left the judge items alone. Reading the two together is the before-and-after.
+
+
+------------------------------------------------------------------------------------------------
+-- SYSTEM PROMPT
+------------------------------------------------------------------------------------------------
+You rewrite a task as the request a person would actually have sent.
+
+You are given the workspace, the underlying plan, and a task written as connected prose. Raise its level of abstraction: say what you are trying to ACHIEVE and let the steps follow from it.
+
+- No enumeration. No numbered or bulleted steps, and no sentence that reads as "and then".
+- Nothing quoted or dictated word for word — except repository names and questions, which must survive exactly, because the expected answers are keyed to them.
+- Individual steps must stop being individually identifiable. Fold them into the goal.
+- Keep every reference resolvable: an agent reading this must still be able to work out which things you mean.
+- Refer to things the way the list below does, and never by name. A description with the answer bolted on — "Alice Rivera (the author of the message about the freeze)" — is worse than either half of it alone: it hands back the very step the description existed to create.
+- A description INTRODUCES a thing. Use it at the first mention only. Every later mention refers back the way a person would — "that conversation", "the same thread", "there", "them", "it", "the one you just read". Pasting a description a second time is the commonest way this rewrite fails: it reads as find-and-replace rather than as writing, and where a description depends on something the task itself changes, every use after that change is simply FALSE. Any description marked below as one the work invalidates must be used early and never again.
+- Never answer your own reference. No parenthetical, no "i.e.", no appositive that supplies the name or id of something you have just described.
+- You are shown the plan so you can check your text still leads to those actions. It is not something to reproduce, and none of it should be recognisable as a list.
+
+The test is simple: a colleague reading this should see a normal ask, and an agent following it should end up doing the same work.
+
+You also rewrite the JUDGE ITEMS. Each tells a grader what a correct answer says and where in the agent's output to look for it. They were written against the PREVIOUS version of this task, so they still speak its language — step numbers, entity ids, names, quoted wording — much of which you are removing. Left alone, they describe a task the agent was never given.
+
+For every item, restate `expected` and `hint` so that a grader reading YOUR text can still check the same thing:
+
+- `expected` — what a correct answer STATES, in substance. Keep every fact in it. Where the previous wording leaned on an id or a step number to say WHICH thing ("the reply to m_004"), say it the way your text says it. Never replace it with a pointer: "the answer to the question above" leaves a grader nothing to compare against.
+- `hint` — where in the agent's output to look, described the way your text describes it.
+
+Do not drop an item, do not merge two, and never change WHAT is required — only how it is said. Copy each `id` exactly.
+
+Respond with ONLY this JSON object:
+{"prompt": "<the rewritten task>",
+ "judge": [{"id": "<copied exactly>", "expected": "...", "hint": "..."}]}
+
+------------------------------------------------------------------------------------------------
+-- USER PROMPT
+------------------------------------------------------------------------------------------------
+ENVIRONMENT
+  chat: Local mock chat app. Read and write tools operate on the rollout's ChatState.
+  deepwiki: Public DeepWiki MCP server: read-only GitHub-repo Q&A. Answers can be nondeterministic; requires the repo to be indexed by DeepWiki.
+  You act as one specific user. The acting user's id. Every write is attributed to this user; reads are scoped to it where noted.
+
+ENTITY TYPES IN THIS TASK
+  chat — A conversation the acting user takes part in. `name` is null for a DM.
+      id: string
+      kind: "dm" | "group"
+      name: string | null
+      member_ids: string[] (user ids)
+  user — A person in the workspace. Display names may collide; handles never do.
+      id: string
+      name: string
+      handle: string
+  message — One posted message. `reply_to` threads it under an earlier message in the same chat.
+      id: string
+      chat_id: string (chat id)
+      sender_id: string (user id)
+      text: string
+      ts: int (logical clock, not wall time)
+      reply_to: string | null (parent message id)
+      reactions: object (emoji -> user_id[])
+      read_by: string[] (user ids)
+
+ACTIONS THIS TASK USES
+  list_chats (read) — List the chats the acting user is a member of.
+      returns: array of {id, kind, name, members} for chats where actor is in member_ids
+  read_messages (read) — Read the most recent messages in a chat, oldest to newest.
+      chat_id: chat to read
+      limit: max messages, most recent (optional)
+      returns: array of message views {id, chat_id, from, sender_id, text, ts, reply_to, reactions, read_by}
+  create_chat (write) — Create a new chat; the acting user is always included as a member.
+      member_ids: user ids to include (actor added automatically)
+      name: chat name; if set (or >2 members) the chat is a group, else a dm (optional)
+      returns: {id, kind, name, members}
+  send_message (write) — Send a message from the acting user to a chat.
+      chat_id: destination chat
+      text: message body
+      returns: the created message view
+  reply_to (write) — Reply to an existing message in its chat (threaded).
+      message_id: the message being replied to
+      text: reply body
+      returns: the created message view
+
+WORKSPACE
+You act as Sam Lee (id u_me).
+
+People:
+  u_me  Sam Lee @you
+  u_alice_m  Alice Moreno @alice.m
+  u_ben_o  Ben Ortiz @ben.o
+  u_carla_n  Carla Nguyen @carla.n
+  u_dan_k  Dan Kim @dan.k
+  u_evan_p  Evan Park @evan.p
+  u_maya_s  Maya Singh @maya.s
+
+group Site Redesign (c_001) — members: Sam Lee @you, Alice Moreno @alice.m, Carla Nguyen @carla.n, Dan Kim @dan.k
+  m_001 [Alice Moreno @alice.m]: Week 3 milestone: can we lock the hero layout by Friday? I pulled prelim numbers and there's a traffic dip if we push beyond next week.  (:+1: x1)
+  m_002 [Carla Nguyen @carla.n]: I still want to run one more A/B with variant B — content team needs another day to finalize copy.  (reply to m_001)
+  m_003 [Dan Kim @dan.k]: Design flagged an image parity issue on mobile; QA says it affects layout by ~8px. We should decide whether to patch or roll with it.
+  m_006 [Carla Nguyen @carla.n]: Also, is the header font load affecting CLS? I noticed a shift on first paint.  (UNREAD by you)
+  m_007 [Sam Lee @you]: I'll consolidate feedback after Friday's review and send a single action list for engineering.  (:clipboard: x1)
+  m_010 [Alice Moreno @alice.m]: I can take the analytics pull — will have numbers by EOD.
+  m_011 [Carla Nguyen @carla.n]: If we postpone the hero, we risk losing momentum. What's the estimated conversion delta if we delay one week?  (reply to m_001; UNREAD by you)
+  m_013 [Dan Kim @dan.k]: We could set a temporary fix for mobile; if QA signs off it's low risk.  (reply to m_003; UNREAD by you)
+  m_014 [Alice Moreno @alice.m]: Can someone pull analytics for the last 2 weeks? We'll need concrete numbers to decide on the delay.  (UNREAD by you)
+
+dm (dm) (c_002) — members: Sam Lee @you, Ben Ortiz @ben.o
+  m_005 [Ben Ortiz @ben.o]: Quick check: are we green for the press banner tomorrow morning?
+  m_008 [Ben Ortiz @ben.o]: Assets are in the drive under /press/banner_v2 — I'll share access.  (reply to m_005)
+  m_009 [Ben Ortiz @ben.o]: Also: can you publish the updated event page? I don't have deploy permissions for that repo.  (UNREAD by you)
+  m_012 [Sam Lee @you]: I can take the press banner—what assets do you have so I can confirm sizes?  (reply to m_005; :email: x1)
+
+group Lunch Run (c_003) — members: Sam Lee @you, Ben Ortiz @ben.o, Evan Park @evan.p
+  m_004 [Evan Park @evan.p]: Who's in for lunch at 12:30? Vote: tacos or salad.
+
+PLAN YOUR TEXT MUST STILL LEAD TO (do not reproduce it)
+step 1 [read] list_chats — List the chats the acting user is a member of.
+    -> returns: [{"id": "c_001", "kind": "group", "name": "Site Redesign", "members": ["u_me", "u_alice_m", "u_carla_n", "u_dan_k"]}, {"id": "c_002", "kind": "dm", "name": "c_002", "members": ["u_me", "u_ben_o"]}, {"id": "c_003", "kind": "group", "name": "Lunch Run", "members": ["u_me", "u_ben_o", "u_evan_p"]}]
+step 2 [read] read_messages — Read the most recent messages in a chat, oldest to newest.
+    chat_id      = c_001 — group 'Site Redesign' — members: Sam Lee @you, Alice Moreno @alice.m, Carla Nguyen @carla.n, Dan Kim @dan.k
+    -> returns: [{"id": "m_001", "chat_id": "c_001", "from": "Alice Moreno", "sender_id": "u_alice_m", "text": "Week 3 milestone: can we lock the hero layout by Friday? I pulled prelim numbers and there's a traffic dip if we push beyond next week.", "ts": 1, "reply_to": null, "reactions": {":+1:": ["u_carla_n"]}, "read_by": ["u_alice_m", "u_me"]}, {"id": "m_002", "chat_id": "c_001", "from": "Carla Nguyen", "sender_id": "u_carla_n", "text": "I still want to run one more A/B with variant B — content team needs another day to finalize copy.", "ts": 2, "reply_to": "m_001", "reactions": {}, "read_by": ["u_carla_n", "u_me"]}, {"id": "m_003", "chat_id": "c_001", "from": "Dan Kim", "sender_id": "u_dan_k", "text": "Design flagged an image parity issue on mobile; QA says it affects layout by ~8px. We should decide whether to patch or roll with it.", "ts": 3, "reply_to": null, "reactions": {}, "read_by": ["u_dan_k …(truncated)
+step 3 [write] create_chat — Create a new chat; the acting user is always included as a member.
+    member_ids   = u_carla_n — Carla Nguyen @carla.n
+    -> creates something new
+step 4 [write] send_message — Send a message from the acting user to a chat.
+    chat_id      = c_001 — group 'Site Redesign' — members: Sam Lee @you, Alice Moreno @alice.m, Carla Nguyen @carla.n, Dan Kim @dan.k
+    text         <- must carry what step 1 returned
+    -> creates something new
+step 5 [write] send_message — Send a message from the acting user to a chat.
+    chat_id      = c_002 — dm (unnamed dm) — members: Sam Lee @you, Ben Ortiz @ben.o
+    text         <- must carry what step 1 returned
+    -> creates something new
+step 6 [write] reply_to — Reply to an existing message in its chat (threaded).
+    message_id   = m_009 — in c_002 from Ben Ortiz, unread by you: "Also: can you publish the updated event page? I don't have deploy permissions for that repo."
+    text         <- must carry what step 1 returned
+    -> creates something new
+
+KEEP REFERRING TO THINGS THIS WAY, AND NEVER BY NAME — each ONCE, then refer back
+  the Site Redesign channel
+  whoever wrote the message about still want to run
+  the conversation where green for the press came up
+  the message about publish the updated event
+
+THESE STRINGS MUST NOT APPEAR IN YOUR TEXT
+  Carla Nguyen, add_reaction, ask_question, c_001, c_002, c_003, carla.n, chat_add_reaction, chat_create_chat, chat_get_user, chat_list_chats, chat_mark_read, chat_read_messages, chat_reply_to, chat_send_message, create_chat, deepwiki_ask_question, deepwiki_read_wiki_contents, deepwiki_read_wiki_structure, get_user, list_chats, m_001, m_002, m_003, m_004, m_005, m_006, m_007, m_008, m_009, m_010, m_011, m_012, m_013, m_014, mark_read, read_messages, read_wiki_contents, read_wiki_structure, reply_to, send_message, u_alice_m, u_ben_o, u_carla_n, u_dan_k, u_evan_p, u_maya_s, u_me
+
+JUDGE ITEMS — REWRITE EACH ONE'S expected AND hint FOR YOUR TEXT
+  report:c1a0
+      requirement (FIXED, do not change): step 2 looks something up and no later step posts what it found, so the agent must report it back in its own reply
+      must be delivered in (FIXED): the agent's final reply
+      expected — RESTATE FOR YOUR TEXT: A concise summary that lists the recent messages in the Site Redesign chat (c_001), identifying each message by who sent it and its main content: m_001 from Alice Moreno asking to lock the hero layout by Friday and noting a traffic dip; m_002 from Carla Nguyen saying she wants to run one more A/B with variant B and that content needs another day; m_003 from Dan Kim flagging an image parity issue on mobile affecting layout by about 8px; m_006 from Carla Nguyen asking whether the header font load is affecting CLS; m_007 from Sam Lee saying you will consolidate feedback after Friday's review; m_010 from Alice offering to take the analytics pull; m_011 from Carla asking the estimated conversion delta if the hero is delayed; m_013 from Dan suggesting a temporary mobile fix if QA signs off; and m_014 from Alice asking someone to pull analytics for the last two weeks.
+      hint     — RESTATE FOR YOUR TEXT: Look in the agent's final reply where it summarizes the messages read from chat c_001 (Site Redesign).
+  carry:c0a1:text
+      requirement (FIXED, do not change): the text of step 4 must carry what step 1 returned
+      must be delivered in (FIXED): the message step 4 posts
+      expected — RESTATE FOR YOUR TEXT: The message posted to chat c_001 includes a natural-language statement that you are a member of these chats: Site Redesign (id c_001), an unnamed DM (id c_002), and Lunch Run (id c_003).
+      hint     — RESTATE FOR YOUR TEXT: Look at the message the agent sent to chat c_001 (step 4).
+  carry:c1a1:text
+      requirement (FIXED, do not change): the text of step 5 must carry what step 1 returned
+      must be delivered in (FIXED): the message step 5 posts
+      expected — RESTATE FOR YOUR TEXT: The message posted to chat c_002 includes a natural-language statement that you are a member of these chats: Site Redesign (id c_001), an unnamed DM (id c_002), and Lunch Run (id c_003).
+      hint     — RESTATE FOR YOUR TEXT: Look at the message the agent sent to chat c_002 (step 5).
+  carry:c0a2:text
+      requirement (FIXED, do not change): the text of step 6 must carry what step 1 returned
+      must be delivered in (FIXED): the message step 6 posts
+      expected — RESTATE FOR YOUR TEXT: The reply posted to message m_009 includes a natural-language statement that you are a member of these chats: Site Redesign (id c_001), an unnamed DM (id c_002), and Lunch Run (id c_003).
+      hint     — RESTATE FOR YOUR TEXT: Look at the threaded reply the agent posted to message m_009 (step 6).
+
+CURRENT TASK TEXT (rewrite this)
+Please list the chats the acting user is a member of and return that list. Then read the most recent messages in the Site Redesign channel and return them oldest to newest. Next create a new chat that includes whoever wrote the message about still want to run as a member. Then send a message to the Site Redesign channel whose text includes a natural-language summary of the chats returned by your initial list, stating which chats you are in and including each chat id and name in normal prose without pasting raw JSON. Then send a message to the conversation where green for the press came up whose text includes a natural-language summary of the chats returned by your initial list, stating which chats you are in and including each chat id and name in normal prose without pasting raw JSON. Then reply to the message about publish the updated event in its chat with a message whose text includes a natural-language summary of the chats returned by your initial list, stating which chats you are in and including each chat id and name in normal prose without pasting raw JSON. After performing these actions, report back to me and include a concise summary of the messages you read from the Site Redesign channel.
+
+------------------------------------------------------------------------------------------------
+-- WHAT THE MODEL RETURNED (the shipped artifact)
+------------------------------------------------------------------------------------------------
+{
+  "prompt": "Gather the current set of chats the acting user belongs to and use that information to drive outreach and a short report: using the retrieved list, read the most recent messages in the Site Redesign channel in chronological order; create a new chat that includes whoever wrote the message about still want to run; post a natural-language summary, derived from the retrieved list and naming each chat’s id and name in prose, to the Site Redesign channel and to the conversation where green for the press came up; reply in-thread to the message about publish the updated event with that same natural-language summary. When finished, confirm the actions you performed and include a concise summary of the messages you read from the Site Redesign channel."
+}

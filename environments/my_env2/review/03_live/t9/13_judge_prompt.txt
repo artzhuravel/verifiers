@@ -1,0 +1,202 @@
+# The delivery judge (eval time — after a rollout)
+
+Not part of authoring. This is the one model call made while *scoring*, and it is the
+whole of the `delivery` component (0.4 of the reward). One call per task, however many
+items. The judge grades over the WHOLE rollout — every tool call and every result — so
+that a retrieved answer can be told from an invented one, and so that information landing
+in a message partway through counts. It is not graded off the final reply alone.
+
+The items differ per level: each rung restates them for its own text, since the higher
+rungs remove the step numbers and ids the lower ones lean on. One section per level below.
+
+================================================================================================
+== LEVEL 1
+================================================================================================
+
+------------------------------------------------------------------------------------------------
+-- PROMPT (verify._JUDGE_PROMPT, filled in)
+------------------------------------------------------------------------------------------------
+You grade whether an agent delivered specific pieces of information.
+
+Each numbered item is something the agent had to find out and then put somewhere. You are given the requirement, what a correct answer says, and where in the agent's output to look for it.
+
+You are given the WHOLE ROLLOUT: every tool call the agent made, every result that came back, every message it sent, and its final reply. Use all of it. Do not grade off the final reply alone — most of these items are about information landing in a message partway through, and a rollout that did the work correctly and said little at the end is not a failure.
+
+Two things to hold together for each item:
+
+- **It has to be where the item says.** The hint names the place. Information that only ever appears in a tool result, and was never passed on, is not delivered — no matter how clearly the agent retrieved it.
+- **It has to be the same information.** That is a question about the whole trace: compare what the agent said against what the tools actually returned. A value the agent invented rather than retrieved is wrong even when it looks plausible, and a correct answer worded differently is right.
+
+Match on substance. Never judge style, length, or phrasing. An item is correct when a reader of the place the hint names would come away with the facts the expected answer states.
+
+Items:
+1. the text of step 4 must carry what step 1 and step 3 returned
+   A correct answer says: The reply posted in step 4 includes the user information returned for u_devon (identifying Devon Park, e.g., name and/or handle or id) and also includes the DeepWiki wiki documentation prose retrieved for the 'kubernetes/kubernetes' repository.
+   Where to look: Look at the text of the reply message created by step 4 (the reply to m_004 in the docs-sync thread).
+2. the text of step 5 must carry what step 1 returned
+   A correct answer says: The direct message sent to chat c_002 in step 5 contains the user information returned for u_devon (identifying Devon Park, e.g., name and/or handle or id).
+   Where to look: Look at the text of the message created by step 5 (the send_message to chat c_002).
+3. the text of step 6 must carry what step 2 returned
+   A correct answer says: The reply posted in step 6 includes the DeepWiki wiki documentation prose retrieved for the 'facebook/react' repository.
+   Where to look: Look at the text of the reply message created by step 6 (the reply to m_004 in the docs-sync thread).
+4. step 7 looks something up and no later step posts what it found, so the agent must report it back in its own reply
+   A correct answer says: The agent's final reply lists the chats returned by list_chats: c_001 (group, name 'docs-sync', members u_me, u_liam, u_sofia, u_priya), c_002 (dm, name 'c_002', members u_me, u_devon), and c_003 (group, name 'c_003', members u_me, u_liam, u_marcus).
+   Where to look: Check the agent's final reply for the reported list_chats output.
+
+The rollout:
+=== FULL ROLLOUT — every tool call the agent made and every result that came back ===
+    <<< the agent's transcript — only exists once a rollout has run >>>
+
+=== WHAT THE AGENT DELIVERED — the same messages, collected for convenience ===
+Messages the agent sent during this rollout:
+    <<< every message the acting user sent during the rollout, seeded history excluded >>>
+
+Agent's final reply:
+    <<< the agent's last reply >>>
+
+Respond with ONLY a JSON array of booleans, one per item in order (true = correct).
+Example for two items: [true, false]
+
+================================================================================================
+== LEVEL 2
+================================================================================================
+
+------------------------------------------------------------------------------------------------
+-- PROMPT (verify._JUDGE_PROMPT, filled in)
+------------------------------------------------------------------------------------------------
+You grade whether an agent delivered specific pieces of information.
+
+Each numbered item is something the agent had to find out and then put somewhere. You are given the requirement, what a correct answer says, and where in the agent's output to look for it.
+
+You are given the WHOLE ROLLOUT: every tool call the agent made, every result that came back, every message it sent, and its final reply. Use all of it. Do not grade off the final reply alone — most of these items are about information landing in a message partway through, and a rollout that did the work correctly and said little at the end is not a failure.
+
+Two things to hold together for each item:
+
+- **It has to be where the item says.** The hint names the place. Information that only ever appears in a tool result, and was never passed on, is not delivered — no matter how clearly the agent retrieved it.
+- **It has to be the same information.** That is a question about the whole trace: compare what the agent said against what the tools actually returned. A value the agent invented rather than retrieved is wrong even when it looks plausible, and a correct answer worded differently is right.
+
+Match on substance. Never judge style, length, or phrasing. An item is correct when a reader of the place the hint names would come away with the facts the expected answer states.
+
+Items:
+1. the text of step 4 must carry what step 1 and step 3 returned
+   A correct answer says: The reply posted under the message about someone collect the exact includes the user information returned for whoever wrote the message about names and owners into (identifying that person, e.g., name and/or handle or id) and also includes the DeepWiki wiki documentation prose retrieved for the 'kubernetes/kubernetes' repository.
+   Where to look: Look at the text of the reply message created by the reply to the message about someone collect the exact in the docs-sync thread.
+2. the text of step 5 must carry what step 1 returned
+   A correct answer says: The direct message sent in the conversation where names and owners into came up contains the user information returned for whoever wrote the message about names and owners into (identifying that person, e.g., name and/or handle or id).
+   Where to look: Look at the text of the direct message posted in the conversation where names and owners into came up.
+3. the text of step 6 must carry what step 2 returned
+   A correct answer says: The reply posted under the message about someone collect the exact includes the DeepWiki wiki documentation prose retrieved for the 'facebook/react' repository.
+   Where to look: Look at the text of the reply message created by the reply to the message about someone collect the exact in the docs-sync thread.
+4. step 7 looks something up and no later step posts what it found, so the agent must report it back in its own reply
+   A correct answer says: The agent's final reply lists the chats returned by list_chats: the group whose name is 'docs-sync' with members Alex Rivera @you, Liam Chen @liam, Sofia Morales @sofia, and Priya Singh @priya; the direct-message conversation where names and owners into came up with members Alex Rivera @you and whoever wrote the message about names and owners into; and the group whose name is 'c_003' with members Alex Rivera @you, Liam Chen @liam, and Marcus Lee @marcus. The array structure and these entries should appear in the agent's final reply exactly as the list_chats output.
+   Where to look: Check the agent's final reply for the reported list_chats output (the array the agent was asked to include).
+
+The rollout:
+=== FULL ROLLOUT — every tool call the agent made and every result that came back ===
+    <<< the agent's transcript — only exists once a rollout has run >>>
+
+=== WHAT THE AGENT DELIVERED — the same messages, collected for convenience ===
+Messages the agent sent during this rollout:
+    <<< every message the acting user sent during the rollout, seeded history excluded >>>
+
+Agent's final reply:
+    <<< the agent's last reply >>>
+
+Respond with ONLY a JSON array of booleans, one per item in order (true = correct).
+Example for two items: [true, false]
+
+================================================================================================
+== LEVEL 3
+================================================================================================
+
+------------------------------------------------------------------------------------------------
+-- PROMPT (verify._JUDGE_PROMPT, filled in)
+------------------------------------------------------------------------------------------------
+You grade whether an agent delivered specific pieces of information.
+
+Each numbered item is something the agent had to find out and then put somewhere. You are given the requirement, what a correct answer says, and where in the agent's output to look for it.
+
+You are given the WHOLE ROLLOUT: every tool call the agent made, every result that came back, every message it sent, and its final reply. Use all of it. Do not grade off the final reply alone — most of these items are about information landing in a message partway through, and a rollout that did the work correctly and said little at the end is not a failure.
+
+Two things to hold together for each item:
+
+- **It has to be where the item says.** The hint names the place. Information that only ever appears in a tool result, and was never passed on, is not delivered — no matter how clearly the agent retrieved it.
+- **It has to be the same information.** That is a question about the whole trace: compare what the agent said against what the tools actually returned. A value the agent invented rather than retrieved is wrong even when it looks plausible, and a correct answer worded differently is right.
+
+Match on substance. Never judge style, length, or phrasing. An item is correct when a reader of the place the hint names would come away with the facts the expected answer states.
+
+Items:
+1. the text of step 4 must carry what step 1 and step 3 returned
+   A correct answer says: The reply posted under the message about someone collect the exact includes the user information returned for whoever wrote the message about names and owners into (identifying that person, e.g., name and/or handle or id) and also includes the DeepWiki wiki documentation prose retrieved for the 'kubernetes/kubernetes' repository.
+   Where to look: Look at the text of the reply message created by replying to the message about someone collect the exact in the docs-sync thread.
+2. the text of step 5 must carry what step 1 returned
+   A correct answer says: The direct message sent in the conversation where names and owners into came up contains the user information returned for whoever wrote the message about names and owners into (identifying that person, e.g., name and/or handle or id).
+   Where to look: Look at the text of the direct message posted in the conversation where names and owners into came up.
+3. the text of step 6 must carry what step 2 returned
+   A correct answer says: The reply posted under the message about someone collect the exact includes the DeepWiki wiki documentation prose retrieved for the 'facebook/react' repository.
+   Where to look: Look at the text of the reply message created by replying to the message about someone collect the exact in the docs-sync thread.
+4. step 7 looks something up and no later step posts what it found, so the agent must report it back in its own reply
+   A correct answer says: The agent's final reply includes the array returned by the list_chats call: an entry for the group named 'docs-sync' with members Alex Rivera @you, Liam Chen @liam, Sofia Morales @sofia, and Priya Singh @priya; an entry for the direct-message conversation where names and owners into came up with members Alex Rivera @you and whoever wrote the message about names and owners into; and an entry for the group with members Alex Rivera @you, Liam Chen @liam, and Marcus Lee @marcus. The array structure and these entries should appear in the agent's final reply exactly as the list_chats output.
+   Where to look: Check the agent's final reply for the reported array (the list_chats output) showing the docs-sync group, the direct-message conversation where names and owners into came up, and the other group with Alex Rivera @you, Liam Chen @liam, and Marcus Lee @marcus.
+
+The rollout:
+=== FULL ROLLOUT — every tool call the agent made and every result that came back ===
+    <<< the agent's transcript — only exists once a rollout has run >>>
+
+=== WHAT THE AGENT DELIVERED — the same messages, collected for convenience ===
+Messages the agent sent during this rollout:
+    <<< every message the acting user sent during the rollout, seeded history excluded >>>
+
+Agent's final reply:
+    <<< the agent's last reply >>>
+
+Respond with ONLY a JSON array of booleans, one per item in order (true = correct).
+Example for two items: [true, false]
+
+================================================================================================
+== LEVEL 4
+================================================================================================
+
+------------------------------------------------------------------------------------------------
+-- PROMPT (verify._JUDGE_PROMPT, filled in)
+------------------------------------------------------------------------------------------------
+You grade whether an agent delivered specific pieces of information.
+
+Each numbered item is something the agent had to find out and then put somewhere. You are given the requirement, what a correct answer says, and where in the agent's output to look for it.
+
+You are given the WHOLE ROLLOUT: every tool call the agent made, every result that came back, every message it sent, and its final reply. Use all of it. Do not grade off the final reply alone — most of these items are about information landing in a message partway through, and a rollout that did the work correctly and said little at the end is not a failure.
+
+Two things to hold together for each item:
+
+- **It has to be where the item says.** The hint names the place. Information that only ever appears in a tool result, and was never passed on, is not delivered — no matter how clearly the agent retrieved it.
+- **It has to be the same information.** That is a question about the whole trace: compare what the agent said against what the tools actually returned. A value the agent invented rather than retrieved is wrong even when it looks plausible, and a correct answer worded differently is right.
+
+Match on substance. Never judge style, length, or phrasing. An item is correct when a reader of the place the hint names would come away with the facts the expected answer states.
+
+Items:
+1. the text of step 4 must carry what step 1 and step 3 returned
+   A correct answer says: The reply posted under the message asking the team to collect the exact GitHub repo names and DeepWiki repo wikis contains the user information for the teammate who posted the DM announcing the CSV of repo names and owners at /team/docs/repo-list.csv, and it also contains the DeepWiki wiki documentation prose retrieved for the 'kubernetes/kubernetes' repository.
+   Where to look: Look at the text of the reply message created by replying to the message that asks the team to collect the exact GitHub repo names and DeepWiki repo wikis in the docs-sync thread; that reply should show the teammate's user information and the 'kubernetes/kubernetes' wiki prose.
+2. the text of step 5 must carry what step 1 returned
+   A correct answer says: The direct message sent in the DM where the CSV of repo names and owners was announced contains the user information for the teammate who announced that CSV.
+   Where to look: Look at the text of the direct message posted in the DM that announced the CSV of repo names and owners; it should include the teammate's user information.
+3. the text of step 6 must carry what step 2 returned
+   A correct answer says: The second reply posted under the message asking the team to collect the exact GitHub repo names and DeepWiki repo wikis contains the DeepWiki wiki documentation prose retrieved for the 'facebook/react' repository.
+   Where to look: Look at the text of the other reply message created by replying to the message that asks the team to collect the exact GitHub repo names and DeepWiki repo wikis in the docs-sync thread; that reply should show the 'facebook/react' wiki prose.
+4. step 7 looks something up and no later step posts what it found, so the agent must report it back in its own reply
+   A correct answer says: The agent's final reply includes the exact array returned by the call that lists the chats the acting user belongs to: an entry for the group named 'docs-sync' with members Alex Rivera @you, Liam Chen @liam, Sofia Morales @sofia, and Priya Singh @priya; an entry for the direct-message conversation where the CSV was announced with members Alex Rivera @you and the teammate who announced the CSV; and an entry for the other group with members Alex Rivera @you, Liam Chen @liam, and Marcus Lee @marcus. The array structure and these entries should appear exactly as the list-of-chats output.
+   Where to look: Check the agent's final reply for the reported array (the list-of-chats output) showing the docs-sync group, the direct-message conversation where the CSV was announced, and the other group with Alex Rivera @you, Liam Chen @liam, and Marcus Lee @marcus.
+
+The rollout:
+=== FULL ROLLOUT — every tool call the agent made and every result that came back ===
+    <<< the agent's transcript — only exists once a rollout has run >>>
+
+=== WHAT THE AGENT DELIVERED — the same messages, collected for convenience ===
+Messages the agent sent during this rollout:
+    <<< every message the acting user sent during the rollout, seeded history excluded >>>
+
+Agent's final reply:
+    <<< the agent's last reply >>>
+
+Respond with ONLY a JSON array of booleans, one per item in order (true = correct).
+Example for two items: [true, false]

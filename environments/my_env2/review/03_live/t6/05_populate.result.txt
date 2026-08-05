@@ -1,0 +1,37 @@
+Stage 5 result. Filler is folded in ONE ENTITY AT A TIME and each addition kept only if
+every reference condition still resolves to exactly its own entity. Rejections are
+recorded, never silently dropped, and Stage 5 cannot fail the task — a world without
+padding is weaker, not broken.
+
+core     : 4 people, 3 chats, 6 messages
+populated: 4 people, 3 chats, 11 messages
+
+REJECTED ADDITIONS
+  (none)
+
+THE SEED THAT SHIPS
+You act as You (id u_me).
+
+People:
+  u_me  You @you
+  u_alicec  Alice Chen @alicec
+  u_benr  Ben Rosario @benr
+  u_carom  Caro Martínez @carom
+  u_dpatel  Diego Patel @dpatel
+
+group telemetry (c_001) — members: You @you, Alice Chen @alicec, Ben Rosario @benr, Caro Martínez @carom
+  m_001 [Alice Chen @alicec]: Draft API surfaces: /export/start, /export/status and /export/chunk. I'm worried about bursts if chunk size defaults to something tiny.
+  m_002 [Ben Rosario @benr]: I skimmed the DeepWiki docs on exporter chunking; they recommend ~64MB chunks and explain retry semantics. Might be relevant for our throttling design.  (reply to m_001; UNREAD by you; :+1: x1)
+  m_003 [Alice Chen @alicec]: Also saw some logs showing repeated retries yesterday — might be from a misconfigured client.
+  m_004 [Caro Martínez @carom]: Opened issue #88 to track client-side backoff and idempotency for exports. Link in the issue references the docs Ben mentioned.  (:+1: x1)
+  m_005 [Ben Rosario @benr]: Good catch. Can you paste any sample request IDs here?  (reply to m_002)
+  m_010 [Ben Rosario @benr]: Also worth noting: the docs call out idempotency tokens and suggested retry windows — we'll need to reflect that in the API surface.  (reply to m_002; UNREAD by you)
+
+dm (dm) (c_002) — members: You @you, Alice Chen @alicec
+  m_006 [Alice Chen @alicec]: Quick ask: can you pull the DeepWiki export docs and forward the key recommendations to Infra? They want concrete chunk/timeout numbers.  (UNREAD by you)
+  m_009 [Alice Chen @alicec]: Forwarded to Infra. I included estimated chunk/timeout numbers in the note.  (reply to m_006)
+
+group infra (c_003) — members: You @you, Ben Rosario @benr, Diego Patel @dpatel
+  m_007 [Ben Rosario @benr]: For infra: what's the latency profile for our storage? That affects ideal chunk size too.
+  m_008 [Diego Patel @dpatel]: Infra question: what chunk size should we bake into the pipeline? We've heard 64MB from telemetry but need confirmation.  (UNREAD by you)
+  m_011 [Diego Patel @dpatel]: We have 95th percentile at ~120ms; large chunks reduce overhead but increase retransmit cost.  (reply to m_008)

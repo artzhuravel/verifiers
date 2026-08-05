@@ -1,0 +1,15 @@
+Stage 7 result. This runs LAST because it is the only stage whose output cannot
+invalidate anything: `signature` excludes text, so the expected state is already fixed.
+
+  $name_0
+      Usability Recruiting
+  $text_0
+      Quick decision needed: should we lock to 12 sessions if Finance approves reallocating ~$250 for incentives, or cut to 8? I recommend locking to 12—any objections?
+  $text_1
+      Finance will review the $250 reallocation tomorrow. Rafael, please confirm when they respond; Lena, can you confirm panel/paying options so we can commit to 12 if approved?
+  $emoji_0
+       :+1:
+  $emoji_1
+       :+1:
+  $text_2
+      Thanks — I'll hold off booking until Finance and Lena confirm.

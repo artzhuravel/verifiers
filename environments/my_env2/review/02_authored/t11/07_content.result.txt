@@ -1,0 +1,10 @@
+Stage 7 runs LAST because it is the only stage whose output cannot invalidate anything:
+`signature` excludes text, emoji and chat names, so the expected state is already fixed
+by the time a single word is written.
+
+  $repoName_0
+      acme/event-sourcing
+  $repoName_1
+      acme/event-sourcing
+  $text_0
+      Alice, Ben — I ran DeepWiki on acme/event-sourcing and shared the page list with Carol; tell me if you want the full pages copied here.

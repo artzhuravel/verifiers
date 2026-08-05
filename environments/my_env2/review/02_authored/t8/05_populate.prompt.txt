@@ -1,0 +1,120 @@
+# Stage 5 — pad the world with filler
+
+NOTE ON FIDELITY — read this before trusting the WORKSPACE block below.
+
+This stage ran against the CORE world, before Stage 5 padded it, and only the padded world is
+shipped in the task record. The prompt below is therefore rebuilt in the right shape, with the
+right blocks in the right order, but the workspace inside it is the LATER one: it contains
+filler that was not present when the model actually saw this. The instructions, the block
+structure and the derived lines are real; the world is a stand-in.
+
+Stage 5 is also the one call shown the world in the DRAFT's vocabulary (`u1`, `c2`, `m3`)
+rather than in real ids — that is what lets it add a message to a conversation that
+already exists. That view is rebuilt here from the shipped state.
+
+------------------------------------------------------------------------------------------------
+-- SYSTEM PROMPT
+------------------------------------------------------------------------------------------------
+You pad out a workspace so it looks lived-in.
+
+You are given a workspace that was built around one specific task. It is too tidy: everything in it is there for a reason, which is itself a giveaway. Add ordinary, unrelated traffic — a few more colleagues, another conversation or two, and messages that have nothing to do with anything.
+
+Put most of the new messages in the conversations that already exist, from the people already in them. A separate room full of strangers hides nothing; unrelated chatter alongside the real thing does.
+
+Three hard rules:
+- Do NOT touch or restate what is already there. You are only adding.
+- Refer to existing people, conversations and messages by the SHORT KEY shown on the left of each line (`u2`, `c1`, `m4`) — never by a name or by anything else. New entries you add get their own new keys.
+- Each CONDITION listed below must still pick out exactly the entity it picks out now. If adding a person whose handle collides, or a message repeating a distinctive phrase, would make a condition match two things, do not add it. Anything that breaks a condition is discarded, so being careless here just wastes your work.
+
+Give messages `order` values spread across the existing range so the new history interleaves with the old rather than piling up after it. A reply must have a higher `order` than the message it replies to.
+
+Every entry you return is a NEW one and needs a key nothing else uses — start them all with "n". Do not return an entry for anything already in the workspace; it is already there, and repeating it is the one thing that makes this call useless.
+
+Respond with ONLY this JSON object:
+{"new_users": [{"ref": "n1", "name": "...", "handle": "..."}],
+ "new_chats": [{"ref": "n2", "name": "...", "members": ["u1", "n1"]}],
+ "new_messages": [{"ref": "n3", "chat": "c1", "sender": "u2", "text": "...", "order": 4,
+                   "reply_to": null, "read_by_actor": true, "reactors": []}]}
+
+------------------------------------------------------------------------------------------------
+-- USER PROMPT
+------------------------------------------------------------------------------------------------
+ENVIRONMENT
+  chat: Local mock chat app. Read and write tools operate on the rollout's ChatState.
+  deepwiki: Public DeepWiki MCP server: read-only GitHub-repo Q&A. Answers can be nondeterministic; requires the repo to be indexed by DeepWiki.
+  You act as one specific user. The acting user's id. Every write is attributed to this user; reads are scoped to it where noted.
+
+ENTITY TYPES IN THIS TASK
+  user — A person in the workspace. Display names may collide; handles never do.
+      id: string
+      name: string
+      handle: string
+  message — One posted message. `reply_to` threads it under an earlier message in the same chat.
+      id: string
+      chat_id: string (chat id)
+      sender_id: string (user id)
+      text: string
+      ts: int (logical clock, not wall time)
+      reply_to: string | null (parent message id)
+      reactions: object (emoji -> user_id[])
+      read_by: string[] (user ids)
+  chat — A conversation the acting user takes part in. `name` is null for a DM.
+      id: string
+      kind: "dm" | "group"
+      name: string | null
+      member_ids: string[] (user ids)
+
+ACTIONS THIS TASK USES
+  get_user (read) — Look up a user by id.
+      user_id: user to look up
+      returns: {id, name, handle} or {"error": "no such user"}
+  ask_question (read) — Ask an AI-grounded question about a GitHub repository.
+      repoName: GitHub repo in owner/repo form (or a list, max 10)
+      question: the question to ask
+      returns: a free-text answer to any question about the repo — metadata (licence, primary language, maintainers) and prose questions alike. Nondeterministic wording, so only ask things with a stable, unambiguous answer.
+  reply_to (write) — Reply to an existing message in its chat (threaded).
+      message_id: the message being replied to
+      text: reply body
+      returns: the created message view
+  send_message (write) — Send a message from the acting user to a chat.
+      chat_id: destination chat
+      text: message body
+      returns: the created message view
+
+WORKSPACE SO FAR
+You are Sam Ortega @you, and a member of every chat.
+
+People (refer to them by the key on the left):
+  u1     Alice Monroe @alice
+  u2     Benjamin Ortiz @ben
+  u3     Carla Ruiz @carla
+  u4     Daniel Park @dan
+  u5     Kevin Zhang @kzhang
+  u6     Lina Chen @linac
+
+Chat c1     backend-team — members: u1, u2, u3, u4
+  m1     order 1   [u1]: Quick ask: before we cut the release, can someone check acme/telemetry-lib on GitHub — we need the license, primary language, and current maintainers listed.
+  m2     order 2   [u2]: I can check this, but can someone confirm my GitHub handle? I use a couple of variants ('benort' vs company handle).  (reply to m1; UNREAD by you)
+  m3     order 3   [u1]: Small heads-up: spilled coffee but all good here. Also tagging u2 in case you want to confirm which handle you're using publicly.
+  m4     order 4   [u3]: Ben — if you look, also confirm whether it's under acme-org or a personal repo. Infra needs that for permissions.  (reply to m2)
+  m6     order 6   [u4]: FYI I pushed a tiny fix to the pipeline; shouldn't affect the release but ping me if anything flakey shows up.  (reply to m1)
+  m8     order 8   [u3]: Totally unrelated: did anyone else have audio glitches on the standup stream this morning?  (reply to m4)
+  m10    order 10  [u4]: If it's under acme-org, the maintainers list should be in CODEOWNERS. Could someone fetch that file and check the entries?  (reply to m1)
+  m12    order 12  [u2]: Also, if anyone's checking, confirm whether the license permits redistribution — Legal will block the release otherwise.  (reply to m2; UNREAD by you)
+  m13    order 13  [u2]: I can take the CODEOWNERS check now and report back — heads up that I have a hard stop at 6pm for a kid thing.  (reply to m10)
+  m14    order 14  [u1]: Let's collect the results in the thread on the release checklist. Ping me once you have the GitHub metadata so I can update the release notes.  (reply to m1)
+
+Chat c2     (a dm) — members: u3
+  m7     order 7   [u3]: Hey — can you look up Ben's GitHub ID? I need to @-mention him in the repo issue about the security advisory.  (UNREAD by you)
+  m11    order 11  [u3]: Found it — u2 appears on GitHub as 'benort-company'. Sending the exact ID in this DM thread.  (reply to m7)
+  m15    order 15  [u3]: And send the GitHub handle back here if you find it, so I can message him privately about timing.  (reply to m7; UNREAD by you)
+
+Chat c3     coffee-break — members: u1, u5, u6
+  m5     order 5   [u5]: Morning — who's up for grabbing coffee after standup? I can swing by the lobby at 10:15.
+  m9     order 9   [u1]: I'll join — meet you by the coffee machine after standup.  (reply to m5)
+
+CONDITIONS
+  the user who wrote the one message whose text contains someone confirm my GitHub  -> must keep matching exactly one user
+  the one message whose text contains someone confirm my GitHub  -> must keep matching exactly one message
+  the one message whose text contains @-mention him in the  -> must keep matching exactly one message
+  the chat containing a message whose text contains before we cut the  -> must keep matching exactly one chat

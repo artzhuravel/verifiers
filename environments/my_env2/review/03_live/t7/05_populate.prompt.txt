@@ -1,0 +1,431 @@
+# Stage 5 — pad the world with filler
+
+2 model call(s).
+
+================================================================================================
+== call 1 of 2
+================================================================================================
+
+------------------------------------------------------------------------------------------------
+-- SYSTEM PROMPT
+------------------------------------------------------------------------------------------------
+You pad out a workspace so it looks lived-in.
+
+You are given a workspace that was built around one specific task. It is too tidy: everything in it is there for a reason, which is itself a giveaway. Add ordinary, unrelated traffic — a few more colleagues, another conversation or two, and messages that have nothing to do with anything.
+
+Put most of the new messages in the conversations that already exist, from the people already in them. A separate room full of strangers hides nothing; unrelated chatter alongside the real thing does.
+
+Three hard rules:
+- Do NOT touch or restate what is already there. You are only adding.
+- Refer to existing people, conversations and messages by the SHORT KEY shown on the left of each line (`u2`, `c1`, `m4`) — never by a name or by anything else. New entries you add get their own new keys.
+- Each CONDITION listed below must still pick out exactly the entity it picks out now. If adding a person whose handle collides, or a message repeating a distinctive phrase, would make a condition match two things, do not add it. Anything that breaks a condition is discarded, so being careless here just wastes your work.
+
+Give messages `order` values spread across the existing range so the new history interleaves with the old rather than piling up after it. A reply must have a higher `order` than the message it replies to.
+
+Every entry you return is a NEW one and needs a key nothing else uses — start them all with "n". Do not return an entry for anything already in the workspace; it is already there, and repeating it is the one thing that makes this call useless.
+
+Respond with ONLY this JSON object:
+{"new_users": [{"ref": "n1", "name": "...", "handle": "..."}],
+ "new_chats": [{"ref": "n2", "name": "...", "members": ["u1", "n1"]}],
+ "new_messages": [{"ref": "n3", "chat": "c1", "sender": "u2", "text": "...", "order": 4,
+                   "reply_to": null, "read_by_actor": true, "reactors": []}]}
+
+------------------------------------------------------------------------------------------------
+-- USER PROMPT
+------------------------------------------------------------------------------------------------
+ENVIRONMENT
+  chat: Local mock chat app. Read and write tools operate on the rollout's ChatState.
+  deepwiki: Public DeepWiki MCP server: read-only GitHub-repo Q&A. Answers can be nondeterministic; requires the repo to be indexed by DeepWiki.
+  You act as one specific user. The acting user's id. Every write is attributed to this user; reads are scoped to it where noted.
+
+ENTITY TYPES IN THIS TASK
+  chat — A conversation the acting user takes part in. `name` is null for a DM.
+      id: string
+      kind: "dm" | "group"
+      name: string | null
+      member_ids: string[] (user ids)
+  user — A person in the workspace. Display names may collide; handles never do.
+      id: string
+      name: string
+      handle: string
+  message — One posted message. `reply_to` threads it under an earlier message in the same chat.
+      id: string
+      chat_id: string (chat id)
+      sender_id: string (user id)
+      text: string
+      ts: int (logical clock, not wall time)
+      reply_to: string | null (parent message id)
+      reactions: object (emoji -> user_id[])
+      read_by: string[] (user ids)
+
+ACTIONS THIS TASK USES
+  list_chats (read) — List the chats the acting user is a member of.
+      returns: array of {id, kind, name, members} for chats where actor is in member_ids
+  read_messages (read) — Read the most recent messages in a chat, oldest to newest.
+      chat_id: chat to read
+      limit: max messages, most recent (optional)
+      returns: array of message views {id, chat_id, from, sender_id, text, ts, reply_to, reactions, read_by}
+  create_chat (write) — Create a new chat; the acting user is always included as a member.
+      member_ids: user ids to include (actor added automatically)
+      name: chat name; if set (or >2 members) the chat is a group, else a dm (optional)
+      returns: {id, kind, name, members}
+  send_message (write) — Send a message from the acting user to a chat.
+      chat_id: destination chat
+      text: message body
+      returns: the created message view
+  reply_to (write) — Reply to an existing message in its chat (threaded).
+      message_id: the message being replied to
+      text: reply body
+      returns: the created message view
+
+WORKSPACE SO FAR
+You are Ari Novak @you, and a member of every chat.
+
+People (refer to them by the key on the left):
+  u1     Samir Patel @samir
+  u2     Leah Kim @leah
+  u3     Maria Gomez @maria
+  u4     Tom Wright @tom
+
+Chat c1     Launch Planning — members: u1, u2, u3
+  m1     order 1   [u1]: We need to pick the time window for the feature-flag flip — options: 22:00 or 02:00. Thoughts?  (UNREAD by you)
+  m2     order 2   [u2]: 02:00 is safer for international traffic. Also: flag the CS team in advance.  (reply to m1; UNREAD by you)
+  m3     order 3   [u3]: If we flip at 02:00 I'll be on call — can someone draft a clear rollback plan with triggers?  (reply to m1; UNREAD by you; :+1: x1)
+  m7     order 7   [actor]: Can we confirm the rollback trigger conditions before we pick the time?
+  m8     order 8   [u2]: We haven't defined exact thresholds yet — Leah to draft? Also who will own the rollback?  (reply to m7; UNREAD by you)
+
+Chat c2     (a dm) — members: u1
+  m4     order 4   [u1]: Quick DM: do you have the list of services affected by the rollout?
+  m9     order 9   [actor]: I'll pull the affected-service list and post it to Ops Room once I have it.  (reply to m4)
+
+Chat c3     Ops Room — members: u3, u4
+  m5     order 5   [u4]: Alert: the canary shows increased latencies since 23:10. Switching back might be necessary.  (UNREAD by you; ⚠️ x1)
+  m6     order 6   [u3]: Acknowledged. Can you pull p50/p95 and error rate for the last hour so we can decide?  (reply to m5; UNREAD by you)
+
+CONDITIONS
+  the chat whose title is exactly Launch Planning  -> must keep matching exactly one chat
+  the user who wrote the one message whose text contains 02:00 I'll be on  -> must keep matching exactly one user
+  the chat whose title is exactly Ops Room  -> must keep matching exactly one chat
+  the one message whose text contains canary shows increased latencies  -> must keep matching exactly one message
+
+------------------------------------------------------------------------------------------------
+-- REPLY
+------------------------------------------------------------------------------------------------
+{
+  "new_users": [
+    {
+      "ref": "n1",
+      "name": "Jesse Park",
+      "handle": "jesse"
+    }
+  ],
+  "new_chats": [
+    {
+      "ref": "n2",
+      "name": "Coffee Break",
+      "members": [
+        "u1",
+        "n1"
+      ]
+    }
+  ],
+  "new_messages": [
+    {
+      "ref": "n3",
+      "chat": "c1",
+      "sender": "u2",
+      "text": "Also, Samir — can you add the marketplace owner to the thread?",
+      "order": 1.5,
+      "reply_to": null,
+      "read_by_actor": false,
+      "reactors": []
+    },
+    {
+      "ref": "n4",
+      "chat": "c1",
+      "sender": "u1",
+      "text": "I'll ping CS and include the escalation path.",
+      "order": 2.2,
+      "reply_to": "m2",
+      "read_by_actor": false,
+      "reactors": []
+    },
+    {
+      "ref": "n5",
+      "chat": "n2",
+      "sender": "n1",
+      "text": "Anyone up for a quick coffee run in 10?",
+      "order": 2.8,
+      "reply_to": null,
+      "read_by_actor": true,
+      "reactors": []
+    },
+    {
+      "ref": "n6",
+      "chat": "c3",
+      "sender": "u3",
+      "text": "I'm grabbing p50/p95 now. Also, can someone check the DB replica lag?",
+      "order": 5.5,
+      "reply_to": "m5",
+      "read_by_actor": false,
+      "reactors": []
+    },
+    {
+      "ref": "n7",
+      "chat": "c2",
+      "sender": "actor",
+      "text": "I'm pulling the affected-service list now; will flag dependencies in the doc.",
+      "order": 6.0,
+      "reply_to": "m4",
+      "read_by_actor": true,
+      "reactors": []
+    },
+    {
+      "ref": "n8",
+      "chat": "c3",
+      "sender": "u4",
+      "text": "DB lag looks fine from here; pushing a minor config to the canaries.",
+      "order": 6.5,
+      "reply_to": "n6",
+      "read_by_actor": false,
+      "reactors": []
+    },
+    {
+      "ref": "n9",
+      "chat": "c1",
+      "sender": "u3",
+      "text": "I'll draft a rollback checklist and post by EOD.",
+      "order": 7.5,
+      "reply_to": "m7",
+      "read_by_actor": true,
+      "reactors": []
+    }
+  ]
+}
+
+================================================================================================
+== call 2 of 2  (correction round: the previous reply was rejected, see the tail of USER)
+================================================================================================
+
+------------------------------------------------------------------------------------------------
+-- SYSTEM PROMPT
+------------------------------------------------------------------------------------------------
+You pad out a workspace so it looks lived-in.
+
+You are given a workspace that was built around one specific task. It is too tidy: everything in it is there for a reason, which is itself a giveaway. Add ordinary, unrelated traffic — a few more colleagues, another conversation or two, and messages that have nothing to do with anything.
+
+Put most of the new messages in the conversations that already exist, from the people already in them. A separate room full of strangers hides nothing; unrelated chatter alongside the real thing does.
+
+Three hard rules:
+- Do NOT touch or restate what is already there. You are only adding.
+- Refer to existing people, conversations and messages by the SHORT KEY shown on the left of each line (`u2`, `c1`, `m4`) — never by a name or by anything else. New entries you add get their own new keys.
+- Each CONDITION listed below must still pick out exactly the entity it picks out now. If adding a person whose handle collides, or a message repeating a distinctive phrase, would make a condition match two things, do not add it. Anything that breaks a condition is discarded, so being careless here just wastes your work.
+
+Give messages `order` values spread across the existing range so the new history interleaves with the old rather than piling up after it. A reply must have a higher `order` than the message it replies to.
+
+Every entry you return is a NEW one and needs a key nothing else uses — start them all with "n". Do not return an entry for anything already in the workspace; it is already there, and repeating it is the one thing that makes this call useless.
+
+Respond with ONLY this JSON object:
+{"new_users": [{"ref": "n1", "name": "...", "handle": "..."}],
+ "new_chats": [{"ref": "n2", "name": "...", "members": ["u1", "n1"]}],
+ "new_messages": [{"ref": "n3", "chat": "c1", "sender": "u2", "text": "...", "order": 4,
+                   "reply_to": null, "read_by_actor": true, "reactors": []}]}
+
+------------------------------------------------------------------------------------------------
+-- USER PROMPT
+------------------------------------------------------------------------------------------------
+ENVIRONMENT
+  chat: Local mock chat app. Read and write tools operate on the rollout's ChatState.
+  deepwiki: Public DeepWiki MCP server: read-only GitHub-repo Q&A. Answers can be nondeterministic; requires the repo to be indexed by DeepWiki.
+  You act as one specific user. The acting user's id. Every write is attributed to this user; reads are scoped to it where noted.
+
+ENTITY TYPES IN THIS TASK
+  chat — A conversation the acting user takes part in. `name` is null for a DM.
+      id: string
+      kind: "dm" | "group"
+      name: string | null
+      member_ids: string[] (user ids)
+  user — A person in the workspace. Display names may collide; handles never do.
+      id: string
+      name: string
+      handle: string
+  message — One posted message. `reply_to` threads it under an earlier message in the same chat.
+      id: string
+      chat_id: string (chat id)
+      sender_id: string (user id)
+      text: string
+      ts: int (logical clock, not wall time)
+      reply_to: string | null (parent message id)
+      reactions: object (emoji -> user_id[])
+      read_by: string[] (user ids)
+
+ACTIONS THIS TASK USES
+  list_chats (read) — List the chats the acting user is a member of.
+      returns: array of {id, kind, name, members} for chats where actor is in member_ids
+  read_messages (read) — Read the most recent messages in a chat, oldest to newest.
+      chat_id: chat to read
+      limit: max messages, most recent (optional)
+      returns: array of message views {id, chat_id, from, sender_id, text, ts, reply_to, reactions, read_by}
+  create_chat (write) — Create a new chat; the acting user is always included as a member.
+      member_ids: user ids to include (actor added automatically)
+      name: chat name; if set (or >2 members) the chat is a group, else a dm (optional)
+      returns: {id, kind, name, members}
+  send_message (write) — Send a message from the acting user to a chat.
+      chat_id: destination chat
+      text: message body
+      returns: the created message view
+  reply_to (write) — Reply to an existing message in its chat (threaded).
+      message_id: the message being replied to
+      text: reply body
+      returns: the created message view
+
+WORKSPACE SO FAR
+You are Ari Novak @you, and a member of every chat.
+
+People (refer to them by the key on the left):
+  u1     Samir Patel @samir
+  u2     Leah Kim @leah
+  u3     Maria Gomez @maria
+  u4     Tom Wright @tom
+
+Chat c1     Launch Planning — members: u1, u2, u3
+  m1     order 1   [u1]: We need to pick the time window for the feature-flag flip — options: 22:00 or 02:00. Thoughts?  (UNREAD by you)
+  m2     order 2   [u2]: 02:00 is safer for international traffic. Also: flag the CS team in advance.  (reply to m1; UNREAD by you)
+  m3     order 3   [u3]: If we flip at 02:00 I'll be on call — can someone draft a clear rollback plan with triggers?  (reply to m1; UNREAD by you; :+1: x1)
+  m7     order 7   [actor]: Can we confirm the rollback trigger conditions before we pick the time?
+  m8     order 8   [u2]: We haven't defined exact thresholds yet — Leah to draft? Also who will own the rollback?  (reply to m7; UNREAD by you)
+
+Chat c2     (a dm) — members: u1
+  m4     order 4   [u1]: Quick DM: do you have the list of services affected by the rollout?
+  m9     order 9   [actor]: I'll pull the affected-service list and post it to Ops Room once I have it.  (reply to m4)
+
+Chat c3     Ops Room — members: u3, u4
+  m5     order 5   [u4]: Alert: the canary shows increased latencies since 23:10. Switching back might be necessary.  (UNREAD by you; ⚠️ x1)
+  m6     order 6   [u3]: Acknowledged. Can you pull p50/p95 and error rate for the last hour so we can decide?  (reply to m5; UNREAD by you)
+
+CONDITIONS
+  the chat whose title is exactly Launch Planning  -> must keep matching exactly one chat
+  the user who wrote the one message whose text contains 02:00 I'll be on  -> must keep matching exactly one user
+  the chat whose title is exactly Ops Room  -> must keep matching exactly one chat
+  the one message whose text contains canary shows increased latencies  -> must keep matching exactly one message
+
+YOUR PREVIOUS ANSWER WAS REJECTED: 6 validation errors for WorldDraft
+messages.0.order
+  Input should be a valid integer, got a number with a fractional part [type=int_from_float, input_value=1.5, input_type=float]
+    For further information visit https://errors.pydantic.dev/2.13/v/int_from_float
+messages.1.order
+  Input should be a valid integer, got a number with a fractional part [type=int_from_float, input_value=2.2, input_type=float]
+    For further information visit https://errors.pydantic.dev/2.13/v/int_from_float
+messages.2.order
+  Input should be a valid integer, got a number with a fractional part [type=int_from_float, input_value=2.8, input_type=float]
+    For further information visit https://errors.pydantic.dev/2.13/v/int_from_float
+messages.3.order
+  Input should be a valid integer, got a number with a fractional part [type=int_from_float, input_value=5.5, input_type=float]
+    For further information visit https://errors.pydantic.dev/2.13/v/int_from_float
+messages.5.order
+  Input should be a valid integer, got a number with a fractional part [type=int_from_float, input_value=6.5, input_type=float]
+    For further information visit https://errors.pydantic.dev/2.13/v/int_from_float
+messages.6.order
+  Input should be a valid integer, got a number with a fractional part [type=int_from_float, input_value=7.5, input_type=float]
+    For further information visit https://errors.pydantic.dev/2.13/v/int_from_float
+Return the whole object again, corrected. Change only what the rejection names; keep everything else as it was.
+
+------------------------------------------------------------------------------------------------
+-- REPLY
+------------------------------------------------------------------------------------------------
+{
+  "new_users": [
+    {
+      "ref": "n1",
+      "name": "Jia Chen",
+      "handle": "jia"
+    },
+    {
+      "ref": "n10",
+      "name": "Brett Lane",
+      "handle": "brett"
+    }
+  ],
+  "new_chats": [
+    {
+      "ref": "n2",
+      "name": "Watercooler",
+      "members": [
+        "u1",
+        "n1"
+      ]
+    }
+  ],
+  "new_messages": [
+    {
+      "ref": "n3",
+      "chat": "c1",
+      "sender": "u1",
+      "text": "Also note marketing asked for a slide deck with timeline — can someone own that?",
+      "order": 5,
+      "reply_to": null,
+      "read_by_actor": false,
+      "reactors": []
+    },
+    {
+      "ref": "n4",
+      "chat": "c1",
+      "sender": "u2",
+      "text": "I can draft the rollback triggers doc — will share a link by EOD.",
+      "order": 6,
+      "reply_to": "m3",
+      "read_by_actor": false,
+      "reactors": []
+    },
+    {
+      "ref": "n5",
+      "chat": "c2",
+      "sender": "u1",
+      "text": "Forgot to mention: the payment service isn't in that list — it's critical.",
+      "order": 6,
+      "reply_to": "m4",
+      "read_by_actor": false,
+      "reactors": []
+    },
+    {
+      "ref": "n6",
+      "chat": "c3",
+      "sender": "u4",
+      "text": "Uploaded graphs to the dashboard: look at canary-1, canary-2. p95 jumped 40%.",
+      "order": 7,
+      "reply_to": "m6",
+      "read_by_actor": false,
+      "reactors": []
+    },
+    {
+      "ref": "n7",
+      "chat": "c3",
+      "sender": "u3",
+      "text": "On it — will take a look after the standup.",
+      "order": 8,
+      "reply_to": "n6",
+      "read_by_actor": true,
+      "reactors": []
+    },
+    {
+      "ref": "n8",
+      "chat": "n2",
+      "sender": "n1",
+      "text": "Morning! Saw the Launch Planning thread — good luck today.",
+      "order": 3,
+      "reply_to": null,
+      "read_by_actor": false,
+      "reactors": []
+    },
+    {
+      "ref": "n9",
+      "chat": "c1",
+      "sender": "u1",
+      "text": "Also, FYI, the external stakeholders asked for a one-pager by tomorrow.",
+      "order": 4,
+      "reply_to": "m1",
+      "read_by_actor": false,
+      "reactors": []
+    }
+  ]
+}

@@ -1,0 +1,184 @@
+# Stage 8 — v1 prompt and the judge specification
+
+1 model call(s).
+
+================================================================================================
+== call 1 of 1
+================================================================================================
+
+------------------------------------------------------------------------------------------------
+-- SYSTEM PROMPT
+------------------------------------------------------------------------------------------------
+You turn a plan into a task, written as an explicit numbered sequence.
+
+You are given a workspace, and the exact actions an agent should perform in it with every detail already decided. Write the request the agent will receive.
+
+- One numbered step per action, in the given order — but write SENTENCES. The plan you are given is a machine listing; do not reproduce its layout, its bracketed tags, its parameter lines or its "returns" notes. Those are notes to you. Ask for the thing, using the ids shown.
+- Every step is work that must happen, including any marked as an aside. The plan is the complete and exact set of actions: never ask for anything it does not contain, and never leave one out. An unplanned message is an unexpected change to the workspace, and a missing one costs the agent credit for obeying you.
+- Where a step's text must CARRY what an earlier step returned, say so plainly: the agent has to look that up and say it in the message. Ask for the information, not for a transcript — a person asks a colleague to pass on what a thread said, never to paste the raw tool output. Never guess the value yourself.
+- Where a step looks something up and no later step posts what it found, ask the agent to report that back to you in its reply.
+
+You also write the JUDGE SPECIFICATION. You are given the items that need checking, each with where its answer must appear. For each one return:
+- expected: THE ANSWER ITSELF, in a sentence. Two ways to get this wrong, and both make the item useless. Do not write "the text returned by step N" or "the answer to the question above" — a grader given that has nothing to compare against. And do not paste the returned value back verbatim — say what a correct answer STATES, in your own words, so that a grader can recognise one that is worded differently. Where the item shows what the step actually returned, draw the facts out of it ("names all three of X, Y and Z"); where the answer comes from outside the workspace, give it as best you know it.
+- hint: where in the agent's output a grader should look for it.
+
+Respond with ONLY this JSON object:
+{"prompt": "<the task text>",
+ "judge": [{"id": "<item id, copied exactly>", "expected": "...", "hint": "..."}]}
+
+------------------------------------------------------------------------------------------------
+-- USER PROMPT
+------------------------------------------------------------------------------------------------
+ENVIRONMENT
+  chat: Local mock chat app. Read and write tools operate on the rollout's ChatState.
+  deepwiki: Public DeepWiki MCP server: read-only GitHub-repo Q&A. Answers can be nondeterministic; requires the repo to be indexed by DeepWiki.
+  You act as one specific user. The acting user's id. Every write is attributed to this user; reads are scoped to it where noted.
+
+ENTITY TYPES IN THIS TASK
+  chat — A conversation the acting user takes part in. `name` is null for a DM.
+      id: string
+      kind: "dm" | "group"
+      name: string | null
+      member_ids: string[] (user ids)
+  user — A person in the workspace. Display names may collide; handles never do.
+      id: string
+      name: string
+      handle: string
+  message — One posted message. `reply_to` threads it under an earlier message in the same chat.
+      id: string
+      chat_id: string (chat id)
+      sender_id: string (user id)
+      text: string
+      ts: int (logical clock, not wall time)
+      reply_to: string | null (parent message id)
+      reactions: object (emoji -> user_id[])
+      read_by: string[] (user ids)
+
+ACTIONS THIS TASK USES
+  list_chats (read) — List the chats the acting user is a member of.
+      returns: array of {id, kind, name, members} for chats where actor is in member_ids
+  read_messages (read) — Read the most recent messages in a chat, oldest to newest.
+      chat_id: chat to read
+      limit: max messages, most recent (optional)
+      returns: array of message views {id, chat_id, from, sender_id, text, ts, reply_to, reactions, read_by}
+  create_chat (write) — Create a new chat; the acting user is always included as a member.
+      member_ids: user ids to include (actor added automatically)
+      name: chat name; if set (or >2 members) the chat is a group, else a dm (optional)
+      returns: {id, kind, name, members}
+  send_message (write) — Send a message from the acting user to a chat.
+      chat_id: destination chat
+      text: message body
+      returns: the created message view
+  reply_to (write) — Reply to an existing message in its chat (threaded).
+      message_id: the message being replied to
+      text: reply body
+      returns: the created message view
+
+WORKSPACE
+You act as Ari Novak (id u_me).
+
+People:
+  u_me  Ari Novak @you
+  u_samir  Samir Patel @samir
+  u_leah  Leah Kim @leah
+  u_maria  Maria Gomez @maria
+  u_tom  Tom Wright @tom
+  u_jia  Jia Chen @jia
+  u_brett  Brett Lane @brett
+
+group Launch Planning (c_001) — members: Ari Novak @you, Samir Patel @samir, Leah Kim @leah, Maria Gomez @maria
+  m_001 [Samir Patel @samir]: We need to pick the time window for the feature-flag flip — options: 22:00 or 02:00. Thoughts?  (UNREAD by you)
+  m_002 [Leah Kim @leah]: 02:00 is safer for international traffic. Also: flag the CS team in advance.  (reply to m_001; UNREAD by you)
+  m_003 [Maria Gomez @maria]: If we flip at 02:00 I'll be on call — can someone draft a clear rollback plan with triggers?  (reply to m_001; UNREAD by you; :+1: x1)
+  m_006 [Samir Patel @samir]: Also, FYI, the external stakeholders asked for a one-pager by tomorrow.  (reply to m_001; UNREAD by you)
+  m_008 [Samir Patel @samir]: Also note marketing asked for a slide deck with timeline — can someone own that?  (UNREAD by you)
+  m_010 [Leah Kim @leah]: I can draft the rollback triggers doc — will share a link by EOD.  (reply to m_003; UNREAD by you)
+  m_012 [Ari Novak @you]: Can we confirm the rollback trigger conditions before we pick the time?
+  m_014 [Leah Kim @leah]: We haven't defined exact thresholds yet — Leah to draft? Also who will own the rollback?  (reply to m_012; UNREAD by you)
+
+dm (dm) (c_002) — members: Ari Novak @you, Samir Patel @samir
+  m_005 [Samir Patel @samir]: Quick DM: do you have the list of services affected by the rollout?
+  m_011 [Samir Patel @samir]: Forgot to mention: the payment service isn't in that list — it's critical.  (reply to m_005; UNREAD by you)
+  m_016 [Ari Novak @you]: I'll pull the affected-service list and post it to Ops Room once I have it.  (reply to m_005)
+
+group Ops Room (c_003) — members: Ari Novak @you, Maria Gomez @maria, Tom Wright @tom
+  m_007 [Tom Wright @tom]: Alert: the canary shows increased latencies since 23:10. Switching back might be necessary.  (UNREAD by you; ⚠️ x1)
+  m_009 [Maria Gomez @maria]: Acknowledged. Can you pull p50/p95 and error rate for the last hour so we can decide?  (reply to m_007; UNREAD by you)
+  m_013 [Tom Wright @tom]: Uploaded graphs to the dashboard: look at canary-1, canary-2. p95 jumped 40%.  (reply to m_009; UNREAD by you)
+  m_015 [Maria Gomez @maria]: On it — will take a look after the standup.  (reply to m_013)
+
+group Watercooler (c_004) — members: Ari Novak @you, Samir Patel @samir, Jia Chen @jia
+  m_004 [Jia Chen @jia]: Morning! Saw the Launch Planning thread — good luck today.  (UNREAD by you)
+
+PLAN (perform in this order)
+step 1 [read] list_chats — List the chats the acting user is a member of.
+    -> returns: [{"id": "c_001", "kind": "group", "name": "Launch Planning", "members": ["u_me", "u_samir", "u_leah", "u_maria"]}, {"id": "c_002", "kind": "dm", "name": "c_002", "members": ["u_me", "u_samir"]}, {"id": "c_003", "kind": "group", "name": "Ops Room", "members": ["u_me", "u_maria", "u_tom"]}, {"id": "c_004", "kind": "group", "name": "Watercooler", "members": ["u_me", "u_samir", "u_jia"]}]
+step 2 [read] read_messages — Read the most recent messages in a chat, oldest to newest.
+    chat_id      = c_001 — group 'Launch Planning' — members: Ari Novak @you, Samir Patel @samir, Leah Kim @leah, Maria Gomez @maria
+    -> returns: [{"id": "m_001", "chat_id": "c_001", "from": "Samir Patel", "sender_id": "u_samir", "text": "We need to pick the time window for the feature-flag flip — options: 22:00 or 02:00. Thoughts?", "ts": 1, "reply_to": null, "reactions": {}, "read_by": ["u_samir"]}, {"id": "m_002", "chat_id": "c_001", "from": "Leah Kim", "sender_id": "u_leah", "text": "02:00 is safer for international traffic. Also: flag the CS team in advance.", "ts": 2, "reply_to": "m_001", "reactions": {}, "read_by": ["u_leah"]}, {"id": "m_003", "chat_id": "c_001", "from": "Maria Gomez", "sender_id": "u_maria", "text": "If we flip at 02:00 I'll be on call — can someone draft a clear rollback plan with triggers?", "ts": 3, "reply_to": "m_001", "reactions": {":+1:": ["u_leah"]}, "read_by": ["u_maria"]}, {"id": "m_006", "chat_id": "c_001", "from": "Samir Patel", "sender_id": "u_samir", "text": "Also, FYI, the external stakeholde …(truncated)
+step 3 [write] create_chat — Create a new chat; the acting user is always included as a member.
+    member_ids   = u_maria — Maria Gomez @maria
+    -> creates something new
+step 4 [write] send_message — Send a message from the acting user to a chat.
+    chat_id      = c_001 — group 'Launch Planning' — members: Ari Novak @you, Samir Patel @samir, Leah Kim @leah, Maria Gomez @maria
+    text         <- must carry what step 1 returned
+    -> creates something new
+step 5 [write] send_message — Send a message from the acting user to a chat.
+    chat_id      = c_003 — group 'Ops Room' — members: Ari Novak @you, Maria Gomez @maria, Tom Wright @tom
+    text         <- must carry what step 1 returned
+    -> creates something new
+step 6 [write] reply_to — Reply to an existing message in its chat (threaded).
+    message_id   = m_007 — in Ops Room from Tom Wright, unread by you: 'Alert: the canary shows increased latencies since 23:10. Switching back might be necessary.'
+    text         <- must carry what step 1 returned
+    -> creates something new
+
+ITEMS THAT NEED CHECKING
+  report:c1a0
+      step 2 looks something up and no later step posts what it found, so the agent must report it back in its own reply
+      delivered in: the agent's final reply
+      step 2 (read_messages) returns array of message views {id, chat_id, from, sender_id, text, ts, reply_to, reactions, read_by}
+          it actually returned: [{"id": "m_001", "chat_id": "c_001", "from": "Samir Patel", "sender_id": "u_samir", "text": "We need to pick the time window for the feature-flag flip — options: 22:00 or 02:00. Thoughts?", "ts": 1, "reply_to": null, "reactions": {}, "read_by": ["u_samir"]}, {"id": "m_002", "chat_id": "c_001", "from": "Leah Kim", "sender_id": "u_leah", "text": "02:00 is safer for international traffic. Also: flag the CS team in advance.", "ts": 2, "reply_to": "m_001", "reactions": {}, "read_by": ["u_leah"]}, {"id": "m_003", "chat_id": "c_001", "from": "Maria Gomez", "sender_id": "u_maria", "text": "If we flip at 02:00 I'll be on call — can someone draft a clear rollback plan with triggers?", "ts": 3, "reply_
+  carry:c0a1:text
+      the text of step 4 must carry what step 1 returned
+      delivered in: the message step 4 posts
+      step 1 (list_chats) returns array of {id, kind, name, members} for chats where actor is in member_ids
+          it actually returned: [{"id": "c_001", "kind": "group", "name": "Launch Planning", "members": ["u_me", "u_samir", "u_leah", "u_maria"]}, {"id": "c_002", "kind": "dm", "name": "c_002", "members": ["u_me", "u_samir"]}, {"id": "c_003", "kind": "group", "name": "Ops Room", "members": ["u_me", "u_maria", "u_tom"]}, {"id": "c_004", "kind": "group", "name": "Watercooler", "members": ["u_me", "u_samir", "u_jia"]}]
+  carry:c1a1:text
+      the text of step 5 must carry what step 1 returned
+      delivered in: the message step 5 posts
+      step 1 (list_chats) returns array of {id, kind, name, members} for chats where actor is in member_ids
+          it actually returned: [{"id": "c_001", "kind": "group", "name": "Launch Planning", "members": ["u_me", "u_samir", "u_leah", "u_maria"]}, {"id": "c_002", "kind": "dm", "name": "c_002", "members": ["u_me", "u_samir"]}, {"id": "c_003", "kind": "group", "name": "Ops Room", "members": ["u_me", "u_maria", "u_tom"]}, {"id": "c_004", "kind": "group", "name": "Watercooler", "members": ["u_me", "u_samir", "u_jia"]}]
+  carry:c0a2:text
+      the text of step 6 must carry what step 1 returned
+      delivered in: the message step 6 posts
+      step 1 (list_chats) returns array of {id, kind, name, members} for chats where actor is in member_ids
+          it actually returned: [{"id": "c_001", "kind": "group", "name": "Launch Planning", "members": ["u_me", "u_samir", "u_leah", "u_maria"]}, {"id": "c_002", "kind": "dm", "name": "c_002", "members": ["u_me", "u_samir"]}, {"id": "c_003", "kind": "group", "name": "Ops Room", "members": ["u_me", "u_maria", "u_tom"]}, {"id": "c_004", "kind": "group", "name": "Watercooler", "members": ["u_me", "u_samir", "u_jia"]}]
+
+------------------------------------------------------------------------------------------------
+-- REPLY
+------------------------------------------------------------------------------------------------
+{
+  "prompt": "1. Call list_chats and return the list of chats the acting user (u_me) is a member of; record that result for use in later steps.  \n2. Read the most recent messages in chat c_001 (Launch Planning) and include those message views in your final reply so I can see what was returned.  \n3. Create a new chat that includes member u_maria (Maria Gomez) in addition to the acting user.  \n4. Send a message to chat c_001 (Launch Planning) whose text includes (carries) the list of chats returned by step 1.  \n5. Send a message to chat c_003 (Ops Room) whose text includes (carries) the list of chats returned by step 1.  \n6. Reply to message m_007 in Ops Room with a threaded reply whose text includes (carries) the list of chats returned by step 1.",
+  "judge": [
+    {
+      "id": "report:c1a0",
+      "expected": "A concise summary stating the recent messages read from the Launch Planning chat: m_001 from Samir asking to pick the time window (22:00 or 02:00); m_002 from Leah saying 02:00 is safer for international traffic and to flag the CS team; m_003 from Maria asking someone to draft a clear rollback plan with triggers; and m_006 from Samir noting external stakeholders asked for a one-pager.",
+      "hint": "Look in the agent's final reply where it summarizes or lists the messages returned by reading chat c_001 (Launch Planning)."
+    },
+    {
+      "id": "carry:c0a1:text",
+      "expected": "The message posted to c_001 (Launch Planning) includes the full list of chats returned by step 1, naming each chat id and name: c_001 \"Launch Planning\" (group), c_002 (dm), c_003 \"Ops Room\" (group), and c_004 \"Watercooler\" (group).",
+      "hint": "Find this in the text of the message the agent sent to chat c_001 in step 4."
+    },
+    {
+      "id": "carry:c1a1:text",
+      "expected": "The message posted to c_003 (Ops Room) includes the full list of chats returned by step 1, naming each chat id and name: c_001 \"Launch Planning\" (group), c_002 (dm), c_003 \"Ops Room\" (group), and c_004 \"Watercooler\" (group).",
+      "hint": "Find this in the text of the message the agent sent to chat c_003 in step 5."
+    },
+    {
+      "id": "carry:c0a2:text",
+      "expected": "The threaded reply to m_007 in Ops Room includes the full list of chats returned by step 1, naming each chat id and name: c_001 \"Launch Planning\" (group), c_002 (dm), c_003 \"Ops Room\" (group), and c_004 \"Watercooler\" (group).",
+      "hint": "Find this in the text of the reply the agent posted to message m_007 in step 6."
+    }
+  ]
+}

@@ -1,0 +1,9 @@
+Stage 7 result. This runs LAST because it is the only stage whose output cannot
+invalidate anything: `signature` excludes text, so the expected state is already fixed.
+
+  $repoName_0
+      owner/acme/payment-service
+  $repoName_1
+      owner/acme/payment-service
+  $text_0
+      Thanks — I pasted the docs into Priya's thread. Priya, can you lead the runbook review; Marco, can you check architecture and API and flag any issues by Thursday?

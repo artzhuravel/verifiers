@@ -1,0 +1,38 @@
+Stage 3 result: the authored draft, built into a state.
+`seed.build` validates and never repairs — an undeclared sender, a reply across chats
+or an unbound placeholder rejects the whole draft and costs a correction round.
+
+topic: Product launch coordination (beta list, assets, and design feedback)
+
+You act as Alex Morgan (id u_me).
+
+People:
+  u_me  Alex Morgan @you
+  u_mg_singh  Maya Singh @mg_singh
+  u_crivera  Carlos Rivera @crivera
+  u_jpark  Jen Park @jpark
+  u_amirq  Amir Qureshi @amirq
+
+group launch-team (c_001) — members: Alex Morgan @you, Maya Singh @mg_singh, Carlos Rivera @crivera
+  m_001 [Maya Singh @mg_singh]: We need to finalize the beta list by Friday. Current candidate count: 42. Thoughts on prioritization?  (UNREAD by you)
+  m_002 [Alex Morgan @you]: I can run the segmentation this afternoon and share a prioritized list.  (reply to m_001)
+  m_003 [Carlos Rivera @crivera]: I'm worried about capacity for tier B; we should cap at 30 unless ops can extend.  (UNREAD by you)
+  m_009 [Carlos Rivera @crivera]: Thanks — segmentation would help. Also looping ops in case we need capacity.  (reply to m_002; UNREAD by you)
+
+dm (dm) (c_002) — members: Alex Morgan @you, Jen Park @jpark
+  m_004 [Jen Park @jpark]: Do you have the final assets from design?  (UNREAD by you)
+  m_005 [Alex Morgan @you]: Not yet; Amir said he'd push icons by EOD.  (reply to m_004)
+
+group design-queue (c_003) — members: Alex Morgan @you, Amir Qureshi @amirq, Maya Singh @mg_singh
+  m_006 [Amir Qureshi @amirq]: Pushed the revised hero banner to /design-assets/banner_v3 — feedback welcome.  (UNREAD by you)
+  m_007 [Maya Singh @mg_singh]: Nice. The CTA needs stronger contrast though.  (reply to m_006; UNREAD by you)
+  m_008 [Alex Morgan @you]: I'll coordinate a quick accessibility pass and return notes by noon.  (reply to m_006)
+
+PLACEHOLDERS BOUND
+  $user_0              -> u_mg_singh
+  $user_1              -> u_crivera
+  $user_2              -> u_jpark
+  $user_3              -> u_amirq
+  $chat_0              -> c_001
+  $message_0           -> m_003
+  $message_1           -> m_006

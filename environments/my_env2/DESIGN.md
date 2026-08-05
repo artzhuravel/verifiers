@@ -32,16 +32,17 @@ stage, and that stage becomes the pipeline's validity gate.
 | 6 | `replay.py` | sequence, seed, binding | `Replay`: expected, observations, diffs | yes — error, no-op, empty read |
 | 7 | `authoring.py` | world, plan | `placeholder → text` | yes — a placeholder unfilled |
 | 8 | `prompts.py` | plan, judge targets | v1 + judge spec | yes — no prompt, no expected answer |
-| 9 | `prompts.py` | v1, references | v2 | yes — no prompt |
-| 10 | `prompts.py` | v2, references | v3 | yes — no prompt |
+| 9 | `prompts.py` | v1, references, v1's judge | v2 + its judge | yes — no prompt, an item unrestated |
+| 10 | `prompts.py` | v2, references, v2's judge | v3 + its judge | yes — same |
+| 11 | `prompts.py` | v3, references, v3's judge | v4 + its judge | yes — same |
 
 `pipeline.build_task` runs them in that order and returns a `TaskRecord`, or raises. `pipeline.main`
 catches everything per task, records the reason, and carries on — the output file is written after
 the loop, so an exception escaping would discard every task already built.
 
-Stages 3, 4, 5, 7, 8, 9 and 10 are model calls: seven per task, plus one for each correction round
-that fires. Over the last twelve tasks that came to 90 calls, so roughly one correction every two
-tasks.
+Stages 3, 4, 5, 7, 8, 9, 10 and 11 are model calls: eight per task, plus one for each correction
+round that fires. Over the last twelve tasks, at seven stages, that came to 90 calls — roughly one
+correction every two tasks.
 
 ## 3. Data model
 
@@ -239,20 +240,43 @@ Free text stays unresolved here, and that is what makes the whole ordering work:
 excludes text, emoji and chat names, so Stages 7 onward decide what the messages actually say
 without moving a single fact in `expected`.
 
-## 8. Stages 7–10 — the prose
+## 8. Stages 7–11 — the prose
 
 Stage 7 fills the content placeholders against the now-concrete world and the observed read results.
-Stages 8–10 write the same task three ways over one `(seed, expected)` pair:
+Stages 8–11 write the same task four ways over one `(seed, expected)` pair:
 
 - **v1** numbered, ids named — the floor;
-- **v2** prose, every id replaced by its Stage 4 description;
-- **v3** the goal, with no step individually identifiable.
+- **v2** prose, each thing picked out by its Stage 4 description;
+- **v3** the goal, with no step individually identifiable;
+- **v4** folded: actions that existed only to feed each other become one request, no content is
+  dictated word for word, and no clause narrates a hand-off.
 
-v2 and v3 are given a **forbidden list**: every seed id, every action and tool name, and — for each
-entity the prompt is supposed to *describe* — whatever would identify it outright, minus whatever
-the assigned reference itself says. Afterwards `_complaints` checks the same list on word boundaries
-and flags surviving enumeration. Findings are recorded as warnings, not enforced; an automated
-ambiguity check is deferred.
+Levels 2, 3 and 4 differ only in a system prompt and three labels, so `rewrite_prompt` serves all
+three from one table.
+
+**Each rewrite carries the judge specification with it.** An item authored against v1 says things
+like "look at the message the agent sent to chat c_001 (step 4)" — a description of a task the
+higher rungs do not give. So every rewrite stage is handed the rung below's items and must restate
+each one's `expected` and `hint`; `id`, `requirement` and `delivered_in` stay derived, because an
+author allowed to restate the requirement will weaken one and an author allowed to choose the
+destination invents a message the plan does not contain. `TaskRecord.judge` is therefore keyed by
+level, and `taskset.py` serves the level it is asked for.
+
+**A description introduces a thing once.** The first version of these stages said "replace every
+identifier with the description supplied", and the model obliged literally: over twelve tasks, 40 of
+81 phrase uses were a description pasted again — one of them five times in one prompt — and in one
+case v2 even expanded v1's "that chat" back into the full phrase. Two things went wrong at once.
+The prose reads as find-and-replace, and where a description depends on a property the task's own
+steps destroy, every use after that step is false. So `stale_references` re-resolves each reference
+against `expected` and the rewrite stages are told which ones the work invalidates, `_complaints`
+counts repeats, and the instruction asks for anaphora with the replacements named.
+
+v2, v3 and v4 are also given a **forbidden list**: every seed id, every action and tool name, and —
+for each entity the prompt is supposed to *describe* — whatever would identify it outright, minus
+whatever the assigned reference itself says. Afterwards `_complaints` checks that list on word
+boundaries, counts repeated descriptions, flags surviving enumeration, and for v3 and v4 flags
+sequencing connectives (`; `, ` then `), which 6 of 12 v3 prompts used while passing every other
+check. Findings are recorded as warnings, not enforced; a real ambiguity check is deferred.
 
 ## 9. The environment seam
 
@@ -294,6 +318,15 @@ environment-specific, and it lives in its own module for that reason.
 | Every symbol is bound after replay | `replay`, explicit check |
 | No write is a no-op, no read is empty | `replay`, measured |
 | Every step reaches at least one reward component | `judge_items` + `state_diff`; pinned by test |
+| Every judge item survives every rung, restated | `_rewrite_judge`, by rejection; pinned by test |
+| A rung's judge items name only what that rung's prompt contains | `_judge_leaks`, recorded as a warning |
+| A reference the task's own work invalidates is known about | `stale_references` against `expected` |
+
+The last two are warnings, not gates. `_judge_leaks` runs the same word-boundary test over a
+restated item's `expected` and `hint` that `_complaints` runs over the prompt, plus a check for a
+surviving "step N" — a leak there is invisible to the agent but points a grader at a task the rung
+does not describe. `requirement` is exempt: it is derived, states the obligation in plan terms, and
+is deliberately identical at every rung.
 
 ## 11. Cost, caching, retries
 

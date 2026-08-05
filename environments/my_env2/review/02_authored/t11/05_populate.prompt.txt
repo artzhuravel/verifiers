@@ -1,0 +1,126 @@
+# Stage 5 — pad the world with filler
+
+NOTE ON FIDELITY — read this before trusting the WORKSPACE block below.
+
+This stage ran against the CORE world, before Stage 5 padded it, and only the padded world is
+shipped in the task record. The prompt below is therefore rebuilt in the right shape, with the
+right blocks in the right order, but the workspace inside it is the LATER one: it contains
+filler that was not present when the model actually saw this. The instructions, the block
+structure and the derived lines are real; the world is a stand-in.
+
+Stage 5 is also the one call shown the world in the DRAFT's vocabulary (`u1`, `c2`, `m3`)
+rather than in real ids — that is what lets it add a message to a conversation that
+already exists. That view is rebuilt here from the shipped state.
+
+------------------------------------------------------------------------------------------------
+-- SYSTEM PROMPT
+------------------------------------------------------------------------------------------------
+You pad out a workspace so it looks lived-in.
+
+You are given a workspace that was built around one specific task. It is too tidy: everything in it is there for a reason, which is itself a giveaway. Add ordinary, unrelated traffic — a few more colleagues, another conversation or two, and messages that have nothing to do with anything.
+
+Put most of the new messages in the conversations that already exist, from the people already in them. A separate room full of strangers hides nothing; unrelated chatter alongside the real thing does.
+
+Three hard rules:
+- Do NOT touch or restate what is already there. You are only adding.
+- Refer to existing people, conversations and messages by the SHORT KEY shown on the left of each line (`u2`, `c1`, `m4`) — never by a name or by anything else. New entries you add get their own new keys.
+- Each CONDITION listed below must still pick out exactly the entity it picks out now. If adding a person whose handle collides, or a message repeating a distinctive phrase, would make a condition match two things, do not add it. Anything that breaks a condition is discarded, so being careless here just wastes your work.
+
+Give messages `order` values spread across the existing range so the new history interleaves with the old rather than piling up after it. A reply must have a higher `order` than the message it replies to.
+
+Every entry you return is a NEW one and needs a key nothing else uses — start them all with "n". Do not return an entry for anything already in the workspace; it is already there, and repeating it is the one thing that makes this call useless.
+
+Respond with ONLY this JSON object:
+{"new_users": [{"ref": "n1", "name": "...", "handle": "..."}],
+ "new_chats": [{"ref": "n2", "name": "...", "members": ["u1", "n1"]}],
+ "new_messages": [{"ref": "n3", "chat": "c1", "sender": "u2", "text": "...", "order": 4,
+                   "reply_to": null, "read_by_actor": true, "reactors": []}]}
+
+------------------------------------------------------------------------------------------------
+-- USER PROMPT
+------------------------------------------------------------------------------------------------
+ENVIRONMENT
+  chat: Local mock chat app. Read and write tools operate on the rollout's ChatState.
+  deepwiki: Public DeepWiki MCP server: read-only GitHub-repo Q&A. Answers can be nondeterministic; requires the repo to be indexed by DeepWiki.
+  You act as one specific user. The acting user's id. Every write is attributed to this user; reads are scoped to it where noted.
+
+ENTITY TYPES IN THIS TASK
+  user — A person in the workspace. Display names may collide; handles never do.
+      id: string
+      name: string
+      handle: string
+  chat — A conversation the acting user takes part in. `name` is null for a DM.
+      id: string
+      kind: "dm" | "group"
+      name: string | null
+      member_ids: string[] (user ids)
+  message — One posted message. `reply_to` threads it under an earlier message in the same chat.
+      id: string
+      chat_id: string (chat id)
+      sender_id: string (user id)
+      text: string
+      ts: int (logical clock, not wall time)
+      reply_to: string | null (parent message id)
+      reactions: object (emoji -> user_id[])
+      read_by: string[] (user ids)
+
+ACTIONS THIS TASK USES
+  read_wiki_contents (read) — View DeepWiki documentation for a GitHub repository.
+      repoName: GitHub repo in owner/repo form
+      returns: the repo's wiki DOCUMENTATION PROSE. It states what the project is for, how a subsystem works, what a concept means. It does NOT state licence, stars, maintainers or primary language, so a question about those has no obtainable answer here.
+  read_wiki_structure (read) — List the DeepWiki documentation topics for a GitHub repository.
+      repoName: GitHub repo in owner/repo form
+      returns: only the LIST OF DOCUMENTATION TOPIC TITLES. It can answer which areas the documentation covers, and nothing about repo metadata or the content of any page.
+  create_chat (write) — Create a new chat; the acting user is always included as a member.
+      member_ids: user ids to include (actor added automatically)
+      name: chat name; if set (or >2 members) the chat is a group, else a dm (optional)
+      returns: {id, kind, name, members}
+  reply_to (write) — Reply to an existing message in its chat (threaded).
+      message_id: the message being replied to
+      text: reply body
+      returns: the created message view
+  send_message (write) — Send a message from the acting user to a chat.
+      chat_id: destination chat
+      text: message body
+      returns: the created message view
+
+WORKSPACE SO FAR
+You are Jamie K. @you, and a member of every chat.
+
+People (refer to them by the key on the left):
+  u1     Alice Park @alice_a
+  u2     Ben Soto @ben_b
+  u3     Carol Nguyen @carol_c
+  u4     Dan Ortiz @dan_d
+  u5     Eve Marquez @eve_m
+  u6     Frank Li @frank_l
+
+Chat c1     backend-team — members: u1, u2, u3
+  m1     order 1   [u1]: Quick Q: where are the design notes for the event-sourcing module? Repo wiki or DeepWiki?
+  m2     order 2   [u2]: They're in the repo wiki under docs/architecture. DeepWiki sometimes misses newest pages.  (reply to m1)
+  m3     order 3   [u2]: Heads up: CI flaked yesterday on the integration tests.
+  m4     order 4   [u3]: Can someone pull the DeepWiki contents for acme/event-sourcing? I need the prose for integrating with docs.  (reply to m2; UNREAD by you)
+  m6     order 6   [u2]: I'm pretty sure it's acme/event-sourcing (the repo from the JIRA), but double-check before you run DeepWiki.  (reply to m4; UNREAD by you)
+  m9     order 9   [u1]: I'll file a hotfix for the migration script.  (reply to m1)
+  m12    order 12  [u3]: Also, tagging for visibility on the migration notes.  (reply to m6)
+  m13    order 13  [u1]: If DeepWiki still misses pages, we can temporarily copy key docs into docs/architectures.md.  (reply to m6; UNREAD by you)
+
+Chat c2     (a dm) — members: u3
+  m11    order 11  [u3]: Have a sec? I need you to run DeepWiki on acme/event-sourcing and paste the page list here.  (UNREAD by you)
+  m14    order 14  [u3]: Just saw this. Paste away when ready and I'll check the pages.  (reply to m11; UNREAD by you)
+
+Chat c3     docs — members: u2, u4
+  m5     order 5   [u4]: Random: lunch pizza? (vote yes/no)
+  m8     order 8   [u2]: Docs sprint moved to Thursday — Dan, can you review API.md then?
+  m10    order 10  [u4]: Yes; I'll take API.md and schema.md. Ben, can you extract the architecture prose into a single file?  (reply to m8; :+1: x1)
+  m15    order 15  [u4]: Done reviewing API.md — left inline comments on the PR.  (reply to m10)
+  m16    order 16  [u2]: Reminder: sprint retro Friday, block time on calendars.  (reply to m10)
+
+Chat c4     random — members: u1, u6, u4
+  m7     order 7   [u6]: Welcome to random — feel free to drop memes and standups here.
+
+CONDITIONS
+  the user who wrote the one message whose text contains where are the design  -> must keep matching exactly one user
+  the user who wrote the one message whose text contains They're in the repo  -> must keep matching exactly one user
+  the single reply to the one message whose text contains someone pull the DeepWiki  -> must keep matching exactly one message
+  the chat containing a message whose text contains DeepWiki on acme/event-sourcing and  -> must keep matching exactly one chat

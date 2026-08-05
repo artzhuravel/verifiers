@@ -1,0 +1,8 @@
+Stage 7 runs LAST because it is the only stage whose output cannot invalidate anything:
+`signature` excludes text, emoji and chat names, so the expected state is already fixed
+by the time a single word is written.
+
+  $name_0
+      Vendor & DB Coordination
+  $name_1
+      Launch Contingency

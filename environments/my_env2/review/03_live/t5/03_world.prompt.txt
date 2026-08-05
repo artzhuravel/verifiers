@@ -1,0 +1,234 @@
+# Stage 3 — invent the core world
+
+1 model call(s).
+
+================================================================================================
+== call 1 of 1
+================================================================================================
+
+------------------------------------------------------------------------------------------------
+-- SYSTEM PROMPT
+------------------------------------------------------------------------------------------------
+You invent the small world an agent task takes place in.
+
+You are given an environment, a plan of actions an agent will be asked to perform, and a list of PLACEHOLDERS the plan refers to. A placeholder is something that has to already exist before the agent starts. Invent each one, together with whatever else is needed to make the whole thing read like one real situation: a handful of colleagues, a couple of conversations, and enough history that the plan is a sensible thing to ask.
+
+Write the world, not the task. Nobody in it knows an agent is coming, and above all the work is NOT already done: never write a message that carries out a step of the plan, and never write one that states the answer to something the plan asks. If the history already contains the answer, there is nothing left to ask for and the task measures nothing.
+
+RULES
+- Bind every placeholder exactly once, to an entity of the right type, via its `symbol` field. Leave `symbol` null on everything else.
+- Honour every REQUIRED line. They are not suggestions; a task that violates one measures nothing.
+- You already exist, as @you. Never add a `users` entry for yourself, and never list yourself in a `members` array — you are a member of every conversation automatically.
+- Every handle must differ from every other. Display names may repeat; handles never do.
+- `sender` is a local user key, or the literal "actor" for yourself. It must be one of the `members` of the conversation the message is in — people do not post in rooms they are not in. The same goes for `reactors`, and you are never one of them.
+- `reply_to` must name a message in the SAME conversation with a lower `order`.
+- `order` is a small integer placing the message on one shared clock across all conversations, so the history interleaves.
+- `read_by_actor` false means you have not caught up on that message yet.
+- Never write the same message twice. Each one has to say something none of the others does — that is what makes it possible to point at one of them later.
+- Keep it small and specific: 3-6 other people, 2-4 conversations, 6-14 messages. Give people ordinary names and real-looking handles. Make the messages say something — a decision being argued about, a number someone pulled, a question left hanging — never filler like "Hi" or "Sounds good".
+
+Respond with ONLY this JSON object:
+{"topic": "<one line: what this workspace is dealing with>",
+ "actor_name": "<your display name>",
+ "users":    [{"ref": "u1", "name": "...", "handle": "...", "symbol": null}],
+ "chats":    [{"ref": "c1", "name": "..." or null, "members": ["u1"], "symbol": null}],
+ "messages": [{"ref": "m1", "chat": "c1", "sender": "u1", "text": "...", "order": 1,
+               "reply_to": null, "read_by_actor": true, "reactors": [],
+               "reaction_emoji": ":+1:", "symbol": null}]}
+
+------------------------------------------------------------------------------------------------
+-- USER PROMPT
+------------------------------------------------------------------------------------------------
+ENVIRONMENT
+  chat: Local mock chat app. Read and write tools operate on the rollout's ChatState.
+  deepwiki: Public DeepWiki MCP server: read-only GitHub-repo Q&A. Answers can be nondeterministic; requires the repo to be indexed by DeepWiki.
+  You act as one specific user. The acting user's id. Every write is attributed to this user; reads are scoped to it where noted.
+
+ENTITY TYPES IN THIS TASK
+  message — One posted message. `reply_to` threads it under an earlier message in the same chat.
+      id: string
+      chat_id: string (chat id)
+      sender_id: string (user id)
+      text: string
+      ts: int (logical clock, not wall time)
+      reply_to: string | null (parent message id)
+      reactions: object (emoji -> user_id[])
+      read_by: string[] (user ids)
+
+ACTIONS THIS TASK USES
+  read_wiki_structure (read) — List the DeepWiki documentation topics for a GitHub repository.
+      repoName: GitHub repo in owner/repo form
+      returns: only the LIST OF DOCUMENTATION TOPIC TITLES. It can answer which areas the documentation covers, and nothing about repo metadata or the content of any page.
+  list_chats (read) — List the chats the acting user is a member of.
+      returns: array of {id, kind, name, members} for chats where actor is in member_ids
+  reply_to (write) — Reply to an existing message in its chat (threaded).
+      message_id: the message being replied to
+      text: reply body
+      returns: the created message view
+  add_reaction (write) — Add an emoji reaction from the acting user to a message.
+      message_id: the message to react to
+      emoji: reaction emoji, e.g. ':+1:'
+      returns: the updated message view
+
+PLAN THE AGENT WILL BE ASKED TO CARRY OUT
+step 1 [read] read_wiki_structure — List the DeepWiki documentation topics for a GitHub repository.
+    repoName     = $repoName_0 (free text: GitHub repo in owner/repo form)
+    -> returns $info_0: only the LIST OF DOCUMENTATION TOPIC TITLES. It can answer which areas the documentation covers, and nothing about repo metadata or the content of any page.
+step 2 [read] list_chats — List the chats the acting user is a member of.
+    -> returns $info_1: array of {id, kind, name, members} for chats where actor is in member_ids
+step 3 [write] reply_to — Reply to an existing message in its chat (threaded).
+    message_id   = $message_0 (an existing message)
+    text         = $text_0 (free text: reply body)
+    -> creates $new_message_0
+step 4 [write] reply_to — Reply to an existing message in its chat (threaded).
+    message_id   = $message_1 (an existing message)
+    text         <- must carry what step 2 and step 1 returned
+    -> creates $new_message_1
+step 5 [write] add_reaction — Add an emoji reaction from the acting user to a message.
+    message_id   = $new_message_1 (the message step 4 creates)
+    emoji        = $emoji_0 (free text: reaction emoji, e.g. ':+1:')
+step 6 [write] reply_to — Reply to an existing message in its chat (threaded).
+    message_id   = $message_0 (an existing message)
+    text         <- must carry what step 2 returned
+    -> creates $new_message_2
+
+PLACEHOLDERS THAT MUST ALREADY EXIST
+  $message_0 — a message
+      step 3 uses it as reply_to.message_id (Reply to an existing message in its chat (threaded).)
+      step 6 uses it as reply_to.message_id (Reply to an existing message in its chat (threaded).)
+  $message_1 — a message
+      step 4 uses it as reply_to.message_id (Reply to an existing message in its chat (threaded).)
+
+BIND EXACTLY THESE, ONE EACH, AND NOTHING ELSE
+  $message_0 (a message), $message_1 (a message)
+
+------------------------------------------------------------------------------------------------
+-- REPLY
+------------------------------------------------------------------------------------------------
+{
+  "topic": "Preparing DeepWiki doc-topic checks for acme/* repos ahead of the infra migration",
+  "actor_name": "Sam Ortega",
+  "users": [
+    {
+      "ref": "u1",
+      "name": "Maya Patel",
+      "handle": "mpatel",
+      "symbol": null
+    },
+    {
+      "ref": "u2",
+      "name": "Tom Rivera",
+      "handle": "trivera",
+      "symbol": null
+    },
+    {
+      "ref": "u3",
+      "name": "Lina Wong",
+      "handle": "lwong",
+      "symbol": null
+    },
+    {
+      "ref": "u4",
+      "name": "Aaron Brooks",
+      "handle": "abrooks",
+      "symbol": null
+    }
+  ],
+  "chats": [
+    {
+      "ref": "c1",
+      "name": "infra",
+      "members": [
+        "u1",
+        "u2",
+        "u4"
+      ],
+      "symbol": null
+    },
+    {
+      "ref": "c2",
+      "name": "docs",
+      "members": [
+        "u1",
+        "u3"
+      ],
+      "symbol": null
+    }
+  ],
+  "messages": [
+    {
+      "ref": "m1",
+      "chat": "c1",
+      "sender": "u2",
+      "text": "Can someone run DeepWiki to list the documentation topics for acme/edge-proxy? We're deciding if it's covered well enough for the migration.",
+      "order": 1,
+      "reply_to": null,
+      "read_by_actor": false,
+      "reactors": [],
+      "reaction_emoji": null,
+      "symbol": "$message_0"
+    },
+    {
+      "ref": "m2",
+      "chat": "c2",
+      "sender": "u3",
+      "text": "Heads-up: I also want the doc-topic list for acme/monitoring and acme/observability when someone has bandwidth.",
+      "order": 2,
+      "reply_to": null,
+      "read_by_actor": false,
+      "reactors": [],
+      "reaction_emoji": null,
+      "symbol": "$message_1"
+    },
+    {
+      "ref": "m3",
+      "chat": "c1",
+      "sender": "u1",
+      "text": "I can do edge-proxy but might need the exact repo path — is it acme/edge-proxy or acme/edge-proxy-server?",
+      "order": 3,
+      "reply_to": "m1",
+      "read_by_actor": true,
+      "reactors": [],
+      "reaction_emoji": null,
+      "symbol": null
+    },
+    {
+      "ref": "m4",
+      "chat": "c1",
+      "sender": "u4",
+      "text": "I think it's acme/edge-proxy (that's the name the infra docs reference). Either way, a DeepWiki topic list would settle it.",
+      "order": 4,
+      "reply_to": "m3",
+      "read_by_actor": true,
+      "reactors": [
+        "u1"
+      ],
+      "reaction_emoji": ":+1:",
+      "symbol": null
+    },
+    {
+      "ref": "m5",
+      "chat": "c2",
+      "sender": "u3",
+      "text": "If you run DeepWiki for acme/edge-proxy, can you paste topics into #docs? It'll speed my review.",
+      "order": 5,
+      "reply_to": null,
+      "read_by_actor": false,
+      "reactors": [],
+      "reaction_emoji": null,
+      "symbol": null
+    },
+    {
+      "ref": "m6",
+      "chat": "c1",
+      "sender": "u2",
+      "text": "Maya, can you return the topic list and which areas are covered? We're short on time.",
+      "order": 6,
+      "reply_to": "m1",
+      "read_by_actor": false,
+      "reactors": [],
+      "reaction_emoji": null,
+      "symbol": null
+    }
+  ]
+}

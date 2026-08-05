@@ -1,0 +1,12 @@
+Stage 5 result. Filler is folded in ONE ENTITY AT A TIME and each addition kept only if
+every reference condition still resolves to exactly its own entity. Rejections are
+recorded, never silently dropped, and Stage 5 cannot fail the task.
+
+1 addition(s) rejected:
+  stage 5 dropped: message n8: message 'n8' is from 'u1', who is not in 'c2'
+
+CONDITIONS EVERY ADDITION HAD TO PRESERVE
+  the user who wrote the one message whose text contains someone confirm my GitHub  -> must keep matching exactly one user
+  the one message whose text contains someone confirm my GitHub  -> must keep matching exactly one message
+  the one message whose text contains @-mention him in the  -> must keep matching exactly one message
+  the chat containing a message whose text contains before we cut the  -> must keep matching exactly one chat

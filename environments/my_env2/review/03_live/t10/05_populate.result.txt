@@ -1,0 +1,45 @@
+Stage 5 result. Filler is folded in ONE ENTITY AT A TIME and each addition kept only if
+every reference condition still resolves to exactly its own entity. Rejections are
+recorded, never silently dropped, and Stage 5 cannot fail the task — a world without
+padding is weaker, not broken.
+
+core     : 4 people, 2 chats, 9 messages
+populated: 6 people, 3 chats, 17 messages
+
+REJECTED ADDITIONS
+  (none)
+
+THE SEED THAT SHIPS
+You act as You (id u_me).
+
+People:
+  u_me  You @you
+  u_maya_r  Maya Singh @maya_r
+  u_luis_h  Luis Hernández @luis_h
+  u_priya_k  Priya Kapoor @priya_k
+  u_ben_z  Ben Zhao @ben_z
+  u_sam_p  Sam Park @sam_p
+  u_evelyn_c  Evelyn Cho @evelyn_c
+
+group product-team (c_001) — members: You @you, Maya Singh @maya_r, Luis Hernández @luis_h, Priya Kapoor @priya_k, Ben Zhao @ben_z
+  m_001 [Luis Hernández @luis_h]: Deploy is still scheduled for 15:00. Do we have sign-off from security? If not, we should push to EOD.  (UNREAD by you)
+  m_002 [Priya Kapoor @priya_k]: Security sent a short list of issues; Ben is on the fixes. Also: we need the exact repo metadata (license, primary language) for the release notes.
+  m_005 [Maya Singh @maya_r]: also, u2 — did you catch the mobile regressions in #42? cc u4.  (UNREAD by you)
+  m_007 [Ben Zhao @ben_z]: Fixed the CI matrix failure — pushing a patch now. Will run another smoke before the deploy.
+  m_009 [Priya Kapoor @priya_k]: Could someone check acme/cli-helper on DeepWiki and paste what it says about the license and main language? We'll include that in notes.  (UNREAD by you)
+  m_010 [Ben Zhao @ben_z]: On it — also logged a follow-up to track the flaky e2e on staging.  (reply to m_007)
+  m_011 [You @you]: I'll assemble the release note draft tonight and share for review.  (reply to m_002)
+  m_012 [Luis Hernández @luis_h]: Thanks — I'll ping legal about the license once we have the DeepWiki snippet.  (reply to m_009; UNREAD by you)
+  m_014 [Priya Kapoor @priya_k]: Also, unrelated — lunch call at 12:30? u1, u4?  (UNREAD by you)
+  m_015 [Luis Hernández @luis_h]: Quick FYI numbers for the release notes: expected DAU ~12k, peak ~60k. Not final but helpful for comms.
+  m_016 [Priya Kapoor @priya_k]: Ben — when you paste that DeepWiki excerpt, could you bold or point out the exact license line so legal can review quickly?  (reply to m_009; UNREAD by you)
+  m_017 [Ben Zhao @ben_z]: Pasting shortly — juggling a flaky test first. If someone else can pull the DeepWiki excerpt, go ahead.  (reply to m_009)
+
+dm (dm) (c_002) — members: You @you, Maya Singh @maya_r
+  m_004 [Maya Singh @maya_r]: Can you paste the full list of our current chats (names and members)? I'm updating the onboarding doc and want the exact strings.  (UNREAD by you)
+  m_008 [Maya Singh @maya_r]: Also: can you drop a pointer to the API spec link? New interns keep asking.  (reply to m_004; UNREAD by you)
+  m_013 [Maya Singh @maya_r]: Also—are we still using the pinned #product-team resources? New hires are asking where to find specs.  (reply to m_004; UNREAD by you)
+
+group (dm) (c_003) — members: You @you, Maya Singh @maya_r, Evelyn Cho @evelyn_c
+  m_003 [Evelyn Cho @evelyn_c]: hi u1 — quick intro, i'm joining as a contractor this week. i'll sit in the product-team meetings.  (UNREAD by you)
+  m_006 [Maya Singh @maya_r]: Welcome n3 — meet the regulars: u2, u3, u4. ping me if you want a quick walk-through.  (reply to m_003)

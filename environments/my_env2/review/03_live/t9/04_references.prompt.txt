@@ -1,0 +1,124 @@
+# Stage 4 — choose a reference mode per entity
+
+1 model call(s).
+
+================================================================================================
+== call 1 of 1
+================================================================================================
+
+------------------------------------------------------------------------------------------------
+-- SYSTEM PROMPT
+------------------------------------------------------------------------------------------------
+You decide how a task will refer to things without naming their ids.
+
+You are given a workspace and, for each entity the task is about, the ways it could be picked out by description. Pick the ONE that suits that entity best, and say only which. What goes into it is worked out from the workspace afterwards, so you do not have to supply or check anything.
+
+Judge it on how the finished sentence would read and on how much work it makes the reader do. Describing what someone did, or what a conversation is about, is better than restating a name or a handle — those tell the reader nothing they could not have been handed. Some modes will not fit the entity in front of you at all; say so by choosing a different one.
+
+Respond with ONLY this JSON object, one entry per entity:
+{"references": [{"symbol": "$chat_0", "mode": "<mode id>"}]}
+
+------------------------------------------------------------------------------------------------
+-- USER PROMPT
+------------------------------------------------------------------------------------------------
+ENVIRONMENT
+  chat: Local mock chat app. Read and write tools operate on the rollout's ChatState.
+  deepwiki: Public DeepWiki MCP server: read-only GitHub-repo Q&A. Answers can be nondeterministic; requires the repo to be indexed by DeepWiki.
+  You act as one specific user. The acting user's id. Every write is attributed to this user; reads are scoped to it where noted.
+
+ENTITY TYPES IN THIS TASK
+  user — A person in the workspace. Display names may collide; handles never do.
+      id: string
+      name: string
+      handle: string
+  message — One posted message. `reply_to` threads it under an earlier message in the same chat.
+      id: string
+      chat_id: string (chat id)
+      sender_id: string (user id)
+      text: string
+      ts: int (logical clock, not wall time)
+      reply_to: string | null (parent message id)
+      reactions: object (emoji -> user_id[])
+      read_by: string[] (user ids)
+  chat — A conversation the acting user takes part in. `name` is null for a DM.
+      id: string
+      kind: "dm" | "group"
+      name: string | null
+      member_ids: string[] (user ids)
+
+ACTIONS THIS TASK USES
+  get_user (read) — Look up a user by id.
+      user_id: user to look up
+      returns: {id, name, handle} or {"error": "no such user"}
+  read_wiki_contents (read) — View DeepWiki documentation for a GitHub repository.
+      repoName: GitHub repo in owner/repo form
+      returns: the repo's wiki DOCUMENTATION PROSE. It states what the project is for, how a subsystem works, what a concept means. It does NOT state licence, stars, maintainers or primary language, so a question about those has no obtainable answer here.
+  reply_to (write) — Reply to an existing message in its chat (threaded).
+      message_id: the message being replied to
+      text: reply body
+      returns: the created message view
+  send_message (write) — Send a message from the acting user to a chat.
+      chat_id: destination chat
+      text: message body
+      returns: the created message view
+  list_chats (read) — List the chats the acting user is a member of.
+      returns: array of {id, kind, name, members} for chats where actor is in member_ids
+
+WORKSPACE
+You act as Alex Rivera (id u_me).
+
+People:
+  u_me  Alex Rivera @you
+  u_liam  Liam Chen @liam
+  u_devon  Devon Park @devon
+  u_sofia  Sofia Morales @sofia
+  u_priya  Priya Singh @priya
+
+group docs-sync (c_001) — members: Alex Rivera @you, Liam Chen @liam, Sofia Morales @sofia, Priya Singh @priya
+  m_001 [Liam Chen @liam]: I've started a mapping doc for DeepWiki pages that we need to sync with product docs. See the spreadsheet link in the drive. Which repos should we prioritize?
+  m_002 [Sofia Morales @sofia]: I'd prioritize analytics-intel and data-exporter first — they affect reporting. I can grab analytics-intel.  (reply to m_001)
+  m_003 [Priya Singh @priya]: Can someone collect the exact GitHub repo names and DeepWiki repo wikis for the plugins we listed? I need them to start reading. Please list them in this thread.  (reply to m_001)
+  m_004 [Liam Chen @liam]: I think @devon might have a list of repo slugs — Devon's been touching the git hooks and repo ownership.  (reply to m_003)
+  m_005 [Sofia Morales @sofia]: Also, does anyone know where the DeepWiki page that explains the 'indexer' concept lives? I remember a doc but can't find it in deepwiki/deepwiki.  (reply to m_003; UNREAD by you)
+  m_007 [Liam Chen @liam]: I think it's linked from the dev-ops onboarding, but I can't point to the exact page right now — someone who used DeepWiki recently should know.  (reply to m_005; UNREAD by you)
+  m_008 [Priya Singh @priya]: I'll start with deepwiki/deepwiki and plugin-team/data-exporter. If you add repo names here I'll follow up by reading the corresponding wikis.  (reply to m_003; UNREAD by you)
+
+dm (dm) (c_002) — members: Alex Rivera @you, Devon Park @devon
+  m_006 [Devon Park @devon]: Quick note: I put a CSV of repo names and owners into /team/docs/repo-list.csv. If you want me to paste the specific slugs here I can, but it's a bit messy. Ping me if you need an extract.  (UNREAD by you)
+
+ENTITIES TO DESCRIBE, AND THE MODES AVAILABLE FOR EACH
+  $user_0 = u_devon (Devon Park @devon)
+      mode user_authored_text: reads as "whoever wrote the message about {text}" — the user who wrote the one message whose text contains {text}
+      mode user_most_messages: reads as "the person who has posted the most across all your chats" — the user who has written more messages than any other across the workspace (strictly more, so there is no tie)
+      mode user_by_display_name: reads as "the person called {name}" — the user whose display name is exactly {name}, and who is the only such user
+      mode user_by_handle: reads as "the person whose handle is @{handle}" — the user whose handle is exactly {handle}
+  $message_0 = m_003 (in docs-sync from Priya Singh, replying to m_001: 'Can someone collect the exact GitHub repo names and DeepWiki repo wikis for the plugins we listed? I need them to start reading. Please list them in this thread.')
+      mode message_reply_to_text: reads as "the reply to the message about {text}" — the single reply to the one message whose text contains {text}
+      mode message_most_reacted: reads as "the message that has drawn the most reactions" — the message with strictly more distinct reactors than any other in the workspace
+      mode message_newest_by_handle: reads as "the latest thing @{handle} posted" — the most recent message written by the user whose handle is {handle}
+      mode message_by_text: reads as "the message about {text}" — the one message whose text contains {text}
+  $chat_0 = c_002 (dm (unnamed dm) — members: Alex Rivera @you, Devon Park @devon)
+      mode chat_containing_text: reads as "the conversation where {text} came up" — the chat containing a message whose text contains {text}
+      mode chat_only_with_unread: reads as "the one conversation you still have not caught up on" — the only chat holding at least one message the acting user has not read
+      mode chat_by_member_count: reads as "the conversation with exactly {count} people in it" — the chat that has exactly {count} members, and is the only chat with that many
+      mode chat_by_name: reads as "the {name} channel" — the chat whose title is exactly {name}
+
+------------------------------------------------------------------------------------------------
+-- REPLY
+------------------------------------------------------------------------------------------------
+{
+  "references": [
+    {
+      "symbol": "$user_0",
+      "mode": "user_authored_text"
+    },
+    {
+      "symbol": "$message_0",
+      "mode": "message_reply_to_text"
+    },
+    {
+      "symbol": "$chat_0",
+      "mode": "chat_containing_text"
+    }
+  ]
+}

@@ -1,0 +1,23 @@
+The plan once the world exists: real entities described, authored content inlined.
+This is what every rung is held to.
+
+step 1 [read] read_wiki_structure — List the DeepWiki documentation topics for a GitHub repository.
+    repoName     = 'acme/edge-proxy'
+    -> returns only the LIST OF DOCUMENTATION TOPIC TITLES. It can answer which areas the documentation covers, and nothing about repo metadata or the content of any page. (not known until the agent runs it)
+step 2 [read] list_chats — List the chats the acting user is a member of.
+    -> returns: [{"id": "c_001", "kind": "group", "name": "infra", "members": ["u_me", "u_mpatel", "u_trivera", "u_abrooks"]}, {"id": "c_002", "kind": "group", "name": "docs", "members": ["u_me", "u_mpatel", "u_lwong"]}, {"id": "c_003", "kind": "group", "name": "random", "members": ["u_me", "u_mpatel", "u_dramos"]}]
+step 3 [write] reply_to — Reply to an existing message in its chat (threaded).
+    message_id   = m_001 — in infra from Tom Rivera, unread by you: "Can someone run DeepWiki to list the documentation topics for acme/edge-proxy? We're deciding if it's covered well enough for the migration."
+    text         = 'On it — running DeepWiki for acme/edge-proxy now. I’ll paste the topic list here and into #docs.'
+    -> creates something new
+step 4 [write] reply_to — Reply to an existing message in its chat (threaded).
+    message_id   = m_002 — in docs from Lina Wong, unread by you: 'Heads-up: I also want the doc-topic list for acme/monitoring and acme/observability when someone has bandwidth.'
+    text         <- must carry what step 2 and step 1 returned
+    -> creates something new
+step 5 [write] add_reaction — Add an emoji reaction from the acting user to a message.
+    message_id   = the message step 4 creates
+    emoji        = ':+1:'
+step 6 [write] reply_to — Reply to an existing message in its chat (threaded).
+    message_id   = m_001 — in infra from Tom Rivera, unread by you: "Can someone run DeepWiki to list the documentation topics for acme/edge-proxy? We're deciding if it's covered well enough for the migration."
+    text         <- must carry what step 2 returned
+    -> creates something new

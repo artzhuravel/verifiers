@@ -1,0 +1,176 @@
+# Stage 9 — rewrite as prose, ids replaced by descriptions
+
+1 model call(s).
+
+================================================================================================
+== call 1 of 1
+================================================================================================
+
+------------------------------------------------------------------------------------------------
+-- SYSTEM PROMPT
+------------------------------------------------------------------------------------------------
+You rewrite a task so that it names nothing, and asks for exactly the same work.
+
+You are given the workspace, the plan the task encodes, the current task text, and — for every entity involved — a description that is TRUE OF IT AND OF NOTHING ELSE in that workspace. Rewrite the task as coherent connected prose that picks each thing out by description rather than by id.
+
+- Continuous paragraphs. No numbered list, no bullets, no "Step 1:" — if the result still reads as a list of instructions, it is not done.
+- Use the descriptions given. They were checked against the workspace; anything you invent was not, and a reference matching two things makes the task unanswerable.
+- A description INTRODUCES a thing. Use it at the first mention only. Every later mention refers back the way a person would — "that conversation", "the same thread", "there", "them", "it", "the one you just read". Pasting a description a second time is the commonest way this rewrite fails: it reads as find-and-replace rather than as writing, and where a description depends on something the task itself changes, every use after that change is simply FALSE. Any description marked below as one the work invalidates must be used early and never again.
+- Never answer your own reference. No parenthetical, no "i.e.", no appositive that supplies the name or id of something you have just described.
+- Do not add, drop, merge or reorder an action, and never turn a read into a write.
+- Reproduce every repository name and question word for word. The expected answers are keyed to them.
+- It must read like an ordinary request from a colleague: say what you want and where to report back, never why. No mention of steps, tools, plans or rules.
+
+You also rewrite the JUDGE ITEMS. Each tells a grader what a correct answer says and where in the agent's output to look for it. They were written against the PREVIOUS version of this task, so they still speak its language — step numbers, entity ids, names, quoted wording — much of which you are removing. Left alone, they describe a task the agent was never given.
+
+For every item, restate `expected` and `hint` so that a grader reading YOUR text can still check the same thing:
+
+- `expected` — what a correct answer STATES, in substance. Keep every fact in it. Where the previous wording leaned on an id or a step number to say WHICH thing ("the reply to m_004"), say it the way your text says it. Never replace it with a pointer: "the answer to the question above" leaves a grader nothing to compare against.
+- `hint` — where in the agent's output to look, described the way your text describes it.
+
+Do not drop an item, do not merge two, and never change WHAT is required — only how it is said. Copy each `id` exactly.
+
+Respond with ONLY this JSON object:
+{"prompt": "<the rewritten task>",
+ "judge": [{"id": "<copied exactly>", "expected": "...", "hint": "..."}]}
+
+------------------------------------------------------------------------------------------------
+-- USER PROMPT
+------------------------------------------------------------------------------------------------
+ENVIRONMENT
+  chat: Local mock chat app. Read and write tools operate on the rollout's ChatState.
+  deepwiki: Public DeepWiki MCP server: read-only GitHub-repo Q&A. Answers can be nondeterministic; requires the repo to be indexed by DeepWiki.
+  You act as one specific user. The acting user's id. Every write is attributed to this user; reads are scoped to it where noted.
+
+ENTITY TYPES IN THIS TASK
+  chat — A conversation the acting user takes part in. `name` is null for a DM.
+      id: string
+      kind: "dm" | "group"
+      name: string | null
+      member_ids: string[] (user ids)
+  message — One posted message. `reply_to` threads it under an earlier message in the same chat.
+      id: string
+      chat_id: string (chat id)
+      sender_id: string (user id)
+      text: string
+      ts: int (logical clock, not wall time)
+      reply_to: string | null (parent message id)
+      reactions: object (emoji -> user_id[])
+      read_by: string[] (user ids)
+
+ACTIONS THIS TASK USES
+  read_messages (read) — Read the most recent messages in a chat, oldest to newest.
+      chat_id: chat to read
+      limit: max messages, most recent (optional)
+      returns: array of message views {id, chat_id, from, sender_id, text, ts, reply_to, reactions, read_by}
+  ask_question (read) — Ask an AI-grounded question about a GitHub repository.
+      repoName: GitHub repo in owner/repo form (or a list, max 10)
+      question: the question to ask
+      returns: a free-text answer to any question about the repo — metadata (licence, primary language, maintainers) and prose questions alike. Nondeterministic wording, so only ask things with a stable, unambiguous answer.
+  mark_read (write) — Mark every message in a chat as read by the acting user.
+      chat_id: chat to mark read
+      returns: {chat_id, marked_read: <count>}
+  send_message (write) — Send a message from the acting user to a chat.
+      chat_id: destination chat
+      text: message body
+      returns: the created message view
+  reply_to (write) — Reply to an existing message in its chat (threaded).
+      message_id: the message being replied to
+      text: reply body
+      returns: the created message view
+
+WORKSPACE
+You act as Sam Park (id u_me).
+
+People:
+  u_me  Sam Park @you
+  u_alice  Alice Nguyen @alice
+  u_ben  Ben Ortiz @ben
+  u_carlos  Carlos Reyes @carlos
+  u_dina  Dina Patel @dina
+  u_evem  Eve Morris @evem
+  u_frankl  Frank Li @frankl
+
+group infra (c_001) — members: Sam Park @you, Alice Nguyen @alice, Ben Ortiz @ben, Carlos Reyes @carlos, Dina Patel @dina
+  m_001 [Alice Nguyen @alice]: FYI: The DeepWiki integration PR references acme/deepwiki-bot but maintainers weren't sure about the repo license. Flagging here so legal isn't surprised.  (UNREAD by you)
+  m_003 [Carlos Reyes @carlos]: Also, FYI I bumped into @dina in the hall; she said she'll take a look this afternoon.  (reply to m_001; UNREAD by you)
+  m_004 [Ben Ortiz @ben]: Repo is acme/deepwiki-bot. @dina, can you confirm whether it's MIT or Apache (or something else)?  (reply to m_001; UNREAD by you)
+  m_006 [Dina Patel @dina]: I remember we looked at this a while back and thought it was MIT, but the README has been edited since. I'll pull the repo and check the LICENSE file.  (reply to m_004; UNREAD by you)
+  m_009 [Alice Nguyen @alice]: Also, unrelated — does anyone want to join a trivia night tonight?  (UNREAD by you)
+  m_010 [Carlos Reyes @carlos]: If it turns out to be MIT we're fine to proceed. If it's something incompatible we'll need legal sign-off — heads up.  (reply to m_001; UNREAD by you)
+  m_011 [Alice Nguyen @alice]: Can someone run a quick license-check on acme/deepwiki-bot and paste the output here? That would save time.  (UNREAD by you)
+  m_012 [Ben Ortiz @ben]: The CI flaked on me this morning, unrelated to the PR — I'll rerun.  (reply to m_010; UNREAD by you)
+
+dm (dm) (c_002) — members: Sam Park @you, Ben Ortiz @ben
+  m_002 [Ben Ortiz @ben]: Do you have the repo URL for that bot? I want to check the license quickly before we merge.
+  m_005 [Ben Ortiz @ben]: Link: https://github.com/acme/deepwiki-bot — sending it here so it's easy to copy.  (reply to m_002)
+  m_008 [Sam Park @you]: Got it — I'll ping the infra channel and ask Dina to paste the license output when she has it.  (reply to m_002)
+  m_013 [Ben Ortiz @ben]: Thanks — I'll hold off merging until we have that confirmation in infra.
+
+group watercooler (c_003) — members: Sam Park @you, Alice Nguyen @alice, Eve Morris @evem, Carlos Reyes @carlos
+  m_007 [Eve Morris @evem]: Who's bringing snacks for Friday's gathering?
+
+PLAN THE TASK MUST STILL ENCODE
+step 1 [read] read_messages — Read the most recent messages in a chat, oldest to newest.
+    chat_id      = c_001 — group 'infra' — members: Sam Park @you, Alice Nguyen @alice, Ben Ortiz @ben, Carlos Reyes @carlos, Dina Patel @dina
+    -> returns: [{"id": "m_001", "chat_id": "c_001", "from": "Alice Nguyen", "sender_id": "u_alice", "text": "FYI: The DeepWiki integration PR references acme/deepwiki-bot but maintainers weren't sure about the repo license. Flagging here so legal isn't surprised.", "ts": 1, "reply_to": null, "reactions": {}, "read_by": ["u_alice"]}, {"id": "m_003", "chat_id": "c_001", "from": "Carlos Reyes", "sender_id": "u_carlos", "text": "Also, FYI I bumped into @dina in the hall; she said she'll take a look this afternoon.", "ts": 3, "reply_to": "m_001", "reactions": {}, "read_by": ["u_carlos"]}, {"id": "m_004", "chat_id": "c_001", "from": "Ben Ortiz", "sender_id": "u_ben", "text": "Repo is acme/deepwiki-bot. @dina, can you confirm whether it's MIT or Apache (or something else)?", "ts": 4, "reply_to": "m_001", "reactions": {}, "read_by": ["u_ben"]}, {"id": "m_006", "chat_id": "c_001", "from": "Dina Patel", "sender_ …(truncated)
+step 2 [read] ask_question — Ask an AI-grounded question about a GitHub repository.
+    repoName     = 'tensorflow/tensorflow'
+    question     = "What is this project's primary purpose?"
+    -> returns a free-text answer to any question about the repo — metadata (licence, primary language, maintainers) and prose questions alike. Nondeterministic wording, so only ask things with a stable, unambiguous answer. (not known until the agent runs it)
+step 3 [write] mark_read — Mark every message in a chat as read by the acting user.
+    chat_id      = c_001 — group 'infra' — members: Sam Park @you, Alice Nguyen @alice, Ben Ortiz @ben, Carlos Reyes @carlos, Dina Patel @dina
+step 4 [write] send_message — Send a message from the acting user to a chat.
+    chat_id      = c_001 — group 'infra' — members: Sam Park @you, Alice Nguyen @alice, Ben Ortiz @ben, Carlos Reyes @carlos, Dina Patel @dina
+    text         <- must carry what step 1 returned
+    -> creates something new
+step 5 [write] reply_to — Reply to an existing message in its chat (threaded).
+    message_id   = m_004 — in infra from Ben Ortiz, replying to m_001, unread by you: "Repo is acme/deepwiki-bot. @dina, can you confirm whether it's MIT or Apache (or something else)?"
+    text         <- must carry what step 2 returned
+    -> creates something new
+step 6 [write] reply_to — Reply to an existing message in its chat (threaded).
+    message_id   = the message step 4 creates
+    text         = 'Thanks — @dina, please paste the LICENSE file contents here when you confirm so we can proceed.'
+    -> creates something new
+
+HOW TO REFER TO EACH THING INSTEAD OF NAMING IT — each ONCE, at its first mention, then refer back
+  c_001 -> the one conversation you still have not caught up on
+        [THE WORK ITSELF MAKES THIS FALSE — true at the start, not at the end. Use it early, once, then refer back.]
+  m_004 -> the message about confirm whether it's MIT
+
+THESE STRINGS MUST NOT APPEAR IN YOUR TEXT
+  add_reaction, ask_question, c_001, c_002, c_003, chat_add_reaction, chat_create_chat, chat_get_user, chat_list_chats, chat_mark_read, chat_read_messages, chat_reply_to, chat_send_message, create_chat, deepwiki_ask_question, deepwiki_read_wiki_contents, deepwiki_read_wiki_structure, get_user, infra, list_chats, m_001, m_002, m_003, m_004, m_005, m_006, m_007, m_008, m_009, m_010, m_011, m_012, m_013, mark_read, read_messages, read_wiki_contents, read_wiki_structure, reply_to, send_message, u_alice, u_ben, u_carlos, u_dina, u_evem, u_frankl, u_me
+
+JUDGE ITEMS — REWRITE EACH ONE'S expected AND hint FOR YOUR TEXT
+  carry:c0a1:text
+      requirement (FIXED, do not change): the text of step 4 must carry what step 1 returned
+      must be delivered in (FIXED): the message step 4 posts
+      expected — RESTATE FOR YOUR TEXT: The message posted to chat c_001 summarizes the infra thread by saying that the DeepWiki integration PR references acme/deepwiki-bot and maintainers were unsure about the repository license; that Carlos said Dina would take a look this afternoon; that Ben asked Dina to confirm whether the license is MIT, Apache, or something else; that Dina said she would pull the repo and check the LICENSE file; that Alice asked someone to run a quick license-check and paste the output here; and that Ben also mentioned the CI flaked this morning.
+      hint     — RESTATE FOR YOUR TEXT: Look at the text of the message the agent sends to chat c_001 in step 4 (the send_message result).
+  carry:c1a1:text
+      requirement (FIXED, do not change): the text of step 5 must carry what step 2 returned
+      must be delivered in (FIXED): the message step 5 posts
+      expected — RESTATE FOR YOUR TEXT: The reply to message m_004 states that TensorFlow's primary purpose is to provide an open-source platform/framework for building, training, and deploying machine learning models (including tools for defining and training neural networks and running inference).
+      hint     — RESTATE FOR YOUR TEXT: Look at the text of the reply the agent posts to message m_004 in step 5 (the reply_to result).
+
+CURRENT TASK TEXT (rewrite this)
+1. Call read_messages with chat_id c_001 and read the most recent messages in the infra group (oldest to newest). 2. Call ask_question with repoName 'tensorflow/tensorflow' and question "What is this project's primary purpose?" and keep the full textual answer so you can include it in step 5. 3. Call mark_read with chat_id c_001 to mark every message in the infra chat as read by you. 4. Call send_message to chat c_001; the message text must carry what you read in step 1, so include a concise summary of the infra messages you just read that conveys these facts: the DeepWiki integration PR references acme/deepwiki-bot and maintainers were unsure about the repo license, Carlos said Dina would take a look this afternoon, Ben asked Dina to confirm whether it's MIT or Apache (or something else), Dina said she'd pull the repo and check the LICENSE file, Alice asked someone to run a quick license-check and paste the output here, and Ben noted the CI flaked this morning; after sending, return the created message view. 5. Call reply_to with message_id m_004 and post a reply whose text must carry what step 2 returned, i.e., include the answer you received to "What is this project's primary purpose?" about tensorflow/tensorflow; after replying, return the created reply view. 6. Call reply_to to reply to the message created in step 4 (use the id returned by step 4) with the exact text: 'Thanks — @dina, please paste the LICENSE file contents here when you confirm so we can proceed.' and return the created reply view.
+
+------------------------------------------------------------------------------------------------
+-- REPLY
+------------------------------------------------------------------------------------------------
+{
+  "prompt": "Read the most recent messages in the one conversation you still have not caught up on, oldest to newest. Then ask about the GitHub repository tensorflow/tensorflow using exactly the question \"What is this project's primary purpose?\" and keep the full textual answer so you can include it in a reply. Mark every message in that conversation as read by you. Post a message to that conversation whose text must carry what you read in the first step: include a concise summary of the messages you just read that conveys these facts: the DeepWiki integration PR references acme/deepwiki-bot and maintainers were unsure about the repository license, Carlos said Dina would take a look this afternoon, Ben asked Dina to confirm whether it's MIT or Apache (or something else), Dina said she'd pull the repo and check the LICENSE file, Alice asked someone to run a quick license-check and paste the output here, and Ben mentioned the CI flaked this morning; after sending, return the created message view. Reply to the message about confirm whether it's MIT with a reply whose text must carry the answer you received to \"What is this project's primary purpose?\" about tensorflow/tensorflow; after replying, return the created reply view. Finally, reply to the message you posted with the exact text 'Thanks — @dina, please paste the LICENSE file contents here when you confirm so we can proceed.' and return the created reply view.",
+  "judge": [
+    {
+      "id": "carry:c0a1:text",
+      "expected": "The message posted to the one conversation you still have not caught up on summarizes the thread by saying that the DeepWiki integration PR references acme/deepwiki-bot and maintainers were unsure about the repository license; that Carlos said Dina would take a look this afternoon; that Ben asked Dina to confirm whether the license is MIT, Apache, or something else; that Dina said she would pull the repo and check the LICENSE file; that Alice asked someone to run a quick license-check and paste the output here; and that Ben also mentioned the CI flaked this morning.",
+      "hint": "Look at the text of the message the agent sends to that conversation in the step that posts the summary (the created message view returned by that action)."
+    },
+    {
+      "id": "carry:c1a1:text",
+      "expected": "The reply to the message about confirm whether it's MIT states that TensorFlow's primary purpose is to provide an open-source platform/framework for building, training, and deploying machine learning models (including tools for defining and training neural networks and running inference).",
+      "hint": "Look at the text of the reply the agent posts to that message about confirm whether it's MIT (the created reply view returned by that action)."
+    }
+  ]
+}

@@ -1,0 +1,138 @@
+# Stage 4 — choose a reference mode per entity
+
+1 model call(s).
+
+================================================================================================
+== call 1 of 1
+================================================================================================
+
+------------------------------------------------------------------------------------------------
+-- SYSTEM PROMPT
+------------------------------------------------------------------------------------------------
+You decide how a task will refer to things without naming their ids.
+
+You are given a workspace and, for each entity the task is about, the ways it could be picked out by description. Pick the ONE that suits that entity best, and say only which. What goes into it is worked out from the workspace afterwards, so you do not have to supply or check anything.
+
+Judge it on how the finished sentence would read and on how much work it makes the reader do. Describing what someone did, or what a conversation is about, is better than restating a name or a handle — those tell the reader nothing they could not have been handed. Some modes will not fit the entity in front of you at all; say so by choosing a different one.
+
+Respond with ONLY this JSON object, one entry per entity:
+{"references": [{"symbol": "$chat_0", "mode": "<mode id>"}]}
+
+------------------------------------------------------------------------------------------------
+-- USER PROMPT
+------------------------------------------------------------------------------------------------
+ENVIRONMENT
+  chat: Local mock chat app. Read and write tools operate on the rollout's ChatState.
+  deepwiki: Public DeepWiki MCP server: read-only GitHub-repo Q&A. Answers can be nondeterministic; requires the repo to be indexed by DeepWiki.
+  You act as one specific user. The acting user's id. Every write is attributed to this user; reads are scoped to it where noted.
+
+ENTITY TYPES IN THIS TASK
+  chat — A conversation the acting user takes part in. `name` is null for a DM.
+      id: string
+      kind: "dm" | "group"
+      name: string | null
+      member_ids: string[] (user ids)
+  user — A person in the workspace. Display names may collide; handles never do.
+      id: string
+      name: string
+      handle: string
+  message — One posted message. `reply_to` threads it under an earlier message in the same chat.
+      id: string
+      chat_id: string (chat id)
+      sender_id: string (user id)
+      text: string
+      ts: int (logical clock, not wall time)
+      reply_to: string | null (parent message id)
+      reactions: object (emoji -> user_id[])
+      read_by: string[] (user ids)
+
+ACTIONS THIS TASK USES
+  list_chats (read) — List the chats the acting user is a member of.
+      returns: array of {id, kind, name, members} for chats where actor is in member_ids
+  read_messages (read) — Read the most recent messages in a chat, oldest to newest.
+      chat_id: chat to read
+      limit: max messages, most recent (optional)
+      returns: array of message views {id, chat_id, from, sender_id, text, ts, reply_to, reactions, read_by}
+  create_chat (write) — Create a new chat; the acting user is always included as a member.
+      member_ids: user ids to include (actor added automatically)
+      name: chat name; if set (or >2 members) the chat is a group, else a dm (optional)
+      returns: {id, kind, name, members}
+  send_message (write) — Send a message from the acting user to a chat.
+      chat_id: destination chat
+      text: message body
+      returns: the created message view
+  reply_to (write) — Reply to an existing message in its chat (threaded).
+      message_id: the message being replied to
+      text: reply body
+      returns: the created message view
+
+WORKSPACE
+You act as Ari Novak (id u_me).
+
+People:
+  u_me  Ari Novak @you
+  u_samir  Samir Patel @samir
+  u_leah  Leah Kim @leah
+  u_maria  Maria Gomez @maria
+  u_tom  Tom Wright @tom
+
+group Launch Planning (c_001) — members: Ari Novak @you, Samir Patel @samir, Leah Kim @leah, Maria Gomez @maria
+  m_001 [Samir Patel @samir]: We need to pick the time window for the feature-flag flip — options: 22:00 or 02:00. Thoughts?  (UNREAD by you)
+  m_002 [Leah Kim @leah]: 02:00 is safer for international traffic. Also: flag the CS team in advance.  (reply to m_001; UNREAD by you)
+  m_003 [Maria Gomez @maria]: If we flip at 02:00 I'll be on call — can someone draft a clear rollback plan with triggers?  (reply to m_001; UNREAD by you; :+1: x1)
+  m_007 [Ari Novak @you]: Can we confirm the rollback trigger conditions before we pick the time?
+  m_008 [Leah Kim @leah]: We haven't defined exact thresholds yet — Leah to draft? Also who will own the rollback?  (reply to m_007; UNREAD by you)
+
+dm (dm) (c_002) — members: Ari Novak @you, Samir Patel @samir
+  m_004 [Samir Patel @samir]: Quick DM: do you have the list of services affected by the rollout?
+  m_009 [Ari Novak @you]: I'll pull the affected-service list and post it to Ops Room once I have it.  (reply to m_004)
+
+group Ops Room (c_003) — members: Ari Novak @you, Maria Gomez @maria, Tom Wright @tom
+  m_005 [Tom Wright @tom]: Alert: the canary shows increased latencies since 23:10. Switching back might be necessary.  (UNREAD by you; ⚠️ x1)
+  m_006 [Maria Gomez @maria]: Acknowledged. Can you pull p50/p95 and error rate for the last hour so we can decide?  (reply to m_005; UNREAD by you)
+
+ENTITIES TO DESCRIBE, AND THE MODES AVAILABLE FOR EACH
+  $chat_0 = c_001 (group 'Launch Planning' — members: Ari Novak @you, Samir Patel @samir, Leah Kim @leah, Maria Gomez @maria)
+      mode chat_containing_text: reads as "the conversation where {text} came up" — the chat containing a message whose text contains {text}
+      mode chat_only_with_unread: reads as "the one conversation you still have not caught up on" — the only chat holding at least one message the acting user has not read
+      mode chat_by_member_count: reads as "the conversation with exactly {count} people in it" — the chat that has exactly {count} members, and is the only chat with that many
+      mode chat_by_name: reads as "the {name} channel" — the chat whose title is exactly {name}
+  $user_0 = u_maria (Maria Gomez @maria)
+      mode user_authored_text: reads as "whoever wrote the message about {text}" — the user who wrote the one message whose text contains {text}
+      mode user_most_messages: reads as "the person who has posted the most across all your chats" — the user who has written more messages than any other across the workspace (strictly more, so there is no tie)
+      mode user_by_display_name: reads as "the person called {name}" — the user whose display name is exactly {name}, and who is the only such user
+      mode user_by_handle: reads as "the person whose handle is @{handle}" — the user whose handle is exactly {handle}
+  $chat_1 = c_003 (group 'Ops Room' — members: Ari Novak @you, Maria Gomez @maria, Tom Wright @tom)
+      mode chat_containing_text: reads as "the conversation where {text} came up" — the chat containing a message whose text contains {text}
+      mode chat_only_with_unread: reads as "the one conversation you still have not caught up on" — the only chat holding at least one message the acting user has not read
+      mode chat_by_member_count: reads as "the conversation with exactly {count} people in it" — the chat that has exactly {count} members, and is the only chat with that many
+      mode chat_by_name: reads as "the {name} channel" — the chat whose title is exactly {name}
+  $message_0 = m_005 (in Ops Room from Tom Wright, unread by you: 'Alert: the canary shows increased latencies since 23:10. Switching back might be necessary.')
+      mode message_reply_to_text: reads as "the reply to the message about {text}" — the single reply to the one message whose text contains {text}
+      mode message_most_reacted: reads as "the message that has drawn the most reactions" — the message with strictly more distinct reactors than any other in the workspace
+      mode message_newest_by_handle: reads as "the latest thing @{handle} posted" — the most recent message written by the user whose handle is {handle}
+      mode message_by_text: reads as "the message about {text}" — the one message whose text contains {text}
+
+------------------------------------------------------------------------------------------------
+-- REPLY
+------------------------------------------------------------------------------------------------
+{
+  "references": [
+    {
+      "symbol": "$chat_0",
+      "mode": "chat_by_name"
+    },
+    {
+      "symbol": "$user_0",
+      "mode": "user_authored_text"
+    },
+    {
+      "symbol": "$chat_1",
+      "mode": "chat_by_name"
+    },
+    {
+      "symbol": "$message_0",
+      "mode": "message_by_text"
+    }
+  ]
+}

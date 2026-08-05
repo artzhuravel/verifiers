@@ -1,0 +1,977 @@
+{
+  "task_id": "t5",
+  "idx": 5,
+  "topic": "Preparing DeepWiki doc-topic checks for acme/* repos ahead of the infra migration",
+  "seed": {
+    "me": "u_me",
+    "users": {
+      "u_me": {
+        "id": "u_me",
+        "name": "Sam Ortega",
+        "handle": "you"
+      },
+      "u_mpatel": {
+        "id": "u_mpatel",
+        "name": "Maya Patel",
+        "handle": "mpatel"
+      },
+      "u_trivera": {
+        "id": "u_trivera",
+        "name": "Tom Rivera",
+        "handle": "trivera"
+      },
+      "u_lwong": {
+        "id": "u_lwong",
+        "name": "Lina Wong",
+        "handle": "lwong"
+      },
+      "u_abrooks": {
+        "id": "u_abrooks",
+        "name": "Aaron Brooks",
+        "handle": "abrooks"
+      },
+      "u_dramos": {
+        "id": "u_dramos",
+        "name": "Diego Ramos",
+        "handle": "dramos"
+      }
+    },
+    "chats": {
+      "c_001": {
+        "id": "c_001",
+        "kind": "group",
+        "name": "infra",
+        "member_ids": [
+          "u_me",
+          "u_mpatel",
+          "u_trivera",
+          "u_abrooks"
+        ]
+      },
+      "c_002": {
+        "id": "c_002",
+        "kind": "group",
+        "name": "docs",
+        "member_ids": [
+          "u_me",
+          "u_mpatel",
+          "u_lwong"
+        ]
+      },
+      "c_003": {
+        "id": "c_003",
+        "kind": "group",
+        "name": "random",
+        "member_ids": [
+          "u_me",
+          "u_mpatel",
+          "u_dramos"
+        ]
+      }
+    },
+    "messages": [
+      {
+        "id": "m_001",
+        "chat_id": "c_001",
+        "sender_id": "u_trivera",
+        "text": "Can someone run DeepWiki to list the documentation topics for acme/edge-proxy? We're deciding if it's covered well enough for the migration.",
+        "ts": 1,
+        "reply_to": null,
+        "reactions": {},
+        "read_by": [
+          "u_trivera"
+        ]
+      },
+      {
+        "id": "m_002",
+        "chat_id": "c_002",
+        "sender_id": "u_lwong",
+        "text": "Heads-up: I also want the doc-topic list for acme/monitoring and acme/observability when someone has bandwidth.",
+        "ts": 2,
+        "reply_to": null,
+        "reactions": {},
+        "read_by": [
+          "u_lwong"
+        ]
+      },
+      {
+        "id": "m_003",
+        "chat_id": "c_001",
+        "sender_id": "u_mpatel",
+        "text": "Anyone up for grabbing lunch after standup? There's a new taco place on 5th.",
+        "ts": 3,
+        "reply_to": null,
+        "reactions": {},
+        "read_by": [
+          "u_mpatel",
+          "u_me"
+        ]
+      },
+      {
+        "id": "m_004",
+        "chat_id": "c_003",
+        "sender_id": "u_dramos",
+        "text": "Hey Maya, are you free for a quick sync about the onboarding doc?",
+        "ts": 4,
+        "reply_to": null,
+        "reactions": {},
+        "read_by": [
+          "u_dramos",
+          "u_me"
+        ]
+      },
+      {
+        "id": "m_005",
+        "chat_id": "c_001",
+        "sender_id": "u_mpatel",
+        "text": "I can do edge-proxy but might need the exact repo path — is it acme/edge-proxy or acme/edge-proxy-server?",
+        "ts": 5,
+        "reply_to": "m_001",
+        "reactions": {},
+        "read_by": [
+          "u_mpatel",
+          "u_me"
+        ]
+      },
+      {
+        "id": "m_006",
+        "chat_id": "c_002",
+        "sender_id": "u_lwong",
+        "text": "Also, does anyone have the latest timeline for the observability docs?",
+        "ts": 6,
+        "reply_to": null,
+        "reactions": {},
+        "read_by": [
+          "u_lwong",
+          "u_me"
+        ]
+      },
+      {
+        "id": "m_007",
+        "chat_id": "c_001",
+        "sender_id": "u_abrooks",
+        "text": "I think it's acme/edge-proxy (that's the name the infra docs reference). Either way, a DeepWiki topic list would settle it.",
+        "ts": 7,
+        "reply_to": "m_005",
+        "reactions": {
+          ":+1:": [
+            "u_mpatel"
+          ]
+        },
+        "read_by": [
+          "u_abrooks",
+          "u_me"
+        ]
+      },
+      {
+        "id": "m_008",
+        "chat_id": "c_001",
+        "sender_id": "u_trivera",
+        "text": "I've queued a topic check for acme/edge-proxy and will paste the list here soon.",
+        "ts": 8,
+        "reply_to": "m_001",
+        "reactions": {},
+        "read_by": [
+          "u_trivera",
+          "u_me"
+        ]
+      },
+      {
+        "id": "m_009",
+        "chat_id": "c_002",
+        "sender_id": "u_lwong",
+        "text": "If you run DeepWiki for acme/edge-proxy, can you paste topics into #docs? It'll speed my review.",
+        "ts": 9,
+        "reply_to": null,
+        "reactions": {},
+        "read_by": [
+          "u_lwong"
+        ]
+      },
+      {
+        "id": "m_010",
+        "chat_id": "c_001",
+        "sender_id": "u_abrooks",
+        "text": "Ooh, tacos sound great — count me in. What time?",
+        "ts": 10,
+        "reply_to": "m_003",
+        "reactions": {},
+        "read_by": [
+          "u_abrooks",
+          "u_me"
+        ]
+      },
+      {
+        "id": "m_011",
+        "chat_id": "c_001",
+        "sender_id": "u_trivera",
+        "text": "Maya, can you return the topic list and which areas are covered? We're short on time.",
+        "ts": 11,
+        "reply_to": "m_001",
+        "reactions": {},
+        "read_by": [
+          "u_trivera"
+        ]
+      },
+      {
+        "id": "m_012",
+        "chat_id": "c_002",
+        "sender_id": "u_mpatel",
+        "text": "I'll paste anything I run into #docs as requested.",
+        "ts": 12,
+        "reply_to": "m_009",
+        "reactions": {},
+        "read_by": [
+          "u_mpatel",
+          "u_me"
+        ]
+      }
+    ],
+    "next_message_id": 13,
+    "next_chat_id": 4
+  },
+  "expected": {
+    "me": "u_me",
+    "users": {
+      "u_me": {
+        "id": "u_me",
+        "name": "Sam Ortega",
+        "handle": "you"
+      },
+      "u_mpatel": {
+        "id": "u_mpatel",
+        "name": "Maya Patel",
+        "handle": "mpatel"
+      },
+      "u_trivera": {
+        "id": "u_trivera",
+        "name": "Tom Rivera",
+        "handle": "trivera"
+      },
+      "u_lwong": {
+        "id": "u_lwong",
+        "name": "Lina Wong",
+        "handle": "lwong"
+      },
+      "u_abrooks": {
+        "id": "u_abrooks",
+        "name": "Aaron Brooks",
+        "handle": "abrooks"
+      },
+      "u_dramos": {
+        "id": "u_dramos",
+        "name": "Diego Ramos",
+        "handle": "dramos"
+      }
+    },
+    "chats": {
+      "c_001": {
+        "id": "c_001",
+        "kind": "group",
+        "name": "infra",
+        "member_ids": [
+          "u_me",
+          "u_mpatel",
+          "u_trivera",
+          "u_abrooks"
+        ]
+      },
+      "c_002": {
+        "id": "c_002",
+        "kind": "group",
+        "name": "docs",
+        "member_ids": [
+          "u_me",
+          "u_mpatel",
+          "u_lwong"
+        ]
+      },
+      "c_003": {
+        "id": "c_003",
+        "kind": "group",
+        "name": "random",
+        "member_ids": [
+          "u_me",
+          "u_mpatel",
+          "u_dramos"
+        ]
+      }
+    },
+    "messages": [
+      {
+        "id": "m_001",
+        "chat_id": "c_001",
+        "sender_id": "u_trivera",
+        "text": "Can someone run DeepWiki to list the documentation topics for acme/edge-proxy? We're deciding if it's covered well enough for the migration.",
+        "ts": 1,
+        "reply_to": null,
+        "reactions": {},
+        "read_by": [
+          "u_trivera"
+        ]
+      },
+      {
+        "id": "m_002",
+        "chat_id": "c_002",
+        "sender_id": "u_lwong",
+        "text": "Heads-up: I also want the doc-topic list for acme/monitoring and acme/observability when someone has bandwidth.",
+        "ts": 2,
+        "reply_to": null,
+        "reactions": {},
+        "read_by": [
+          "u_lwong"
+        ]
+      },
+      {
+        "id": "m_003",
+        "chat_id": "c_001",
+        "sender_id": "u_mpatel",
+        "text": "Anyone up for grabbing lunch after standup? There's a new taco place on 5th.",
+        "ts": 3,
+        "reply_to": null,
+        "reactions": {},
+        "read_by": [
+          "u_mpatel",
+          "u_me"
+        ]
+      },
+      {
+        "id": "m_004",
+        "chat_id": "c_003",
+        "sender_id": "u_dramos",
+        "text": "Hey Maya, are you free for a quick sync about the onboarding doc?",
+        "ts": 4,
+        "reply_to": null,
+        "reactions": {},
+        "read_by": [
+          "u_dramos",
+          "u_me"
+        ]
+      },
+      {
+        "id": "m_005",
+        "chat_id": "c_001",
+        "sender_id": "u_mpatel",
+        "text": "I can do edge-proxy but might need the exact repo path — is it acme/edge-proxy or acme/edge-proxy-server?",
+        "ts": 5,
+        "reply_to": "m_001",
+        "reactions": {},
+        "read_by": [
+          "u_mpatel",
+          "u_me"
+        ]
+      },
+      {
+        "id": "m_006",
+        "chat_id": "c_002",
+        "sender_id": "u_lwong",
+        "text": "Also, does anyone have the latest timeline for the observability docs?",
+        "ts": 6,
+        "reply_to": null,
+        "reactions": {},
+        "read_by": [
+          "u_lwong",
+          "u_me"
+        ]
+      },
+      {
+        "id": "m_007",
+        "chat_id": "c_001",
+        "sender_id": "u_abrooks",
+        "text": "I think it's acme/edge-proxy (that's the name the infra docs reference). Either way, a DeepWiki topic list would settle it.",
+        "ts": 7,
+        "reply_to": "m_005",
+        "reactions": {
+          ":+1:": [
+            "u_mpatel"
+          ]
+        },
+        "read_by": [
+          "u_abrooks",
+          "u_me"
+        ]
+      },
+      {
+        "id": "m_008",
+        "chat_id": "c_001",
+        "sender_id": "u_trivera",
+        "text": "I've queued a topic check for acme/edge-proxy and will paste the list here soon.",
+        "ts": 8,
+        "reply_to": "m_001",
+        "reactions": {},
+        "read_by": [
+          "u_trivera",
+          "u_me"
+        ]
+      },
+      {
+        "id": "m_009",
+        "chat_id": "c_002",
+        "sender_id": "u_lwong",
+        "text": "If you run DeepWiki for acme/edge-proxy, can you paste topics into #docs? It'll speed my review.",
+        "ts": 9,
+        "reply_to": null,
+        "reactions": {},
+        "read_by": [
+          "u_lwong"
+        ]
+      },
+      {
+        "id": "m_010",
+        "chat_id": "c_001",
+        "sender_id": "u_abrooks",
+        "text": "Ooh, tacos sound great — count me in. What time?",
+        "ts": 10,
+        "reply_to": "m_003",
+        "reactions": {},
+        "read_by": [
+          "u_abrooks",
+          "u_me"
+        ]
+      },
+      {
+        "id": "m_011",
+        "chat_id": "c_001",
+        "sender_id": "u_trivera",
+        "text": "Maya, can you return the topic list and which areas are covered? We're short on time.",
+        "ts": 11,
+        "reply_to": "m_001",
+        "reactions": {},
+        "read_by": [
+          "u_trivera"
+        ]
+      },
+      {
+        "id": "m_012",
+        "chat_id": "c_002",
+        "sender_id": "u_mpatel",
+        "text": "I'll paste anything I run into #docs as requested.",
+        "ts": 12,
+        "reply_to": "m_009",
+        "reactions": {},
+        "read_by": [
+          "u_mpatel",
+          "u_me"
+        ]
+      },
+      {
+        "id": "m_013",
+        "chat_id": "c_001",
+        "sender_id": "u_me",
+        "text": "$text_0",
+        "ts": 13,
+        "reply_to": "m_001",
+        "reactions": {},
+        "read_by": [
+          "u_me"
+        ]
+      },
+      {
+        "id": "m_014",
+        "chat_id": "c_002",
+        "sender_id": "u_me",
+        "text": "$carried_c0a1_text",
+        "ts": 14,
+        "reply_to": "m_002",
+        "reactions": {
+          "$emoji_0": [
+            "u_me"
+          ]
+        },
+        "read_by": [
+          "u_me"
+        ]
+      },
+      {
+        "id": "m_015",
+        "chat_id": "c_001",
+        "sender_id": "u_me",
+        "text": "$carried_c1a1_text",
+        "ts": 15,
+        "reply_to": "m_001",
+        "reactions": {},
+        "read_by": [
+          "u_me"
+        ]
+      }
+    ],
+    "next_message_id": 16,
+    "next_chat_id": 4
+  },
+  "prompts": {
+    "1": "1. Run read_wiki_structure with repoName 'acme/edge-proxy' and record the returned list of DeepWiki documentation topic titles for acme/edge-proxy for use in step 4.  2. Run list_chats to list the chats the acting user (u_me) is a member of and record the returned array of chat objects (id, kind, name, members) for use in steps 4 and 6.  3. Reply to message m_001 in chat c_001 with the text: 'On it — running DeepWiki for acme/edge-proxy now. I’ll paste the topic list here and into #docs.'  4. Reply to message m_002 in chat c_002 with a message that includes (a) the full list_chats result you obtained in step 2 (each chat's id, kind, name, and members) and (b) the list of DeepWiki documentation topic titles you obtained in step 1, and post that combined information as the reply body.  5. Add the ':+1:' reaction to the message you created in step 4.  6. Reply to message m_001 in chat c_001 with a message that includes the full list_chats result you obtained in step 2 (each chat's id, kind, name, and members) in the reply body.",
+    "2": "You are Sam Ortega acting in the chat workspace. First, run DeepWiki for the repository acme/edge-proxy to obtain the list of documentation topic titles for that repo. Also list the chats that the acting user is a member of; that listing will return the array of group chats the user belongs to (the three groups are the one named \"infra\" whose members are Sam Ortega, Maya Patel, Tom Rivera, and Aaron Brooks; the one named \"docs\" whose members are Sam Ortega, Maya Patel, and Lina Wong; and the one named \"random\" whose members are Sam Ortega, Maya Patel, and Diego Ramos). After you have both results, reply in-thread to the message about someone run DeepWiki to with the exact text: 'On it — running DeepWiki for acme/edge-proxy now. I’ll paste the topic list here and into #docs.' Next, reply in-thread to the message about doc-topic list for acme/monitoring with a message whose body includes both the full chat-listing result you obtained (showing each chat's id, kind, name, and member list) and the list of DeepWiki documentation topic titles you obtained for acme/edge-proxy. After posting that reply to the message about doc-topic list for acme/monitoring, add the ':+1:' reaction to the reply you just created. Finally, post another reply in-thread to the message about someone run DeepWiki to that includes the full chat-listing result you obtained (each chat's id, kind, name, and members) in the reply body.",
+    "3": "You are Sam Ortega in the workspace. Run DeepWiki for the repository acme/edge-proxy to collect the repository's documentation topic titles, and retrieve the list of chats you belong to; that chat listing will show three group chats: the group named \"infra\" (members: Sam Ortega, Maya Patel, Tom Rivera, Aaron Brooks), the group named \"docs\" (members: Sam Ortega, Maya Patel, Lina Wong), and the group named \"random\" (members: Sam Ortega, Maya Patel, Diego Ramos). Once you have both results, post a threaded reply to the message about someone run DeepWiki to confirming you are running DeepWiki and that you will paste the topic list here and into #docs. Post a threaded reply to the message about doc-topic list for acme/monitoring whose body includes the complete chat-listing output (each chat's id, kind, name, and full member lists) together with the documentation topic titles you obtained for acme/edge-proxy. Add a ':+1:' reaction to that reply. Finally, post another threaded reply to that original message about someone run DeepWiki to whose body contains the full chat-listing output (each chat's id, kind, name, and members).",
+    "4": "You are Sam Ortega. Get the DeepWiki documentation topic titles for the GitHub repo acme/edge-proxy, and get the list of group chats you belong to. Then do the following in the workspace: \n\n1) In the thread where someone asked for someone to run DeepWiki, post a reply confirming you will run DeepWiki for acme/edge-proxy and that you will paste the topic list into that thread and into the docs channel. Refer to that conversation as that thread after this.\n\n2) In the thread where someone asked for the doc-topic list for acme/monitoring, post a reply that includes the complete chat-listing output (each chat's id, kind, name, and full member lists) together with the DeepWiki documentation topic titles you obtained for acme/edge-proxy. Call that conversation that thread for the doc-topic request.\n\n3) Add a :+1: reaction to the reply you post in the doc-topic-request thread.\n\n4) Finally, post another reply in the first thread (the one asking someone to run DeepWiki) that contains the complete chat-listing output (each chat's id, kind, name, and full member lists)."
+  },
+  "judge": {
+    "1": [
+      {
+        "id": "carry:c0a1:text",
+        "requirement": "the text of step 4 must carry what step 2 and step 1 returned",
+        "expected": "The reply to m_002 states the three chats returned by list_chats with their ids, kinds, names, and member lists (infra c_001 with members u_me, u_mpatel, u_trivera, u_abrooks; docs c_002 with members u_me, u_mpatel, u_lwong; random c_003 with members u_me, u_mpatel, u_dramos) and it also includes the DeepWiki documentation topic titles returned for acme/edge-proxy.",
+        "hint": "Look in the reply message posted to m_002 (the message created in step 4).",
+        "delivered_in": "the message step 4 posts"
+      },
+      {
+        "id": "carry:c1a1:text",
+        "requirement": "the text of step 6 must carry what step 2 returned",
+        "expected": "The reply to m_001 includes the full list_chats result showing the three chats with their ids, kinds, names, and member lists (infra c_001 with members u_me, u_mpatel, u_trivera, u_abrooks; docs c_002 with members u_me, u_mpatel, u_lwong; random c_003 with members u_me, u_mpatel, u_dramos).",
+        "hint": "Look in the reply message posted to m_001 created in step 6.",
+        "delivered_in": "the message step 6 posts"
+      }
+    ],
+    "2": [
+      {
+        "id": "carry:c0a1:text",
+        "requirement": "the text of step 4 must carry what step 2 and step 1 returned",
+        "expected": "The reply posted to the message about doc-topic list for acme/monitoring contains the three group chats returned by the chat-listing action with their ids, kinds, names, and member lists (the group named \"infra\" with members Sam Ortega, Maya Patel, Tom Rivera, and Aaron Brooks; the group named \"docs\" with members Sam Ortega, Maya Patel, and Lina Wong; the group named \"random\" with members Sam Ortega, Maya Patel, and Diego Ramos) and it also includes the DeepWiki documentation topic titles returned for acme/edge-proxy.",
+        "hint": "Look in the reply message you posted to the message about doc-topic list for acme/monitoring (the message created when you carried the combined information).",
+        "delivered_in": "the message step 4 posts"
+      },
+      {
+        "id": "carry:c1a1:text",
+        "requirement": "the text of step 6 must carry what step 2 returned",
+        "expected": "The reply posted to the message about someone run DeepWiki to includes the full chat-listing result showing the three chats with their ids, kinds, names, and member lists (the group named \"infra\" with members Sam Ortega, Maya Patel, Tom Rivera, and Aaron Brooks; the group named \"docs\" with members Sam Ortega, Maya Patel, and Lina Wong; the group named \"random\" with members Sam Ortega, Maya Patel, and Diego Ramos).",
+        "hint": "Look in the reply message you posted to the message about someone run DeepWiki to that you created at the end of the task.",
+        "delivered_in": "the message step 6 posts"
+      }
+    ],
+    "3": [
+      {
+        "id": "carry:c0a1:text",
+        "requirement": "the text of step 4 must carry what step 2 and step 1 returned",
+        "expected": "The reply posted to the message about doc-topic list for acme/monitoring contains the three group chats returned by the chat-listing action with their ids, kinds, names, and member lists (the group named \"infra\" with members Sam Ortega, Maya Patel, Tom Rivera, and Aaron Brooks; the group named \"docs\" with members Sam Ortega, Maya Patel, and Lina Wong; and the group named \"random\" with members Sam Ortega, Maya Patel, and Diego Ramos) and it also includes the DeepWiki documentation topic titles returned for acme/edge-proxy.",
+        "hint": "Look in the reply message you posted to the message about doc-topic list for acme/monitoring (the message created when you carried the combined information).",
+        "delivered_in": "the message step 4 posts"
+      },
+      {
+        "id": "carry:c1a1:text",
+        "requirement": "the text of step 6 must carry what step 2 returned",
+        "expected": "The reply posted to the message about someone run DeepWiki to includes the full chat-listing result showing the three chats with their ids, kinds, names, and member lists (the group named \"infra\" with members Sam Ortega, Maya Patel, Tom Rivera, and Aaron Brooks; the group named \"docs\" with members Sam Ortega, Maya Patel, and Lina Wong; and the group named \"random\" with members Sam Ortega, Maya Patel, and Diego Ramos).",
+        "hint": "Look in the reply message you posted to the message about someone run DeepWiki to that you created at the end of the task.",
+        "delivered_in": "the message step 6 posts"
+      }
+    ],
+    "4": [
+      {
+        "id": "carry:c0a1:text",
+        "requirement": "the text of step 4 must carry what step 2 and step 1 returned",
+        "expected": "The reply posted in the thread requesting the doc-topic list for acme/monitoring includes the full chat-listing output showing the three group chats with their ids, kinds, names, and complete member lists (the group named \"infra\" with members Sam Ortega, Maya Patel, Tom Rivera, and Aaron Brooks; the group named \"docs\" with members Sam Ortega, Maya Patel, and Lina Wong; and the group named \"random\" with members Sam Ortega, Maya Patel, and Diego Ramos) and it also includes the DeepWiki documentation topic titles returned for acme/edge-proxy.",
+        "hint": "Check the reply you posted in the thread that asked for the doc-topic list for acme/monitoring — the message you created that combines the chat list and the DeepWiki topic titles.",
+        "delivered_in": "the message step 4 posts"
+      },
+      {
+        "id": "carry:c1a1:text",
+        "requirement": "the text of step 6 must carry what step 2 returned",
+        "expected": "The reply posted in the thread that asked someone to run DeepWiki contains the full chat-listing result showing the three group chats with their ids, kinds, names, and complete member lists (the group named \"infra\" with members Sam Ortega, Maya Patel, Tom Rivera, and Aaron Brooks; the group named \"docs\" with members Sam Ortega, Maya Patel, and Lina Wong; and the group named \"random\" with members Sam Ortega, Maya Patel, and Diego Ramos).",
+        "hint": "Look at the final reply you posted in the thread where someone asked for someone to run DeepWiki — that message should include the complete chat-listing output.",
+        "delivered_in": "the message step 6 posts"
+      }
+    ]
+  },
+  "steps": [
+    {
+      "key": "c0a0",
+      "chain": 0,
+      "turn": 0,
+      "action": "read_wiki_structure",
+      "tool": "deepwiki_read_wiki_structure",
+      "kind": "read",
+      "external": true,
+      "refs": {},
+      "content": {
+        "repoName": "$repoName_0"
+      },
+      "carries": {},
+      "produces_entity": null,
+      "produces_value": "$info_0",
+      "depends_on": [],
+      "unrelated": false
+    },
+    {
+      "key": "c1a0",
+      "chain": 1,
+      "turn": 0,
+      "action": "list_chats",
+      "tool": "chat_list_chats",
+      "kind": "read",
+      "external": false,
+      "refs": {},
+      "content": {},
+      "carries": {},
+      "produces_entity": null,
+      "produces_value": "$info_1",
+      "depends_on": [],
+      "unrelated": false
+    },
+    {
+      "key": "c2a0",
+      "chain": 2,
+      "turn": 0,
+      "action": "reply_to",
+      "tool": "chat_reply_to",
+      "kind": "write",
+      "external": false,
+      "refs": {
+        "message_id": "$message_0"
+      },
+      "content": {
+        "text": "$text_0"
+      },
+      "carries": {},
+      "produces_entity": "$new_message_0",
+      "produces_value": null,
+      "depends_on": [],
+      "unrelated": false
+    },
+    {
+      "key": "c0a1",
+      "chain": 0,
+      "turn": 1,
+      "action": "reply_to",
+      "tool": "chat_reply_to",
+      "kind": "write",
+      "external": false,
+      "refs": {
+        "message_id": "$message_1"
+      },
+      "content": {},
+      "carries": {
+        "text": [
+          "c1a0",
+          "c0a0"
+        ]
+      },
+      "produces_entity": "$new_message_1",
+      "produces_value": null,
+      "depends_on": [
+        {
+          "source": "c1a0",
+          "via": "value",
+          "param": "text",
+          "symbol": null
+        },
+        {
+          "source": "c0a0",
+          "via": "value",
+          "param": "text",
+          "symbol": null
+        }
+      ],
+      "unrelated": false
+    },
+    {
+      "key": "c0a2",
+      "chain": 0,
+      "turn": 2,
+      "action": "add_reaction",
+      "tool": "chat_add_reaction",
+      "kind": "write",
+      "external": false,
+      "refs": {
+        "message_id": "$new_message_1"
+      },
+      "content": {
+        "emoji": "$emoji_0"
+      },
+      "carries": {},
+      "produces_entity": null,
+      "produces_value": null,
+      "depends_on": [
+        {
+          "source": "c0a1",
+          "via": "object",
+          "param": "message_id",
+          "symbol": "$new_message_1"
+        }
+      ],
+      "unrelated": false
+    },
+    {
+      "key": "c1a1",
+      "chain": 1,
+      "turn": 2,
+      "action": "reply_to",
+      "tool": "chat_reply_to",
+      "kind": "write",
+      "external": false,
+      "refs": {
+        "message_id": "$message_0"
+      },
+      "content": {},
+      "carries": {
+        "text": [
+          "c1a0"
+        ]
+      },
+      "produces_entity": "$new_message_2",
+      "produces_value": null,
+      "depends_on": [
+        {
+          "source": "c1a0",
+          "via": "value",
+          "param": "text",
+          "symbol": null
+        }
+      ],
+      "unrelated": false
+    }
+  ],
+  "manifest": [
+    {
+      "symbol": "$message_0",
+      "entity_type": "message",
+      "origin": "seed",
+      "created_by": null,
+      "roles": [
+        {
+          "step": "c2a0",
+          "action": "reply_to",
+          "param": "message_id",
+          "kind": "write",
+          "description": "Reply to an existing message in its chat (threaded)."
+        },
+        {
+          "step": "c1a1",
+          "action": "reply_to",
+          "param": "message_id",
+          "kind": "write",
+          "description": "Reply to an existing message in its chat (threaded)."
+        }
+      ],
+      "requirements": []
+    },
+    {
+      "symbol": "$new_message_0",
+      "entity_type": "message",
+      "origin": "rollout",
+      "created_by": "c2a0",
+      "roles": [],
+      "requirements": []
+    },
+    {
+      "symbol": "$message_1",
+      "entity_type": "message",
+      "origin": "seed",
+      "created_by": null,
+      "roles": [
+        {
+          "step": "c0a1",
+          "action": "reply_to",
+          "param": "message_id",
+          "kind": "write",
+          "description": "Reply to an existing message in its chat (threaded)."
+        }
+      ],
+      "requirements": []
+    },
+    {
+      "symbol": "$new_message_1",
+      "entity_type": "message",
+      "origin": "rollout",
+      "created_by": "c0a1",
+      "roles": [
+        {
+          "step": "c0a2",
+          "action": "add_reaction",
+          "param": "message_id",
+          "kind": "write",
+          "description": "Add an emoji reaction from the acting user to a message."
+        }
+      ],
+      "requirements": [
+        "the acting user has not already reacted to this message, and no other step of the task reacts to it — a second reaction writes a fact that is already true and so is worth nothing."
+      ]
+    },
+    {
+      "symbol": "$new_message_2",
+      "entity_type": "message",
+      "origin": "rollout",
+      "created_by": "c1a1",
+      "roles": [],
+      "requirements": []
+    }
+  ],
+  "slots": [
+    {
+      "key": "c0a0",
+      "param": "repoName",
+      "kind": "content",
+      "description": "GitHub repo in owner/repo form",
+      "sources": []
+    },
+    {
+      "key": "c2a0",
+      "param": "text",
+      "kind": "content",
+      "description": "reply body",
+      "sources": []
+    },
+    {
+      "key": "c0a1",
+      "param": "text",
+      "kind": "carry",
+      "description": "reply body",
+      "sources": [
+        "c1a0",
+        "c0a0"
+      ]
+    },
+    {
+      "key": "c0a2",
+      "param": "emoji",
+      "kind": "content",
+      "description": "reaction emoji, e.g. ':+1:'",
+      "sources": []
+    },
+    {
+      "key": "c1a1",
+      "param": "text",
+      "kind": "carry",
+      "description": "reply body",
+      "sources": [
+        "c1a0"
+      ]
+    }
+  ],
+  "binding": {
+    "$message_0": "m_001",
+    "$message_1": "m_002",
+    "$new_message_0": "m_013",
+    "$new_message_1": "m_014",
+    "$new_message_2": "m_015"
+  },
+  "references": {
+    "$message_0": {
+      "mode": "message_by_text",
+      "params": {
+        "text": "someone run DeepWiki to"
+      },
+      "phrase": "the message about someone run DeepWiki to",
+      "predicate": "the one message whose text contains someone run DeepWiki to",
+      "proposed": "message_by_text"
+    },
+    "$message_1": {
+      "mode": "message_by_text",
+      "params": {
+        "text": "doc-topic list for acme/monitoring"
+      },
+      "phrase": "the message about doc-topic list for acme/monitoring",
+      "predicate": "the one message whose text contains doc-topic list for acme/monitoring",
+      "proposed": "message_by_text"
+    }
+  },
+  "content": {
+    "$repoName_0": "acme/edge-proxy",
+    "$text_0": "On it — running DeepWiki for acme/edge-proxy now. I’ll paste the topic list here and into #docs.",
+    "$emoji_0": ":+1:"
+  },
+  "observed": {
+    "c1a0": "[{\"id\": \"c_001\", \"kind\": \"group\", \"name\": \"infra\", \"members\": [\"u_me\", \"u_mpatel\", \"u_trivera\", \"u_abrooks\"]}, {\"id\": \"c_002\", \"kind\": \"group\", \"name\": \"docs\", \"members\": [\"u_me\", \"u_mpatel\", \"u_lwong\"]}, {\"id\": \"c_003\", \"kind\": \"group\", \"name\": \"random\", \"members\": [\"u_me\", \"u_mpatel\", \"u_dramos\"]}]"
+  },
+  "args": {
+    "c1a0": {},
+    "c2a0": {
+      "message_id": "m_001",
+      "text": "$text_0"
+    },
+    "c0a1": {
+      "message_id": "m_002",
+      "text": "$carried_c0a1_text"
+    },
+    "c0a2": {
+      "message_id": "m_014",
+      "emoji": "$emoji_0"
+    },
+    "c1a1": {
+      "message_id": "m_001",
+      "text": "$carried_c1a1_text"
+    }
+  },
+  "step_deltas": {
+    "c1a0": [],
+    "c2a0": [
+      "('new_msg', 'c_001', 'u_me', 'm_001', 1)"
+    ],
+    "c0a1": [
+      "('new_msg', 'c_002', 'u_me', 'm_002', 1)"
+    ],
+    "c0a2": [
+      "('react', ('new_msg', 'c_002', 'u_me', 'm_002', 1), 'u_me')"
+    ],
+    "c1a1": [
+      "('new_msg', 'c_001', 'u_me', 'm_001', 2)"
+    ]
+  },
+  "turn_diffs": [
+    {
+      "turn": 0,
+      "added": [
+        "('new_msg', 'c_001', 'u_me', 'm_001', 1)"
+      ]
+    },
+    {
+      "turn": 1,
+      "added": [
+        "('new_msg', 'c_002', 'u_me', 'm_002', 1)"
+      ]
+    },
+    {
+      "turn": 2,
+      "added": [
+        "('new_msg', 'c_001', 'u_me', 'm_001', 2)",
+        "('react', ('new_msg', 'c_002', 'u_me', 'm_002', 1), 'u_me')"
+      ]
+    }
+  ],
+  "expected_facts": [
+    "('new_msg', 'c_001', 'u_me', 'm_001', 1)",
+    "('new_msg', 'c_001', 'u_me', 'm_001', 2)",
+    "('new_msg', 'c_002', 'u_me', 'm_002', 1)",
+    "('react', ('new_msg', 'c_002', 'u_me', 'm_002', 1), 'u_me')"
+  ],
+  "shape": {
+    "threads": 3,
+    "turns": 3,
+    "steps": 6,
+    "links_per_thread": [
+      3,
+      2,
+      1
+    ],
+    "longest_chain": 3,
+    "longest_chain_per_thread": [
+      3,
+      2,
+      1
+    ],
+    "cross_thread_edges": 1,
+    "object_edges": 1,
+    "value_edges": 3,
+    "fan_in": {
+      "1": 2,
+      "2": 1
+    },
+    "fan_out": {
+      "1": 2,
+      "2": 1
+    },
+    "external_steps": 1,
+    "write_steps": 4,
+    "distractors": 0,
+    "actions": {
+      "add_reaction": 1,
+      "list_chats": 1,
+      "read_wiki_structure": 1,
+      "reply_to": 3
+    }
+  },
+  "warnings": [
+    "v2: pasted the description 'the message about someone run DeepWiki to' 2 times; introduce a thing once, then refer back to it",
+    "v2: pasted the description 'the message about doc-topic list for acme/monitoring' 2 times; introduce a thing once, then refer back to it",
+    "v3: 1 sequencing connective(s) — reads as a list in prose clothing",
+    "v4: still enumerates 4 step(s)",
+    "v4: 1 sequencing connective(s) — reads as a list in prose clothing"
+  ]
+}

@@ -1,0 +1,15 @@
+Stage 7 result. This runs LAST because it is the only stage whose output cannot
+invalidate anything: `signature` excludes text, so the expected state is already fixed.
+
+  $repoName_0
+      loom/widget-lib
+  $question_0
+      What is the repo's license, primary language, and who are listed as maintainers (from LICENSE, package.json, or GitHub)?
+  $text_0
+      On it — I'll pull the license file path, primary language, and maintainer list for loom/widget-lib and post what I find shortly.
+  $text_1
+      Posting the findings in the channel below so everyone can review; will flag any concerns for licensing or maintainers.
+  $text_2
+      FYI — I’ll also paste the same findings into sec-ops so Jamal and Mateo can verify.
+  $emoji_0
+      :+1:

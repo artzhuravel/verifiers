@@ -1,0 +1,178 @@
+# Stage 10 — rewrite as a goal
+
+NOTE ON FIDELITY — the instruction below is CURRENT; the reply below is HISTORICAL.
+
+These twelve tasks are the evidence that made the rewrite stages change. The system prompt shown
+here is the one now in the code — it asks for a description to be used once and referred back to
+afterwards, and it asks for the judge specification to be restated. The task text shown as the
+reply was produced by the PREVIOUS version of this stage, which asked for per-occurrence
+substitution and left the judge items alone. Reading the two together is the before-and-after.
+
+
+------------------------------------------------------------------------------------------------
+-- SYSTEM PROMPT
+------------------------------------------------------------------------------------------------
+You rewrite a task as the request a person would actually have sent.
+
+You are given the workspace, the underlying plan, and a task written as connected prose. Raise its level of abstraction: say what you are trying to ACHIEVE and let the steps follow from it.
+
+- No enumeration. No numbered or bulleted steps, and no sentence that reads as "and then".
+- Nothing quoted or dictated word for word — except repository names and questions, which must survive exactly, because the expected answers are keyed to them.
+- Individual steps must stop being individually identifiable. Fold them into the goal.
+- Keep every reference resolvable: an agent reading this must still be able to work out which things you mean.
+- Refer to things the way the list below does, and never by name. A description with the answer bolted on — "Alice Rivera (the author of the message about the freeze)" — is worse than either half of it alone: it hands back the very step the description existed to create.
+- A description INTRODUCES a thing. Use it at the first mention only. Every later mention refers back the way a person would — "that conversation", "the same thread", "there", "them", "it", "the one you just read". Pasting a description a second time is the commonest way this rewrite fails: it reads as find-and-replace rather than as writing, and where a description depends on something the task itself changes, every use after that change is simply FALSE. Any description marked below as one the work invalidates must be used early and never again.
+- Never answer your own reference. No parenthetical, no "i.e.", no appositive that supplies the name or id of something you have just described.
+- You are shown the plan so you can check your text still leads to those actions. It is not something to reproduce, and none of it should be recognisable as a list.
+
+The test is simple: a colleague reading this should see a normal ask, and an agent following it should end up doing the same work.
+
+You also rewrite the JUDGE ITEMS. Each tells a grader what a correct answer says and where in the agent's output to look for it. They were written against the PREVIOUS version of this task, so they still speak its language — step numbers, entity ids, names, quoted wording — much of which you are removing. Left alone, they describe a task the agent was never given.
+
+For every item, restate `expected` and `hint` so that a grader reading YOUR text can still check the same thing:
+
+- `expected` — what a correct answer STATES, in substance. Keep every fact in it. Where the previous wording leaned on an id or a step number to say WHICH thing ("the reply to m_004"), say it the way your text says it. Never replace it with a pointer: "the answer to the question above" leaves a grader nothing to compare against.
+- `hint` — where in the agent's output to look, described the way your text describes it.
+
+Do not drop an item, do not merge two, and never change WHAT is required — only how it is said. Copy each `id` exactly.
+
+Respond with ONLY this JSON object:
+{"prompt": "<the rewritten task>",
+ "judge": [{"id": "<copied exactly>", "expected": "...", "hint": "..."}]}
+
+------------------------------------------------------------------------------------------------
+-- USER PROMPT
+------------------------------------------------------------------------------------------------
+ENVIRONMENT
+  chat: Local mock chat app. Read and write tools operate on the rollout's ChatState.
+  deepwiki: Public DeepWiki MCP server: read-only GitHub-repo Q&A. Answers can be nondeterministic; requires the repo to be indexed by DeepWiki.
+  You act as one specific user. The acting user's id. Every write is attributed to this user; reads are scoped to it where noted.
+
+ENTITY TYPES IN THIS TASK
+  user — A person in the workspace. Display names may collide; handles never do.
+      id: string
+      name: string
+      handle: string
+  chat — A conversation the acting user takes part in. `name` is null for a DM.
+      id: string
+      kind: "dm" | "group"
+      name: string | null
+      member_ids: string[] (user ids)
+  message — One posted message. `reply_to` threads it under an earlier message in the same chat.
+      id: string
+      chat_id: string (chat id)
+      sender_id: string (user id)
+      text: string
+      ts: int (logical clock, not wall time)
+      reply_to: string | null (parent message id)
+      reactions: object (emoji -> user_id[])
+      read_by: string[] (user ids)
+
+ACTIONS THIS TASK USES
+  list_chats (read) — List the chats the acting user is a member of.
+      returns: array of {id, kind, name, members} for chats where actor is in member_ids
+  create_chat (write) — Create a new chat; the acting user is always included as a member.
+      member_ids: user ids to include (actor added automatically)
+      name: chat name; if set (or >2 members) the chat is a group, else a dm (optional)
+      returns: {id, kind, name, members}
+  send_message (write) — Send a message from the acting user to a chat.
+      chat_id: destination chat
+      text: message body
+      returns: the created message view
+  reply_to (write) — Reply to an existing message in its chat (threaded).
+      message_id: the message being replied to
+      text: reply body
+      returns: the created message view
+
+WORKSPACE
+You act as Sam Park (id u_me).
+
+People:
+  u_me  Sam Park @you
+  u_alice  Alice Rivera @alice
+  u_ben  Ben Turner @ben
+  u_cara  Cara Malik @cara
+  u_diego  Diego Ramos @diego
+  u_evan  Evan Stone @evan
+
+group launch-planning (c_001) — members: Sam Park @you, Alice Rivera @alice, Cara Malik @cara, Diego Ramos @diego
+  m_001 [Alice Rivera @alice]: Draft timeline: feature freeze Aug 10, beta Aug 24, public Aug 31. Thoughts?  (UNREAD by you; :thinking: x1)
+  m_002 [Cara Malik @cara]: Heads-up: I'll be OOO Friday but will join the async notes thread.  (UNREAD by you)
+  m_003 [Cara Malik @cara]: Freeze is tight; could we shift beta to Aug 31? That gives QA more runway.  (reply to m_001; UNREAD by you)
+  m_004 [Alice Rivera @alice]: Also, can someone confirm the vendor deliverable dates? I have a call Wed.
+  m_005 [Diego Ramos @diego]: If we shift beta, it will clash with marketing deadlines. I suggest we keep the current dates and add contingency work.  (reply to m_001; UNREAD by you; :+1: x1)
+  m_009 [Alice Rivera @alice]: Marketing would rather we don't move beta. Diego, can you draft a short risk list we can show them?  (reply to m_005; UNREAD by you; :+1: x1)
+  m_010 [Cara Malik @cara]: Random note: the conference hotel blocks filled up fast. Book if you need to.
+  m_011 [Sam Park @you]: I can take the risk list and coordinate with Legal once Diego posts it.  (reply to m_009)
+
+dm (dm) (c_002) — members: Sam Park @you, Ben Turner @ben
+  m_006 [Ben Turner @ben]: Quick Q: can you push the DB migration to next week? I'm tied up with client fixes on Mon/Tue.
+  m_007 [Ben Turner @ben]: P.S. if you want, I can pair on the migration review Thursday evening.
+  m_008 [Ben Turner @ben]: Also, I'll need a review on the migration PR by Tuesday so we don't block deployment.  (reply to m_006; UNREAD by you)
+  m_013 [Sam Park @you]: I saw your note; I can postpone the migration to next Thursday. I'll also update the rollback plan and ping you for a review.  (reply to m_008)
+
+group reading-club (c_003) — members: Sam Park @you, Alice Rivera @alice, Evan Stone @evan
+  m_012 [Alice Rivera @alice]: Welcome to the group! Coffee run tomorrow?
+
+PLAN YOUR TEXT MUST STILL LEAD TO (do not reproduce it)
+step 1 [read] list_chats — List the chats the acting user is a member of.
+    -> returns: [{"id": "c_001", "kind": "group", "name": "launch-planning", "members": ["u_me", "u_alice", "u_cara", "u_diego"]}, {"id": "c_002", "kind": "dm", "name": "c_002", "members": ["u_me", "u_ben"]}, {"id": "c_003", "kind": "group", "name": "reading-club", "members": ["u_me", "u_alice", "u_evan"]}]
+step 2 [write] create_chat — Create a new chat; the acting user is always included as a member.
+    member_ids   = u_alice — Alice Rivera @alice, u_ben — Ben Turner @ben
+    name         = 'Vendor & DB Coordination'
+    -> creates something new
+step 3 [write] create_chat — Create a new chat; the acting user is always included as a member.
+    member_ids   = u_cara — Cara Malik @cara, u_diego — Diego Ramos @diego
+    name         = 'Launch Contingency'
+    -> creates something new
+step 4 [write] send_message — Send a message from the acting user to a chat.
+    chat_id      = c_002 — dm (unnamed dm) — members: Sam Park @you, Ben Turner @ben
+    text         <- must carry what step 1 returned
+    -> creates something new
+step 5 [write] reply_to — Reply to an existing message in its chat (threaded).
+    message_id   = m_005 — in launch-planning from Diego Ramos, replying to m_001, unread by you: 'If we shift beta, it will clash with marketing deadlines. I suggest we keep the current dates and add contingency work.'
+    text         <- must carry what step 1 returned
+    -> creates something new
+step 6 [write] reply_to — Reply to an existing message in its chat (threaded).
+    message_id   = m_008 — in c_002 from Ben Turner, replying to m_006, unread by you: "Also, I'll need a review on the migration PR by Tuesday so we don't block deployment."
+    text         <- must carry what step 1 returned
+    -> creates something new
+
+KEEP REFERRING TO THINGS THIS WAY, AND NEVER BY NAME — each ONCE, then refer back
+  whoever wrote the message about feature freeze Aug 10
+  whoever wrote the message about migration to next week
+  whoever wrote the message about could we shift beta
+  whoever wrote the message about clash with marketing deadlines
+  the conversation where migration to next week came up
+  the latest thing @diego posted
+  the reply to the message about migration to next week
+
+THESE STRINGS MUST NOT APPEAR IN YOUR TEXT
+  Alice Rivera, Ben Turner, Cara Malik, Diego Ramos, add_reaction, alice, ask_question, ben, c_001, c_002, c_003, cara, chat_add_reaction, chat_create_chat, chat_get_user, chat_list_chats, chat_mark_read, chat_read_messages, chat_reply_to, chat_send_message, create_chat, deepwiki_ask_question, deepwiki_read_wiki_contents, deepwiki_read_wiki_structure, get_user, list_chats, m_001, m_002, m_003, m_004, m_005, m_006, m_007, m_008, m_009, m_010, m_011, m_012, m_013, mark_read, read_messages, read_wiki_contents, read_wiki_structure, reply_to, send_message, u_alice, u_ben, u_cara, u_diego, u_evan, u_me
+
+JUDGE ITEMS — REWRITE EACH ONE'S expected AND hint FOR YOUR TEXT
+  carry:c0a1:text
+      requirement (FIXED, do not change): the text of step 4 must carry what step 1 returned
+      must be delivered in (FIXED): the message step 4 posts
+      expected — RESTATE FOR YOUR TEXT: The message sent to chat c_002 contains a listing of the three chats the acting user belongs to: c_001 (a group named "launch-planning" with members u_me, u_alice, u_cara, u_diego), c_002 (a DM named "c_002" with members u_me and u_ben), and c_003 (a group named "reading-club" with members u_me, u_alice, u_evan).
+      hint     — RESTATE FOR YOUR TEXT: Look in the text of the message you posted in step 4 (the send_message to chat c_002).
+  carry:c1a1:text
+      requirement (FIXED, do not change): the text of step 5 must carry what step 1 returned
+      must be delivered in (FIXED): the message step 5 posts
+      expected — RESTATE FOR YOUR TEXT: The reply posted to m_005 states the three chats the acting user belongs to: c_001 (group "launch-planning" with members u_me, u_alice, u_cara, u_diego), c_002 (DM "c_002" with members u_me and u_ben), and c_003 (group "reading-club" with members u_me, u_alice, u_evan).
+      hint     — RESTATE FOR YOUR TEXT: Look in the text of the reply you posted to message m_005 (step 5).
+  carry:c0a2:text
+      requirement (FIXED, do not change): the text of step 6 must carry what step 1 returned
+      must be delivered in (FIXED): the message step 6 posts
+      expected — RESTATE FOR YOUR TEXT: The reply posted to m_008 states the three chats the acting user belongs to: c_001 (group "launch-planning" with members u_me, u_alice, u_cara, u_diego), c_002 (DM "c_002" with members u_me and u_ben), and c_003 (group "reading-club" with members u_me, u_alice, u_evan).
+      hint     — RESTATE FOR YOUR TEXT: Look in the text of the reply you posted to message m_008 (step 6).
+
+CURRENT TASK TEXT (rewrite this)
+Please list the chats the acting user is a member of, then create a new chat including whoever wrote the message about feature freeze Aug 10 and whoever wrote the message about migration to next week and name that chat "Vendor & DB Coordination", then create another new chat including whoever wrote the message about could we shift beta and whoever wrote the message about clash with marketing deadlines and name that chat "Launch Contingency", then send a message to the conversation where migration to next week came up whose text includes the full result returned by the first action (the array of chats returned by the initial listing), then reply to the latest thing the person who wrote the message about clash with marketing deadlines posted with a reply that includes the full result returned by the first action (the array of chats), and then reply to the reply to the message about migration to next week with a reply that includes the full result returned by the first action (the array of chats); after completing these actions, include in your reply the returned objects for the two created chats and the created message objects for the three messages you sent.
+
+------------------------------------------------------------------------------------------------
+-- WHAT THE MODEL RETURNED (the shipped artifact)
+------------------------------------------------------------------------------------------------
+{
+  "prompt": "Gather a current listing of the chats I’m a member of and use that listing as the context to create focused coordination spaces and to seed context into the existing threads: create a new chat named Vendor & DB Coordination that includes whoever wrote the message about feature freeze Aug 10 and whoever wrote the message about migration to next week, and create a new chat named Launch Contingency that includes whoever wrote the message about could we shift beta and whoever wrote the message about clash with marketing deadlines. Post a new message into the conversation where migration to next week came up whose text contains the full array returned by the initial chat listing, reply in-thread to the latest thing @diego posted with a message whose text contains that same array, and reply in-thread to the reply to the message about migration to next week with a message whose text contains that same array."
+}

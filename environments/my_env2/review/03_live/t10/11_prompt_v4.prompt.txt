@@ -1,0 +1,182 @@
+# Stage 11 — fold it into the message a colleague would have typed
+
+1 model call(s).
+
+================================================================================================
+== call 1 of 1
+================================================================================================
+
+------------------------------------------------------------------------------------------------
+-- SYSTEM PROMPT
+------------------------------------------------------------------------------------------------
+You rewrite a task as the message a colleague would actually have typed.
+
+You are given the workspace, the plan, and a task that already reads as prose. It is still a sequence in disguise: every action gets its own clause, in the plan's order, and anything one action needs from another is spelled out as a hand-off. Take that apart.
+
+- FOLD. Where one action exists only to feed another, they are ONE request, not two. "Read the recent messages there and keep the array they return for later" followed by "post a message whose body reproduces the sender and text of each message from that read" is one thing a person would ask for: "catch the room up by posting a rundown of who said what". Ask for the outcome; the lookups it takes follow from it and do not need saying.
+- NO HAND-OFF LANGUAGE. Nothing "returned", "retained", "kept for later use", "from the earlier read", "for use in later actions". A person does not narrate their own request as a data flow.
+- STOP DICTATING TEXT. Do not quote a message body or a question. Say what it has to get across and leave the wording to the agent. Not: ask about 'owner/repo' the question "What is this project for, and what's its primary programming language?" — instead: find out what owner/repo is for and what it is mostly written in. The one thing that must survive EXACTLY is a repository NAME: which repo was asked about is what the expected answer is keyed to.
+- A description INTRODUCES a thing. Use it at the first mention only. Every later mention refers back the way a person would — "that conversation", "the same thread", "there", "them", "it", "the one you just read". Pasting a description a second time is the commonest way this rewrite fails: it reads as find-and-replace rather than as writing, and where a description depends on something the task itself changes, every use after that change is simply FALSE. Any description marked below as one the work invalidates must be used early and never again.
+- Never answer your own reference. No parenthetical, no "i.e.", no appositive that supplies the name or id of something you have just described.
+- Every action in the plan must still be reachable from what you write, and you must not invite one the plan does not contain. Folding changes how the work is ASKED FOR, never what the work is.
+
+The test: read it aloud. If it sounds like someone who needs something done, it is right. If it sounds like someone reading out a checklist, fold harder.
+
+You also rewrite the JUDGE ITEMS. Each tells a grader what a correct answer says and where in the agent's output to look for it. They were written against the PREVIOUS version of this task, so they still speak its language — step numbers, entity ids, names, quoted wording — much of which you are removing. Left alone, they describe a task the agent was never given.
+
+For every item, restate `expected` and `hint` so that a grader reading YOUR text can still check the same thing:
+
+- `expected` — what a correct answer STATES, in substance. Keep every fact in it. Where the previous wording leaned on an id or a step number to say WHICH thing ("the reply to m_004"), say it the way your text says it. Never replace it with a pointer: "the answer to the question above" leaves a grader nothing to compare against.
+- `hint` — where in the agent's output to look, described the way your text describes it.
+
+Do not drop an item, do not merge two, and never change WHAT is required — only how it is said. Copy each `id` exactly.
+
+Respond with ONLY this JSON object:
+{"prompt": "<the rewritten task>",
+ "judge": [{"id": "<copied exactly>", "expected": "...", "hint": "..."}]}
+
+------------------------------------------------------------------------------------------------
+-- USER PROMPT
+------------------------------------------------------------------------------------------------
+ENVIRONMENT
+  chat: Local mock chat app. Read and write tools operate on the rollout's ChatState.
+  deepwiki: Public DeepWiki MCP server: read-only GitHub-repo Q&A. Answers can be nondeterministic; requires the repo to be indexed by DeepWiki.
+  You act as one specific user. The acting user's id. Every write is attributed to this user; reads are scoped to it where noted.
+
+ENTITY TYPES IN THIS TASK
+  chat — A conversation the acting user takes part in. `name` is null for a DM.
+      id: string
+      kind: "dm" | "group"
+      name: string | null
+      member_ids: string[] (user ids)
+  message — One posted message. `reply_to` threads it under an earlier message in the same chat.
+      id: string
+      chat_id: string (chat id)
+      sender_id: string (user id)
+      text: string
+      ts: int (logical clock, not wall time)
+      reply_to: string | null (parent message id)
+      reactions: object (emoji -> user_id[])
+      read_by: string[] (user ids)
+
+ACTIONS THIS TASK USES
+  list_chats (read) — List the chats the acting user is a member of.
+      returns: array of {id, kind, name, members} for chats where actor is in member_ids
+  send_message (write) — Send a message from the acting user to a chat.
+      chat_id: destination chat
+      text: message body
+      returns: the created message view
+  ask_question (read) — Ask an AI-grounded question about a GitHub repository.
+      repoName: GitHub repo in owner/repo form (or a list, max 10)
+      question: the question to ask
+      returns: a free-text answer to any question about the repo — metadata (licence, primary language, maintainers) and prose questions alike. Nondeterministic wording, so only ask things with a stable, unambiguous answer.
+  mark_read (write) — Mark every message in a chat as read by the acting user.
+      chat_id: chat to mark read
+      returns: {chat_id, marked_read: <count>}
+  reply_to (write) — Reply to an existing message in its chat (threaded).
+      message_id: the message being replied to
+      text: reply body
+      returns: the created message view
+
+WORKSPACE
+You act as You (id u_me).
+
+People:
+  u_me  You @you
+  u_maya_r  Maya Singh @maya_r
+  u_luis_h  Luis Hernández @luis_h
+  u_priya_k  Priya Kapoor @priya_k
+  u_ben_z  Ben Zhao @ben_z
+  u_sam_p  Sam Park @sam_p
+  u_evelyn_c  Evelyn Cho @evelyn_c
+
+group product-team (c_001) — members: You @you, Maya Singh @maya_r, Luis Hernández @luis_h, Priya Kapoor @priya_k, Ben Zhao @ben_z
+  m_001 [Luis Hernández @luis_h]: Deploy is still scheduled for 15:00. Do we have sign-off from security? If not, we should push to EOD.  (UNREAD by you)
+  m_002 [Priya Kapoor @priya_k]: Security sent a short list of issues; Ben is on the fixes. Also: we need the exact repo metadata (license, primary language) for the release notes.
+  m_005 [Maya Singh @maya_r]: also, u2 — did you catch the mobile regressions in #42? cc u4.  (UNREAD by you)
+  m_007 [Ben Zhao @ben_z]: Fixed the CI matrix failure — pushing a patch now. Will run another smoke before the deploy.
+  m_009 [Priya Kapoor @priya_k]: Could someone check acme/cli-helper on DeepWiki and paste what it says about the license and main language? We'll include that in notes.  (UNREAD by you)
+  m_010 [Ben Zhao @ben_z]: On it — also logged a follow-up to track the flaky e2e on staging.  (reply to m_007)
+  m_011 [You @you]: I'll assemble the release note draft tonight and share for review.  (reply to m_002)
+  m_012 [Luis Hernández @luis_h]: Thanks — I'll ping legal about the license once we have the DeepWiki snippet.  (reply to m_009; UNREAD by you)
+  m_014 [Priya Kapoor @priya_k]: Also, unrelated — lunch call at 12:30? u1, u4?  (UNREAD by you)
+  m_015 [Luis Hernández @luis_h]: Quick FYI numbers for the release notes: expected DAU ~12k, peak ~60k. Not final but helpful for comms.
+  m_016 [Priya Kapoor @priya_k]: Ben — when you paste that DeepWiki excerpt, could you bold or point out the exact license line so legal can review quickly?  (reply to m_009; UNREAD by you)
+  m_017 [Ben Zhao @ben_z]: Pasting shortly — juggling a flaky test first. If someone else can pull the DeepWiki excerpt, go ahead.  (reply to m_009)
+
+dm (dm) (c_002) — members: You @you, Maya Singh @maya_r
+  m_004 [Maya Singh @maya_r]: Can you paste the full list of our current chats (names and members)? I'm updating the onboarding doc and want the exact strings.  (UNREAD by you)
+  m_008 [Maya Singh @maya_r]: Also: can you drop a pointer to the API spec link? New interns keep asking.  (reply to m_004; UNREAD by you)
+  m_013 [Maya Singh @maya_r]: Also—are we still using the pinned #product-team resources? New hires are asking where to find specs.  (reply to m_004; UNREAD by you)
+
+group (dm) (c_003) — members: You @you, Maya Singh @maya_r, Evelyn Cho @evelyn_c
+  m_003 [Evelyn Cho @evelyn_c]: hi u1 — quick intro, i'm joining as a contractor this week. i'll sit in the product-team meetings.  (UNREAD by you)
+  m_006 [Maya Singh @maya_r]: Welcome n3 — meet the regulars: u2, u3, u4. ping me if you want a quick walk-through.  (reply to m_003)
+
+PLAN YOUR TEXT MUST STILL LEAD TO (do not reproduce it, and do not walk through it in order)
+step 1 [read] list_chats — List the chats the acting user is a member of.
+    -> returns: [{"id": "c_001", "kind": "group", "name": "product-team", "members": ["u_me", "u_maya_r", "u_luis_h", "u_priya_k", "u_ben_z"]}, {"id": "c_002", "kind": "dm", "name": "c_002", "members": ["u_me", "u_maya_r"]}, {"id": "c_003", "kind": "group", "name": "c_003", "members": ["u_me", "u_maya_r", "u_evelyn_c"]}]
+step 2 [write] send_message — Send a message from the acting user to a chat.
+    chat_id      = c_001 — group 'product-team' — members: You @you, Maya Singh @maya_r, Luis Hernández @luis_h, Priya Kapoor @priya_k, Ben Zhao @ben_z
+    text         = "On it — I'll check acme/cli-helper on DeepWiki for the license and primary language and paste the excerpt here shortly; assembling the release notes tonight."
+    -> creates something new
+step 3 [read, an aside] ask_question — Ask an AI-grounded question about a GitHub repository.
+    repoName     = 'aws/aws-cli'
+    question     = "What is this repository's license and primary programming language?"
+    -> returns a free-text answer to any question about the repo — metadata (licence, primary language, maintainers) and prose questions alike. Nondeterministic wording, so only ask things with a stable, unambiguous answer. (not known until the agent runs it)
+step 4 [write] mark_read — Mark every message in a chat as read by the acting user.
+    chat_id      = c_001 — group 'product-team' — members: You @you, Maya Singh @maya_r, Luis Hernández @luis_h, Priya Kapoor @priya_k, Ben Zhao @ben_z
+step 5 [write] reply_to — Reply to an existing message in its chat (threaded).
+    message_id   = the message step 2 creates
+    text         = "Following up — I'll paste the DeepWiki excerpt into this thread as soon as I have it."
+    -> creates something new
+step 6 [write] reply_to — Reply to an existing message in its chat (threaded).
+    message_id   = m_004 — in c_002 from Maya Singh, unread by you: "Can you paste the full list of our current chats (names and members)? I'm updating the onboarding doc and want the exact strings."
+    text         <- must carry what step 1 returned
+    -> creates something new
+step 7 [write] reply_to — Reply to an existing message in its chat (threaded).
+    message_id   = m_009 — in product-team from Priya Kapoor, unread by you: "Could someone check acme/cli-helper on DeepWiki and paste what it says about the license and main language? We'll include that in notes."
+    text         <- must carry what step 3 returned
+    -> creates something new
+
+THE ONLY WAYS TO PICK EACH THING OUT — each ONCE, then refer back
+  the product-team channel
+  the message about paste the full list
+  the message about Could someone check acme/cli-helper
+
+THESE STRINGS MUST NOT APPEAR IN YOUR TEXT
+  add_reaction, ask_question, c_001, c_002, c_003, chat_add_reaction, chat_create_chat, chat_get_user, chat_list_chats, chat_mark_read, chat_read_messages, chat_reply_to, chat_send_message, create_chat, deepwiki_ask_question, deepwiki_read_wiki_contents, deepwiki_read_wiki_structure, get_user, list_chats, m_001, m_002, m_003, m_004, m_005, m_006, m_007, m_008, m_009, m_010, m_011, m_012, m_013, m_014, m_015, m_016, m_017, mark_read, read_messages, read_wiki_contents, read_wiki_structure, reply_to, send_message, u_ben_z, u_evelyn_c, u_luis_h, u_maya_r, u_me, u_priya_k, u_sam_p
+
+JUDGE ITEMS — REWRITE EACH ONE'S expected AND hint FOR YOUR TEXT
+  carry:c1a2:text
+      requirement (FIXED, do not change): the text of step 6 must carry what step 1 returned
+      must be delivered in (FIXED): the message step 6 posts
+      expected — RESTATE FOR YOUR TEXT: The reply to the message about paste the full list must present the three chats exactly as returned by the system: the product-team channel (kind: group, name: "product-team", members: You, Maya Singh, Luis Hernández, Priya Kapoor, Ben Zhao), the direct message between You and Maya Singh (kind: dm, with the name and id exactly as returned for that DM, members: You, Maya Singh), and the group that includes You, Maya Singh, and Evelyn Cho (kind: group, with the name and id exactly as returned for that group, members: You, Maya Singh, Evelyn Cho).
+      hint     — RESTATE FOR YOUR TEXT: Look in the reply you posted to the message about paste the full list (the DM with Maya Singh).
+  carry:c0a2:text
+      requirement (FIXED, do not change): the text of step 7 must carry what step 3 returned
+      must be delivered in (FIXED): the message step 7 posts
+      expected — RESTATE FOR YOUR TEXT: The reply to the message about Could someone check acme/cli-helper must state that the aws/aws-cli repository uses the Apache-2.0 license and that its primary programming language is Python.
+      hint     — RESTATE FOR YOUR TEXT: Look in the reply you posted to the message about Could someone check acme/cli-helper in the product-team channel; it should include the answer you received about aws/aws-cli.
+
+CURRENT TASK TEXT (rewrite this)
+Collect and keep the exact array returned when you list the chats the acting user belongs to; every chat object must show its id, kind, name, and members. Post a message into the product-team channel to say you will check acme/cli-helper on DeepWiki for the license and primary language and will paste the excerpt there shortly; mention you will assemble the release notes tonight. Ask about the GitHub repository aws/aws-cli using the exact question "What is this repository's license and primary programming language?" and save the free-text answer you receive. Mark every message in that channel as read by the acting user. In that same channel, reply to the message you just posted with a short follow-up that says you will paste the DeepWiki excerpt into the thread as soon as you have it. Reply to the message about paste the full list in the DM with Maya Singh by posting the full array you recorded when you listed your chats, showing for each chat its id, kind, name, and members exactly as returned. Reply to the message about Could someone check acme/cli-helper in the product-team channel with the answer text you received about aws/aws-cli, explicitly stating the repository's license and its primary programming language.
+
+------------------------------------------------------------------------------------------------
+-- REPLY
+------------------------------------------------------------------------------------------------
+{
+  "prompt": "You are acting as the user in this environment. Do the following tasks in any convenient order but make sure each outcome happens:\n\n- Retrieve the exact list of chats you belong to. For each chat record the id, kind, name, and full members list exactly as returned.\n- In the product-team channel, post a message telling the team you will check the DeepWiki entry for the GitHub repository aws/aws-cli to find its license and primary programming language, and that you will paste the excerpt there shortly; also mention you will assemble the release notes tonight.\n- Use the repo Q&A service to ask about the GitHub repository aws/aws-cli and get its license and its primary programming language (the repository name must be aws/aws-cli exactly).\n- Mark every message in the product-team channel as read by you.\n- In the product-team channel, reply in-thread to the message you posted there with a short follow-up saying you will paste the DeepWiki excerpt into the thread as soon as you have it.\n- In the direct message from Maya that asks for the full list of current chats, reply by pasting the exact array you recorded when you retrieved your chats, showing for each chat object its id, kind, name, and members exactly as returned.\n- In the product-team channel, reply to Priya’s message asking someone to check acme/cli-helper by posting the answer you received about aws/aws-cli, explicitly stating that repository’s license and its primary programming language.\n\nMake sure the posted replies contain the exact data returned by the system for the chat list and the exact license and language information returned for aws/aws-cli; do not paraphrase those returned values.",
+  "judge": [
+    {
+      "id": "carry:c1a2:text",
+      "expected": "The reply posted in the DM to Maya’s request for the full list must contain the exact array that was returned when you retrieved your chats; each chat object in that array must include its id, its kind, its name, and its members. The three chats must appear exactly as returned: the product-team group (kind: group, name: \"product-team\", members: You, Maya Singh, Luis Hernández, Priya Kapoor, Ben Zhao), the direct message with Maya (kind: dm, with the name and id exactly as returned for that DM, members: You, Maya Singh), and the group that includes You, Maya Singh, and Evelyn Cho (kind: group, with the name and id exactly as returned for that group, members: You, Maya Singh, Evelyn Cho).",
+      "hint": "Look at the message you posted in reply to Maya’s DM asking for the full list; the exact chat-array you pasted there is what to check."
+    },
+    {
+      "id": "carry:c0a2:text",
+      "expected": "The reply posted in the product-team channel responding to Priya’s request about acme/cli-helper must state that the aws/aws-cli repository uses the Apache-2.0 license and that its primary programming language is Python.",
+      "hint": "Look at the reply you posted in the product-team channel to Priya’s message asking someone to check acme/cli-helper; it should include the aws/aws-cli license and primary language information."
+    }
+  ]
+}

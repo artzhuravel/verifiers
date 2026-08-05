@@ -1,0 +1,29 @@
+Stage 4. Each seed entity gets ONE way of being described instead of named.
+The model picks only WHICH mode; the adapter derives the params from the world and
+proves resolve(state, mode, params) == [that entity]. A mode that cannot be made to fit
+is skipped and the next tried, so the stage is total — an entity with no working
+reference raises, because v2 strips ids out and the task would be unanswerable.
+
+  $message_0  ->  m_001
+      the entity      in infra-team from Alice Morgan, unread by you: "Security flagged dependency 'belmont/cache' — can someone prepare a short repo summary (license, primary language, active maintainers/contact) and post it here by EOD?"
+      mode chosen     message_by_text  (the model's pick)
+      params derived  {"text": "Security flagged dependency 'belmont/cache"}
+      reads as        "the message about Security flagged dependency 'belmont/cache"
+      predicate       the one message whose text contains Security flagged dependency 'belmont/cache
+      PROOF           resolve() -> ['m_001']   unique, and it is the target
+
+  $chat_0  ->  c_001
+      the entity      group 'infra-team' — members: Sam Ortiz @you, Alice Morgan @alice_m, Ben Cho @ben_c, Claire Nguyen @claire_n
+      mode chosen     chat_by_name  (the model's pick)
+      params derived  {"name": "infra-team"}
+      reads as        "the infra-team channel"
+      predicate       the chat whose title is exactly infra-team
+      PROOF           resolve() -> ['c_001']   unique, and it is the target
+
+  $chat_1  ->  c_002
+      the entity      dm (unnamed dm) — members: Sam Ortiz @you, David Park @dpark
+      mode chosen     chat_containing_text  (the model's pick)
+      params derived  {"text": "Security pinged me about"}
+      reads as        "the conversation where Security pinged me about came up"
+      predicate       the chat containing a message whose text contains Security pinged me about
+      PROOF           resolve() -> ['c_002']   unique, and it is the target

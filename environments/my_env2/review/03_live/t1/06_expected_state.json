@@ -1,0 +1,282 @@
+{
+  "me": "u_me",
+  "users": {
+    "u_me": {
+      "id": "u_me",
+      "name": "Sam Park",
+      "handle": "you"
+    },
+    "u_alice": {
+      "id": "u_alice",
+      "name": "Alice Nguyen",
+      "handle": "alice"
+    },
+    "u_ben": {
+      "id": "u_ben",
+      "name": "Ben Ortiz",
+      "handle": "ben"
+    },
+    "u_carlos": {
+      "id": "u_carlos",
+      "name": "Carlos Reyes",
+      "handle": "carlos"
+    },
+    "u_dina": {
+      "id": "u_dina",
+      "name": "Dina Patel",
+      "handle": "dina"
+    },
+    "u_evem": {
+      "id": "u_evem",
+      "name": "Eve Morris",
+      "handle": "evem"
+    },
+    "u_frankl": {
+      "id": "u_frankl",
+      "name": "Frank Li",
+      "handle": "frankl"
+    }
+  },
+  "chats": {
+    "c_001": {
+      "id": "c_001",
+      "kind": "group",
+      "name": "infra",
+      "member_ids": [
+        "u_me",
+        "u_alice",
+        "u_ben",
+        "u_carlos",
+        "u_dina"
+      ]
+    },
+    "c_002": {
+      "id": "c_002",
+      "kind": "dm",
+      "name": null,
+      "member_ids": [
+        "u_me",
+        "u_ben"
+      ]
+    },
+    "c_003": {
+      "id": "c_003",
+      "kind": "group",
+      "name": "watercooler",
+      "member_ids": [
+        "u_me",
+        "u_alice",
+        "u_evem",
+        "u_carlos"
+      ]
+    }
+  },
+  "messages": [
+    {
+      "id": "m_001",
+      "chat_id": "c_001",
+      "sender_id": "u_alice",
+      "text": "FYI: The DeepWiki integration PR references acme/deepwiki-bot but maintainers weren't sure about the repo license. Flagging here so legal isn't surprised.",
+      "ts": 1,
+      "reply_to": null,
+      "reactions": {},
+      "read_by": [
+        "u_alice",
+        "u_me"
+      ]
+    },
+    {
+      "id": "m_002",
+      "chat_id": "c_002",
+      "sender_id": "u_ben",
+      "text": "Do you have the repo URL for that bot? I want to check the license quickly before we merge.",
+      "ts": 2,
+      "reply_to": null,
+      "reactions": {},
+      "read_by": [
+        "u_ben",
+        "u_me"
+      ]
+    },
+    {
+      "id": "m_003",
+      "chat_id": "c_001",
+      "sender_id": "u_carlos",
+      "text": "Also, FYI I bumped into @dina in the hall; she said she'll take a look this afternoon.",
+      "ts": 3,
+      "reply_to": "m_001",
+      "reactions": {},
+      "read_by": [
+        "u_carlos",
+        "u_me"
+      ]
+    },
+    {
+      "id": "m_004",
+      "chat_id": "c_001",
+      "sender_id": "u_ben",
+      "text": "Repo is acme/deepwiki-bot. @dina, can you confirm whether it's MIT or Apache (or something else)?",
+      "ts": 4,
+      "reply_to": "m_001",
+      "reactions": {},
+      "read_by": [
+        "u_ben",
+        "u_me"
+      ]
+    },
+    {
+      "id": "m_005",
+      "chat_id": "c_002",
+      "sender_id": "u_ben",
+      "text": "Link: https://github.com/acme/deepwiki-bot — sending it here so it's easy to copy.",
+      "ts": 5,
+      "reply_to": "m_002",
+      "reactions": {},
+      "read_by": [
+        "u_ben",
+        "u_me"
+      ]
+    },
+    {
+      "id": "m_006",
+      "chat_id": "c_001",
+      "sender_id": "u_dina",
+      "text": "I remember we looked at this a while back and thought it was MIT, but the README has been edited since. I'll pull the repo and check the LICENSE file.",
+      "ts": 6,
+      "reply_to": "m_004",
+      "reactions": {},
+      "read_by": [
+        "u_dina",
+        "u_me"
+      ]
+    },
+    {
+      "id": "m_007",
+      "chat_id": "c_003",
+      "sender_id": "u_evem",
+      "text": "Who's bringing snacks for Friday's gathering?",
+      "ts": 7,
+      "reply_to": null,
+      "reactions": {},
+      "read_by": [
+        "u_evem",
+        "u_me"
+      ]
+    },
+    {
+      "id": "m_008",
+      "chat_id": "c_002",
+      "sender_id": "u_me",
+      "text": "Got it — I'll ping the infra channel and ask Dina to paste the license output when she has it.",
+      "ts": 8,
+      "reply_to": "m_002",
+      "reactions": {},
+      "read_by": [
+        "u_me"
+      ]
+    },
+    {
+      "id": "m_009",
+      "chat_id": "c_001",
+      "sender_id": "u_alice",
+      "text": "Also, unrelated — does anyone want to join a trivia night tonight?",
+      "ts": 9,
+      "reply_to": null,
+      "reactions": {},
+      "read_by": [
+        "u_alice",
+        "u_me"
+      ]
+    },
+    {
+      "id": "m_010",
+      "chat_id": "c_001",
+      "sender_id": "u_carlos",
+      "text": "If it turns out to be MIT we're fine to proceed. If it's something incompatible we'll need legal sign-off — heads up.",
+      "ts": 10,
+      "reply_to": "m_001",
+      "reactions": {},
+      "read_by": [
+        "u_carlos",
+        "u_me"
+      ]
+    },
+    {
+      "id": "m_011",
+      "chat_id": "c_001",
+      "sender_id": "u_alice",
+      "text": "Can someone run a quick license-check on acme/deepwiki-bot and paste the output here? That would save time.",
+      "ts": 11,
+      "reply_to": null,
+      "reactions": {},
+      "read_by": [
+        "u_alice",
+        "u_me"
+      ]
+    },
+    {
+      "id": "m_012",
+      "chat_id": "c_001",
+      "sender_id": "u_ben",
+      "text": "The CI flaked on me this morning, unrelated to the PR — I'll rerun.",
+      "ts": 12,
+      "reply_to": "m_010",
+      "reactions": {},
+      "read_by": [
+        "u_ben",
+        "u_me"
+      ]
+    },
+    {
+      "id": "m_013",
+      "chat_id": "c_002",
+      "sender_id": "u_ben",
+      "text": "Thanks — I'll hold off merging until we have that confirmation in infra.",
+      "ts": 13,
+      "reply_to": null,
+      "reactions": {},
+      "read_by": [
+        "u_ben",
+        "u_me"
+      ]
+    },
+    {
+      "id": "m_014",
+      "chat_id": "c_001",
+      "sender_id": "u_me",
+      "text": "$carried_c0a1_text",
+      "ts": 14,
+      "reply_to": null,
+      "reactions": {},
+      "read_by": [
+        "u_me"
+      ]
+    },
+    {
+      "id": "m_015",
+      "chat_id": "c_001",
+      "sender_id": "u_me",
+      "text": "$carried_c1a1_text",
+      "ts": 15,
+      "reply_to": "m_004",
+      "reactions": {},
+      "read_by": [
+        "u_me"
+      ]
+    },
+    {
+      "id": "m_016",
+      "chat_id": "c_001",
+      "sender_id": "u_me",
+      "text": "$text_0",
+      "ts": 16,
+      "reply_to": "m_014",
+      "reactions": {},
+      "read_by": [
+        "u_me"
+      ]
+    }
+  ],
+  "next_message_id": 17,
+  "next_chat_id": 4
+}

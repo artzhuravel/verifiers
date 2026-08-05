@@ -1,0 +1,12 @@
+Stage 7 runs LAST because it is the only stage whose output cannot invalidate anything:
+`signature` excludes text, emoji and chat names, so the expected state is already fixed
+by the time a single word is written.
+
+  $text_0
+      Quick update: I'm checking the repo license/language Priya asked about and will DM her the results. Marco — when you open the PR for fix/header-padding, drop the link here so QA can pull it into their run.
+  $repoName_0
+      facebook/react
+  $question_0
+      What license and primary language does facebook/react use?
+  $text_1
+      Assigning the header bug to myself for this cycle — Ben, please paste the failing test stack when you fetch it and I’ll take it from there.

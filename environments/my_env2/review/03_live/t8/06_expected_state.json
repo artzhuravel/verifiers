@@ -1,0 +1,297 @@
+{
+  "me": "u_me",
+  "users": {
+    "u_me": {
+      "id": "u_me",
+      "name": "You",
+      "handle": "you"
+    },
+    "u_alice": {
+      "id": "u_alice",
+      "name": "Alice Kim",
+      "handle": "alice"
+    },
+    "u_ben": {
+      "id": "u_ben",
+      "name": "Ben Ortiz",
+      "handle": "ben"
+    },
+    "u_cara": {
+      "id": "u_cara",
+      "name": "Cara Singh",
+      "handle": "cara"
+    },
+    "u_dan": {
+      "id": "u_dan",
+      "name": "Dan Park",
+      "handle": "dan"
+    },
+    "u_jamielin": {
+      "id": "u_jamielin",
+      "name": "Jamie Lin",
+      "handle": "jamielin"
+    }
+  },
+  "chats": {
+    "c_001": {
+      "id": "c_001",
+      "kind": "group",
+      "name": "spark-lib",
+      "member_ids": [
+        "u_me",
+        "u_alice",
+        "u_ben",
+        "u_cara"
+      ]
+    },
+    "c_002": {
+      "id": "c_002",
+      "kind": "group",
+      "name": null,
+      "member_ids": [
+        "u_me",
+        "u_ben",
+        "u_dan"
+      ]
+    },
+    "c_003": {
+      "id": "c_003",
+      "kind": "group",
+      "name": "release-planning",
+      "member_ids": [
+        "u_me",
+        "u_alice",
+        "u_dan"
+      ]
+    },
+    "c_004": {
+      "id": "c_004",
+      "kind": "group",
+      "name": null,
+      "member_ids": [
+        "u_me",
+        "u_alice",
+        "u_jamielin"
+      ]
+    }
+  },
+  "messages": [
+    {
+      "id": "m_001",
+      "chat_id": "c_001",
+      "sender_id": "u_alice",
+      "text": "Heads-up: running the benchmark on 1.4 shows a ~30% regression in the map-reduce path since the last release. Any guesses what changed?",
+      "ts": 1,
+      "reply_to": null,
+      "reactions": {},
+      "read_by": [
+        "u_alice",
+        "u_me"
+      ]
+    },
+    {
+      "id": "m_002",
+      "chat_id": "c_002",
+      "sender_id": "u_ben",
+      "text": "Quick Q: who is the maintainer of the 'data-toolkit' repo we vendor? I don't have their GitHub handle — can you remind me?",
+      "ts": 2,
+      "reply_to": null,
+      "reactions": {},
+      "read_by": [
+        "u_ben"
+      ]
+    },
+    {
+      "id": "m_003",
+      "chat_id": "c_001",
+      "sender_id": "u_ben",
+      "text": "Also, FYI I left some profiling logs in /tmp on my laptop if anyone wants them.",
+      "ts": 3,
+      "reply_to": "m_001",
+      "reactions": {},
+      "read_by": [
+        "u_ben",
+        "u_me"
+      ]
+    },
+    {
+      "id": "m_004",
+      "chat_id": "c_001",
+      "sender_id": "u_cara",
+      "text": "Yikes. I'll start a bisection tomorrow — could be the new serializer we merged last sprint.",
+      "ts": 4,
+      "reply_to": "m_001",
+      "reactions": {},
+      "read_by": [
+        "u_cara",
+        "u_me"
+      ]
+    },
+    {
+      "id": "m_005",
+      "chat_id": "c_003",
+      "sender_id": "u_dan",
+      "text": "We need to loop in the upstream maintainer for licensing questions — does anyone have their contact (GitHub handle or org)?",
+      "ts": 5,
+      "reply_to": null,
+      "reactions": {},
+      "read_by": [
+        "u_dan"
+      ]
+    },
+    {
+      "id": "m_006",
+      "chat_id": "c_001",
+      "sender_id": "u_ben",
+      "text": "If Cara can bisect, great. Also — which upstream repo is the vendored data-toolkit at (owner/repo)? I couldn't find it in the docs.",
+      "ts": 6,
+      "reply_to": "m_004",
+      "reactions": {},
+      "read_by": [
+        "u_ben",
+        "u_me"
+      ]
+    },
+    {
+      "id": "m_007",
+      "chat_id": "c_003",
+      "sender_id": "u_dan",
+      "text": "Thanks — if we confirm license compatibility we can proceed. Also can someone draft the vendor outreach?",
+      "ts": 7,
+      "reply_to": "m_005",
+      "reactions": {},
+      "read_by": [
+        "u_dan"
+      ]
+    },
+    {
+      "id": "m_008",
+      "chat_id": "c_002",
+      "sender_id": "u_dan",
+      "text": "I'm not sure of the exact handle — I thought it was someone in infra. Worth looking up before we ping them.",
+      "ts": 8,
+      "reply_to": "m_002",
+      "reactions": {},
+      "read_by": [
+        "u_dan"
+      ]
+    },
+    {
+      "id": "m_009",
+      "chat_id": "c_003",
+      "sender_id": "u_alice",
+      "text": "Dan, quick aside: the vendor meeting got pushed to Thursday. I'll update the calendar.",
+      "ts": 9,
+      "reply_to": "m_005",
+      "reactions": {},
+      "read_by": [
+        "u_alice"
+      ]
+    },
+    {
+      "id": "m_010",
+      "chat_id": "c_001",
+      "sender_id": "u_alice",
+      "text": "Ben — if you can find the owner/repo we can ask DeepWiki for the license and contributors to confirm the maintainer.",
+      "ts": 10,
+      "reply_to": "m_006",
+      "reactions": {},
+      "read_by": [
+        "u_alice",
+        "u_me"
+      ]
+    },
+    {
+      "id": "m_011",
+      "chat_id": "c_003",
+      "sender_id": "u_alice",
+      "text": "Agree. Holding the release until we confirm licensing would be safer.",
+      "ts": 11,
+      "reply_to": "m_005",
+      "reactions": {},
+      "read_by": [
+        "u_alice"
+      ]
+    },
+    {
+      "id": "m_012",
+      "chat_id": "c_001",
+      "sender_id": "u_cara",
+      "text": "Also cc'ing the new hire in infra — they might know the vendored repo.",
+      "ts": 12,
+      "reply_to": "m_006",
+      "reactions": {},
+      "read_by": [
+        "u_cara",
+        "u_me"
+      ]
+    },
+    {
+      "id": "m_013",
+      "chat_id": "c_001",
+      "sender_id": "u_ben",
+      "text": "Agree, bisect sounds right.",
+      "ts": 13,
+      "reply_to": "m_004",
+      "reactions": {
+        ":+1:": [
+          "u_alice"
+        ]
+      },
+      "read_by": [
+        "u_ben",
+        "u_me"
+      ]
+    },
+    {
+      "id": "m_014",
+      "chat_id": "c_002",
+      "sender_id": "u_me",
+      "text": "$carried_c0a1_text",
+      "ts": 14,
+      "reply_to": "m_002",
+      "reactions": {},
+      "read_by": [
+        "u_me"
+      ]
+    },
+    {
+      "id": "m_015",
+      "chat_id": "c_003",
+      "sender_id": "u_me",
+      "text": "$carried_c1a0_text",
+      "ts": 15,
+      "reply_to": "m_005",
+      "reactions": {},
+      "read_by": [
+        "u_me"
+      ]
+    },
+    {
+      "id": "m_016",
+      "chat_id": "c_001",
+      "sender_id": "u_me",
+      "text": "$carried_c0a2_text",
+      "ts": 16,
+      "reply_to": null,
+      "reactions": {},
+      "read_by": [
+        "u_me"
+      ]
+    },
+    {
+      "id": "m_017",
+      "chat_id": "c_002",
+      "sender_id": "u_me",
+      "text": "$text_0",
+      "ts": 17,
+      "reply_to": "m_014",
+      "reactions": {},
+      "read_by": [
+        "u_me"
+      ]
+    }
+  ],
+  "next_message_id": 18,
+  "next_chat_id": 5
+}

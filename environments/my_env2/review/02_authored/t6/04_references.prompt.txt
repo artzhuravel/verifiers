@@ -1,0 +1,142 @@
+# Stage 4 — choose a reference mode per entity
+
+NOTE ON FIDELITY — read this before trusting the WORKSPACE block below.
+
+This stage ran against the CORE world, before Stage 5 padded it, and only the padded world is
+shipped in the task record. The prompt below is therefore rebuilt in the right shape, with the
+right blocks in the right order, but the workspace inside it is the LATER one: it contains
+filler that was not present when the model actually saw this. The instructions, the block
+structure and the derived lines are real; the world is a stand-in.
+
+
+------------------------------------------------------------------------------------------------
+-- SYSTEM PROMPT
+------------------------------------------------------------------------------------------------
+You decide how a task will refer to things without naming their ids.
+
+You are given a workspace and, for each entity the task is about, the ways it could be picked out by description. Pick the ONE that suits that entity best, and say only which. What goes into it is worked out from the workspace afterwards, so you do not have to supply or check anything.
+
+Judge it on how the finished sentence would read and on how much work it makes the reader do. Describing what someone did, or what a conversation is about, is better than restating a name or a handle — those tell the reader nothing they could not have been handed. Some modes will not fit the entity in front of you at all; say so by choosing a different one.
+
+Respond with ONLY this JSON object, one entry per entity:
+{"references": [{"symbol": "$chat_0", "mode": "<mode id>"}]}
+
+------------------------------------------------------------------------------------------------
+-- USER PROMPT
+------------------------------------------------------------------------------------------------
+ENVIRONMENT
+  chat: Local mock chat app. Read and write tools operate on the rollout's ChatState.
+  deepwiki: Public DeepWiki MCP server: read-only GitHub-repo Q&A. Answers can be nondeterministic; requires the repo to be indexed by DeepWiki.
+  You act as one specific user. The acting user's id. Every write is attributed to this user; reads are scoped to it where noted.
+
+ENTITY TYPES IN THIS TASK
+  message — One posted message. `reply_to` threads it under an earlier message in the same chat.
+      id: string
+      chat_id: string (chat id)
+      sender_id: string (user id)
+      text: string
+      ts: int (logical clock, not wall time)
+      reply_to: string | null (parent message id)
+      reactions: object (emoji -> user_id[])
+      read_by: string[] (user ids)
+  chat — A conversation the acting user takes part in. `name` is null for a DM.
+      id: string
+      kind: "dm" | "group"
+      name: string | null
+      member_ids: string[] (user ids)
+
+ACTIONS THIS TASK USES
+  read_wiki_contents (read) — View DeepWiki documentation for a GitHub repository.
+      repoName: GitHub repo in owner/repo form
+      returns: the repo's wiki DOCUMENTATION PROSE. It states what the project is for, how a subsystem works, what a concept means. It does NOT state licence, stars, maintainers or primary language, so a question about those has no obtainable answer here.
+  add_reaction (write) — Add an emoji reaction from the acting user to a message.
+      message_id: the message to react to
+      emoji: reaction emoji, e.g. ':+1:'
+      returns: the updated message view
+  send_message (write) — Send a message from the acting user to a chat.
+      chat_id: destination chat
+      text: message body
+      returns: the created message view
+  reply_to (write) — Reply to an existing message in its chat (threaded).
+      message_id: the message being replied to
+      text: reply body
+      returns: the created message view
+
+WORKSPACE
+You act as Sam Cho (id u_me).
+
+People:
+  u_me  Sam Cho @you
+  u_alice  Alice Nguyen @alice
+  u_benp  Ben Park @benp
+  u_carl  Carlos Ruiz @carl
+  u_danali  Dana Li @danali
+  u_jlee  Jin Lee @jlee
+
+dm (dm) (c_001) — members: Sam Cho @you, Alice Nguyen @alice
+  m_005 [Alice Nguyen @alice]: Sam, could you read the wiki for owner/scheduler and paste the prose into the infra channel? We need the subsystem explanation in full.  (UNREAD by you)
+  m_010 [Alice Nguyen @alice]: Repo name someone mentioned owner/scheduler earlier — confirm? I can ping on GH but would be faster if you paste the wiki here.  (reply to m_005; UNREAD by you)
+  m_013 [Alice Nguyen @alice]: I pinged GH to confirm the repo name; they responded with a link.  (reply to m_010)
+  m_016 [Alice Nguyen @alice]: Also note: DeepWiki often shows conceptual info only — we may need to follow links to code for specifics.  (UNREAD by you)
+
+group infra (c_002) — members: Sam Cho @you, Alice Nguyen @alice, Ben Park @benp, Carlos Ruiz @carl, Dana Li @danali
+  m_001 [Alice Nguyen @alice]: Heads-up: we need the wiki for ops/scheduler to update the runbook. Anyone knows the repo name?
+  m_003 [Ben Park @benp]: I think it's ops/scheduler-service? The README points to a wiki. Can someone pull the DeepWiki page?  (reply to m_001; UNREAD by you; :+1: x1)
+  m_004 [Carlos Ruiz @carl]: FWIW I left the notes from the toggle rollout in /docs/rollouts — check there before we duplicate effort.
+  m_006 [Ben Park @benp]: Thanks — @carl can you skim the leader-election section once Sam pastes the wiki?  (reply to m_003)
+  m_007 [Carlos Ruiz @carl]: If it's owner/scheduler we should include section on lifecycle and leader-election. The wiki usually has that.  (reply to m_003)
+  m_008 [Dana Li @danali]: Also note the wiki doesn't include deployment notes — maybe add them after we paste the docs.  (reply to m_001; :+1: x1)
+  m_009 [Dana Li @danali]: Noted. I'll add a deployment stub to the runbook after we have the wiki text.  (reply to m_001)
+  m_011 [Alice Nguyen @alice]: Please include the lifecycle section verbatim when you paste, compliance needs it.  (reply to m_007)
+  m_012 [Ben Park @benp]: Quick request: once Sam posts the wiki, I'll start extracting config keys.  (reply to m_007; UNREAD by you; :+1: x2)
+  m_014 [Alice Nguyen @alice]: Okay—waiting on Sam. Whoever can confirm the exact GH repo name, call it out here.  (reply to m_012; UNREAD by you)
+  m_015 [Carlos Ruiz @carl]: Also, coffee machine on floor 4 is back online. Save your mornings!  (reply to m_012)
+
+group (dm) (c_003) — members: Sam Cho @you, Alice Nguyen @alice, Jin Lee @jlee
+  m_002 [Jin Lee @jlee]: Hey Alice, do you have a minute to go over the onboarding checklist?
+
+ENTITIES TO DESCRIBE, AND THE MODES AVAILABLE FOR EACH
+  $message_0 = m_003 (in infra from Ben Park, replying to m_001, unread by you: "I think it's ops/scheduler-service? The README points to a wiki. Can someone pull the DeepWiki page?")
+      mode message_reply_to_text: reads as "the reply to the message about {text}" — the single reply to the one message whose text contains {text}
+      mode message_most_reacted: reads as "the message that has drawn the most reactions" — the message with strictly more distinct reactors than any other in the workspace
+      mode message_newest_by_handle: reads as "the latest thing @{handle} posted" — the most recent message written by the user whose handle is {handle}
+      mode message_by_text: reads as "the message about {text}" — the one message whose text contains {text}
+  $chat_0 = c_001 (dm (unnamed dm) — members: Sam Cho @you, Alice Nguyen @alice)
+      mode chat_containing_text: reads as "the conversation where {text} came up" — the chat containing a message whose text contains {text}
+      mode chat_only_with_unread: reads as "the one conversation you still have not caught up on" — the only chat holding at least one message the acting user has not read
+      mode chat_by_member_count: reads as "the conversation with exactly {count} people in it" — the chat that has exactly {count} members, and is the only chat with that many
+      mode chat_by_name: reads as "the {name} channel" — the chat whose title is exactly {name}
+  $message_1 = m_005 (in c_001 from Alice Nguyen, unread by you: 'Sam, could you read the wiki for owner/scheduler and paste the prose into the infra channel? We need the subsystem explanation in full.')
+      mode message_reply_to_text: reads as "the reply to the message about {text}" — the single reply to the one message whose text contains {text}
+      mode message_most_reacted: reads as "the message that has drawn the most reactions" — the message with strictly more distinct reactors than any other in the workspace
+      mode message_newest_by_handle: reads as "the latest thing @{handle} posted" — the most recent message written by the user whose handle is {handle}
+      mode message_by_text: reads as "the message about {text}" — the one message whose text contains {text}
+  $chat_1 = c_002 (group 'infra' — members: Sam Cho @you, Alice Nguyen @alice, Ben Park @benp, Carlos Ruiz @carl, Dana Li @danali)
+      mode chat_containing_text: reads as "the conversation where {text} came up" — the chat containing a message whose text contains {text}
+      mode chat_only_with_unread: reads as "the one conversation you still have not caught up on" — the only chat holding at least one message the acting user has not read
+      mode chat_by_member_count: reads as "the conversation with exactly {count} people in it" — the chat that has exactly {count} members, and is the only chat with that many
+      mode chat_by_name: reads as "the {name} channel" — the chat whose title is exactly {name}
+
+------------------------------------------------------------------------------------------------
+-- WHAT THE MODEL RETURNED (the shipped artifact)
+------------------------------------------------------------------------------------------------
+{
+  "references": [
+    {
+      "symbol": "$message_0",
+      "mode": "message_reply_to_text"
+    },
+    {
+      "symbol": "$chat_0",
+      "mode": "chat_containing_text"
+    },
+    {
+      "symbol": "$message_1",
+      "mode": "message_by_text"
+    },
+    {
+      "symbol": "$chat_1",
+      "mode": "chat_by_name"
+    }
+  ]
+}

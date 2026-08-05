@@ -1,0 +1,20 @@
+Stage 5 result. Filler is folded in ONE ENTITY AT A TIME and each addition kept only if
+every reference condition still resolves to exactly its own entity. Rejections are
+recorded, never silently dropped, and Stage 5 cannot fail the task.
+
+10 addition(s) rejected:
+  stage 5 dropped: chat n3: chat 'n3' names an undeclared member 'you'
+  stage 5 dropped: message n13: message 'n13' is in undeclared chat 'n3'
+  stage 5 dropped: message n15: message 'n15' is from undeclared sender 'you'
+  stage 5 dropped: message n4: message 'n4' is from undeclared sender 'you'
+  stage 5 dropped: message n5: message 'n5' is from undeclared sender 'you'
+  stage 5 dropped: message n10: message 'n10' is from undeclared sender 'you'
+  stage 5 dropped: message n11: message 'n11' is from undeclared sender 'you'
+  stage 5 dropped: message n12: message 'n12' is from undeclared sender 'you'
+  stage 5 dropped: message n14: message 'n14' is in undeclared chat 'n3'
+  stage 5 dropped: message n16: message 'n16' is from undeclared sender 'you'
+
+CONDITIONS EVERY ADDITION HAD TO PRESERVE
+  the one message whose text contains Security flagged dependency 'belmont/cache  -> must keep matching exactly one message
+  the chat whose title is exactly infra-team  -> must keep matching exactly one chat
+  the chat containing a message whose text contains Security pinged me about  -> must keep matching exactly one chat

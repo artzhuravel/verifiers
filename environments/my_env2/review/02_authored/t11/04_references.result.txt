@@ -1,0 +1,37 @@
+Stage 4. Each seed entity gets ONE way of being described instead of named.
+The model picks only WHICH mode; the adapter derives the params from the world and
+proves resolve(state, mode, params) == [that entity]. A mode that cannot be made to fit
+is skipped and the next tried, so the stage is total — an entity with no working
+reference raises, because v2 strips ids out and the task would be unanswerable.
+
+  $user_0  ->  u_alice_a
+      the entity      Alice Park @alice_a
+      mode chosen     user_authored_text  (the model's pick)
+      params derived  {"text": "where are the design"}
+      reads as        "whoever wrote the message about where are the design"
+      predicate       the user who wrote the one message whose text contains where are the design
+      PROOF           resolve() -> ['u_alice_a']   unique, and it is the target
+
+  $user_1  ->  u_ben_b
+      the entity      Ben Soto @ben_b
+      mode chosen     user_authored_text  (the model's pick)
+      params derived  {"text": "They're in the repo"}
+      reads as        "whoever wrote the message about They're in the repo"
+      predicate       the user who wrote the one message whose text contains They're in the repo
+      PROOF           resolve() -> ['u_ben_b']   unique, and it is the target
+
+  $message_0  ->  m_006
+      the entity      in backend-team from Ben Soto, replying to m_004, unread by you: "I'm pretty sure it's acme/event-sourcing (the repo from the JIRA), but double-check before you run DeepWiki."
+      mode chosen     message_reply_to_text  (the model's pick)
+      params derived  {"text": "someone pull the DeepWiki"}
+      reads as        "the reply to the message about someone pull the DeepWiki"
+      predicate       the single reply to the one message whose text contains someone pull the DeepWiki
+      PROOF           resolve() -> ['m_006']   unique, and it is the target
+
+  $chat_0  ->  c_002
+      the entity      dm (unnamed dm) — members: Jamie K. @you, Carol Nguyen @carol_c
+      mode chosen     chat_containing_text  (the model's pick)
+      params derived  {"text": "DeepWiki on acme/event-sourcing and"}
+      reads as        "the conversation where DeepWiki on acme/event-sourcing and came up"
+      predicate       the chat containing a message whose text contains DeepWiki on acme/event-sourcing and
+      PROOF           resolve() -> ['c_002']   unique, and it is the target

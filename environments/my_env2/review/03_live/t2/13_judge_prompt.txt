@@ -1,0 +1,190 @@
+# The delivery judge (eval time — after a rollout)
+
+Not part of authoring. This is the one model call made while *scoring*, and it is the
+whole of the `delivery` component (0.4 of the reward). One call per task, however many
+items. The judge grades over the WHOLE rollout — every tool call and every result — so
+that a retrieved answer can be told from an invented one, and so that information landing
+in a message partway through counts. It is not graded off the final reply alone.
+
+The items differ per level: each rung restates them for its own text, since the higher
+rungs remove the step numbers and ids the lower ones lean on. One section per level below.
+
+================================================================================================
+== LEVEL 1
+================================================================================================
+
+------------------------------------------------------------------------------------------------
+-- PROMPT (verify._JUDGE_PROMPT, filled in)
+------------------------------------------------------------------------------------------------
+You grade whether an agent delivered specific pieces of information.
+
+Each numbered item is something the agent had to find out and then put somewhere. You are given the requirement, what a correct answer says, and where in the agent's output to look for it.
+
+You are given the WHOLE ROLLOUT: every tool call the agent made, every result that came back, every message it sent, and its final reply. Use all of it. Do not grade off the final reply alone — most of these items are about information landing in a message partway through, and a rollout that did the work correctly and said little at the end is not a failure.
+
+Two things to hold together for each item:
+
+- **It has to be where the item says.** The hint names the place. Information that only ever appears in a tool result, and was never passed on, is not delivered — no matter how clearly the agent retrieved it.
+- **It has to be the same information.** That is a question about the whole trace: compare what the agent said against what the tools actually returned. A value the agent invented rather than retrieved is wrong even when it looks plausible, and a correct answer worded differently is right.
+
+Match on substance. Never judge style, length, or phrasing. An item is correct when a reader of the place the hint names would come away with the facts the expected answer states.
+
+Items:
+1. the text of step 4 must carry what step 1 returned
+   A correct answer says: The message in step 4 states that the acting user belongs to four chats: c_001 (group, named 'launch-team') with members u_me, u_mg_singh, u_crivera; c_002 (dm, named 'c_002') with members u_me, u_jpark; c_003 (group, named 'design-queue') with members u_me, u_amirq, u_mg_singh; and c_004 (group, named 'coffee-corner') with members u_me, u_mg_singh, u_spatel.
+   Where to look: Look in the text of the message sent to chat c_001 (the send_message created in step 4).
+2. the text of step 5 must carry what step 1 returned
+   A correct answer says: The reply to m_005 in step 5 states that the acting user belongs to four chats: c_001 (group, named 'launch-team') with members u_me, u_mg_singh, u_crivera; c_002 (dm, named 'c_002') with members u_me, u_jpark; c_003 (group, named 'design-queue') with members u_me, u_amirq, u_mg_singh; and c_004 (group, named 'coffee-corner') with members u_me, u_mg_singh, u_spatel.
+   Where to look: Look in the text of the reply created by replying to message m_005 (the reply_to in step 5).
+3. the text of step 6 must carry what step 1 returned
+   A correct answer says: The reply to m_011 in step 6 states that the acting user belongs to four chats: c_001 (group, named 'launch-team') with members u_me, u_mg_singh, u_crivera; c_002 (dm, named 'c_002') with members u_me, u_jpark; c_003 (group, named 'design-queue') with members u_me, u_amirq, u_mg_singh; and c_004 (group, named 'coffee-corner') with members u_me, u_mg_singh, u_spatel.
+   Where to look: Look in the text of the reply created by replying to message m_011 (the reply_to in step 6).
+
+The rollout:
+=== FULL ROLLOUT — every tool call the agent made and every result that came back ===
+    <<< the agent's transcript — only exists once a rollout has run >>>
+
+=== WHAT THE AGENT DELIVERED — the same messages, collected for convenience ===
+Messages the agent sent during this rollout:
+    <<< every message the acting user sent during the rollout, seeded history excluded >>>
+
+Agent's final reply:
+    <<< the agent's last reply >>>
+
+Respond with ONLY a JSON array of booleans, one per item in order (true = correct).
+Example for two items: [true, false]
+
+================================================================================================
+== LEVEL 2
+================================================================================================
+
+------------------------------------------------------------------------------------------------
+-- PROMPT (verify._JUDGE_PROMPT, filled in)
+------------------------------------------------------------------------------------------------
+You grade whether an agent delivered specific pieces of information.
+
+Each numbered item is something the agent had to find out and then put somewhere. You are given the requirement, what a correct answer says, and where in the agent's output to look for it.
+
+You are given the WHOLE ROLLOUT: every tool call the agent made, every result that came back, every message it sent, and its final reply. Use all of it. Do not grade off the final reply alone — most of these items are about information landing in a message partway through, and a rollout that did the work correctly and said little at the end is not a failure.
+
+Two things to hold together for each item:
+
+- **It has to be where the item says.** The hint names the place. Information that only ever appears in a tool result, and was never passed on, is not delivered — no matter how clearly the agent retrieved it.
+- **It has to be the same information.** That is a question about the whole trace: compare what the agent said against what the tools actually returned. A value the agent invented rather than retrieved is wrong even when it looks plausible, and a correct answer worded differently is right.
+
+Match on substance. Never judge style, length, or phrasing. An item is correct when a reader of the place the hint names would come away with the facts the expected answer states.
+
+Items:
+1. the text of step 4 must carry what step 1 returned
+   A correct answer says: The message posted into the conversation where finalize the beta list came up states that the acting user belongs to four chats: a group conversation that is the conversation where finalize the beta list came up, whose members are the acting user, whoever wrote the message about finalize the beta list, and whoever wrote the message about worried about capacity for; a direct (one-on-one) conversation between the acting user and whoever wrote the message about final assets from design; a group conversation whose members are the acting user, whoever wrote the message about Pushed the revised hero, and whoever wrote the message about finalize the beta list; and a group conversation for casual breaks and random links whose members are the acting user, whoever wrote the message about finalize the beta list, and the person who started the casual chat for breaks and random links.
+   Where to look: Look in the text of the message you posted into the conversation where finalize the beta list came up (the message sent into that conversation).
+2. the text of step 5 must carry what step 1 returned
+   A correct answer says: The reply made to the message about worried about capacity for states that the acting user belongs to four chats: a group conversation that is the conversation where finalize the beta list came up with members the acting user, whoever wrote the message about finalize the beta list, and whoever wrote the message about worried about capacity for; a direct (one-on-one) conversation between the acting user and whoever wrote the message about final assets from design; a group conversation whose members are the acting user, whoever wrote the message about Pushed the revised hero, and whoever wrote the message about finalize the beta list; and a group conversation for casual breaks and random links whose members are the acting user, whoever wrote the message about finalize the beta list, and the person who started the casual chat for breaks and random links.
+   Where to look: Look in the text of the reply you posted in response to the message about worried about capacity for (the threaded reply to that message).
+3. the text of step 6 must carry what step 1 returned
+   A correct answer says: The reply made to the message about Pushed the revised hero states that the acting user belongs to four chats: a group conversation that is the conversation where finalize the beta list came up with members the acting user, whoever wrote the message about finalize the beta list, and whoever wrote the message about worried about capacity for; a direct (one-on-one) conversation between the acting user and whoever wrote the message about final assets from design; a group conversation whose members are the acting user, whoever wrote the message about Pushed the revised hero, and whoever wrote the message about finalize the beta list; and a group conversation for casual breaks and random links whose members are the acting user, whoever wrote the message about finalize the beta list, and the person who started the casual chat for breaks and random links.
+   Where to look: Look in the text of the reply you posted in response to the message about Pushed the revised hero (the threaded reply to that message).
+
+The rollout:
+=== FULL ROLLOUT — every tool call the agent made and every result that came back ===
+    <<< the agent's transcript — only exists once a rollout has run >>>
+
+=== WHAT THE AGENT DELIVERED — the same messages, collected for convenience ===
+Messages the agent sent during this rollout:
+    <<< every message the acting user sent during the rollout, seeded history excluded >>>
+
+Agent's final reply:
+    <<< the agent's last reply >>>
+
+Respond with ONLY a JSON array of booleans, one per item in order (true = correct).
+Example for two items: [true, false]
+
+================================================================================================
+== LEVEL 3
+================================================================================================
+
+------------------------------------------------------------------------------------------------
+-- PROMPT (verify._JUDGE_PROMPT, filled in)
+------------------------------------------------------------------------------------------------
+You grade whether an agent delivered specific pieces of information.
+
+Each numbered item is something the agent had to find out and then put somewhere. You are given the requirement, what a correct answer says, and where in the agent's output to look for it.
+
+You are given the WHOLE ROLLOUT: every tool call the agent made, every result that came back, every message it sent, and its final reply. Use all of it. Do not grade off the final reply alone — most of these items are about information landing in a message partway through, and a rollout that did the work correctly and said little at the end is not a failure.
+
+Two things to hold together for each item:
+
+- **It has to be where the item says.** The hint names the place. Information that only ever appears in a tool result, and was never passed on, is not delivered — no matter how clearly the agent retrieved it.
+- **It has to be the same information.** That is a question about the whole trace: compare what the agent said against what the tools actually returned. A value the agent invented rather than retrieved is wrong even when it looks plausible, and a correct answer worded differently is right.
+
+Match on substance. Never judge style, length, or phrasing. An item is correct when a reader of the place the hint names would come away with the facts the expected answer states.
+
+Items:
+1. the text of step 4 must carry what step 1 returned
+   A correct answer says: The message posted into the conversation where finalize the beta list came up states that the acting user belongs to four chats: a group conversation that is the conversation where finalize the beta list came up whose members are the acting user, whoever wrote the message about finalize the beta list, and whoever wrote the message about worried about capacity for; a direct one-on-one conversation between the acting user and whoever wrote the message about final assets from design; a group conversation whose members are the acting user, whoever wrote the message about Pushed the revised hero, and whoever wrote the message about finalize the beta list; and a group conversation for casual breaks and random links whose members are the acting user, whoever wrote the message about finalize the beta list, and the person who started the casual chat for breaks and random links.
+   Where to look: Look in the text of the message you posted into the conversation where finalize the beta list came up (the message sent into that conversation).
+2. the text of step 5 must carry what step 1 returned
+   A correct answer says: The reply made to the message about worried about capacity for states that the acting user belongs to four chats: a group conversation that is the conversation where finalize the beta list came up whose members are the acting user, whoever wrote the message about finalize the beta list, and whoever wrote the message about worried about capacity for; a direct one-on-one conversation between the acting user and whoever wrote the message about final assets from design; a group conversation whose members are the acting user, whoever wrote the message about Pushed the revised hero, and whoever wrote the message about finalize the beta list; and a group conversation for casual breaks and random links whose members are the acting user, whoever wrote the message about finalize the beta list, and the person who started the casual chat for breaks and random links.
+   Where to look: Look in the text of the reply you posted in response to the message about worried about capacity for (the threaded reply to that message).
+3. the text of step 6 must carry what step 1 returned
+   A correct answer says: The reply made to the message about Pushed the revised hero states that the acting user belongs to four chats: a group conversation that is the conversation where finalize the beta list came up whose members are the acting user, whoever wrote the message about finalize the beta list, and whoever wrote the message about worried about capacity for; a direct one-on-one conversation between the acting user and whoever wrote the message about final assets from design; a group conversation whose members are the acting user, whoever wrote the message about Pushed the revised hero, and whoever wrote the message about finalize the beta list; and a group conversation for casual breaks and random links whose members are the acting user, whoever wrote the message about finalize the beta list, and the person who started the casual chat for breaks and random links.
+   Where to look: Look in the text of the reply you posted in response to the message about Pushed the revised hero (the threaded reply to that message).
+
+The rollout:
+=== FULL ROLLOUT — every tool call the agent made and every result that came back ===
+    <<< the agent's transcript — only exists once a rollout has run >>>
+
+=== WHAT THE AGENT DELIVERED — the same messages, collected for convenience ===
+Messages the agent sent during this rollout:
+    <<< every message the acting user sent during the rollout, seeded history excluded >>>
+
+Agent's final reply:
+    <<< the agent's last reply >>>
+
+Respond with ONLY a JSON array of booleans, one per item in order (true = correct).
+Example for two items: [true, false]
+
+================================================================================================
+== LEVEL 4
+================================================================================================
+
+------------------------------------------------------------------------------------------------
+-- PROMPT (verify._JUDGE_PROMPT, filled in)
+------------------------------------------------------------------------------------------------
+You grade whether an agent delivered specific pieces of information.
+
+Each numbered item is something the agent had to find out and then put somewhere. You are given the requirement, what a correct answer says, and where in the agent's output to look for it.
+
+You are given the WHOLE ROLLOUT: every tool call the agent made, every result that came back, every message it sent, and its final reply. Use all of it. Do not grade off the final reply alone — most of these items are about information landing in a message partway through, and a rollout that did the work correctly and said little at the end is not a failure.
+
+Two things to hold together for each item:
+
+- **It has to be where the item says.** The hint names the place. Information that only ever appears in a tool result, and was never passed on, is not delivered — no matter how clearly the agent retrieved it.
+- **It has to be the same information.** That is a question about the whole trace: compare what the agent said against what the tools actually returned. A value the agent invented rather than retrieved is wrong even when it looks plausible, and a correct answer worded differently is right.
+
+Match on substance. Never judge style, length, or phrasing. An item is correct when a reader of the place the hint names would come away with the facts the expected answer states.
+
+Items:
+1. the text of step 4 must carry what step 1 returned
+   A correct answer says: The message posted into the group where the finalize-the-beta-list request appears states that the acting user belongs to four chats: (1) the group where the finalize-the-beta-list request appears, whose members are the acting user, the author of the finalize-the-beta-list message, and the author of the capacity-concern message; (2) a one-on-one DM between the acting user and the author of the final-assets question; (3) a group whose members are the acting user, the author of the revised-hero post, and the author of the finalize-the-beta-list message; and (4) the casual-breaks group whose members are the acting user, the author of the finalize-the-beta-list message, and the person who started that casual-breaks chat.
+   Where to look: Look in the body of the message posted into the group where the finalize-the-beta-list request was made.
+2. the text of step 5 must carry what step 1 returned
+   A correct answer says: The threaded reply posted in response to the capacity-concern message states that the acting user belongs to four chats: (1) the group where the finalize-the-beta-list request appears, whose members are the acting user, the author of the finalize-the-beta-list message, and the author of the capacity-concern message; (2) a one-on-one DM between the acting user and the author of the final-assets question; (3) a group whose members are the acting user, the author of the revised-hero post, and the author of the finalize-the-beta-list message; and (4) the casual-breaks group whose members are the acting user, the author of the finalize-the-beta-list message, and the person who started that casual-breaks chat.
+   Where to look: Look in the text of the threaded reply posted to the capacity-concern message.
+3. the text of step 6 must carry what step 1 returned
+   A correct answer says: The threaded reply posted in response to the revised-hero post states that the acting user belongs to four chats: (1) the group where the finalize-the-beta-list request appears, whose members are the acting user, the author of the finalize-the-beta-list message, and the author of the capacity-concern message; (2) a one-on-one DM between the acting user and the author of the final-assets question; (3) a group whose members are the acting user, the author of the revised-hero post, and the author of the finalize-the-beta-list message; and (4) the casual-breaks group whose members are the acting user, the author of the finalize-the-beta-list message, and the person who started that casual-breaks chat.
+   Where to look: Look in the text of the threaded reply posted to the revised-hero message.
+
+The rollout:
+=== FULL ROLLOUT — every tool call the agent made and every result that came back ===
+    <<< the agent's transcript — only exists once a rollout has run >>>
+
+=== WHAT THE AGENT DELIVERED — the same messages, collected for convenience ===
+Messages the agent sent during this rollout:
+    <<< every message the acting user sent during the rollout, seeded history excluded >>>
+
+Agent's final reply:
+    <<< the agent's last reply >>>
+
+Respond with ONLY a JSON array of booleans, one per item in order (true = correct).
+Example for two items: [true, false]

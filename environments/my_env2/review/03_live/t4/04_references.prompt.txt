@@ -1,0 +1,123 @@
+# Stage 4 — choose a reference mode per entity
+
+1 model call(s).
+
+================================================================================================
+== call 1 of 1
+================================================================================================
+
+------------------------------------------------------------------------------------------------
+-- SYSTEM PROMPT
+------------------------------------------------------------------------------------------------
+You decide how a task will refer to things without naming their ids.
+
+You are given a workspace and, for each entity the task is about, the ways it could be picked out by description. Pick the ONE that suits that entity best, and say only which. What goes into it is worked out from the workspace afterwards, so you do not have to supply or check anything.
+
+Judge it on how the finished sentence would read and on how much work it makes the reader do. Describing what someone did, or what a conversation is about, is better than restating a name or a handle — those tell the reader nothing they could not have been handed. Some modes will not fit the entity in front of you at all; say so by choosing a different one.
+
+Respond with ONLY this JSON object, one entry per entity:
+{"references": [{"symbol": "$chat_0", "mode": "<mode id>"}]}
+
+------------------------------------------------------------------------------------------------
+-- USER PROMPT
+------------------------------------------------------------------------------------------------
+ENVIRONMENT
+  chat: Local mock chat app. Read and write tools operate on the rollout's ChatState.
+  deepwiki: Public DeepWiki MCP server: read-only GitHub-repo Q&A. Answers can be nondeterministic; requires the repo to be indexed by DeepWiki.
+  You act as one specific user. The acting user's id. Every write is attributed to this user; reads are scoped to it where noted.
+
+ENTITY TYPES IN THIS TASK
+  message — One posted message. `reply_to` threads it under an earlier message in the same chat.
+      id: string
+      chat_id: string (chat id)
+      sender_id: string (user id)
+      text: string
+      ts: int (logical clock, not wall time)
+      reply_to: string | null (parent message id)
+      reactions: object (emoji -> user_id[])
+      read_by: string[] (user ids)
+  chat — A conversation the acting user takes part in. `name` is null for a DM.
+      id: string
+      kind: "dm" | "group"
+      name: string | null
+      member_ids: string[] (user ids)
+
+ACTIONS THIS TASK USES
+  ask_question (read) — Ask an AI-grounded question about a GitHub repository.
+      repoName: GitHub repo in owner/repo form (or a list, max 10)
+      question: the question to ask
+      returns: a free-text answer to any question about the repo — metadata (licence, primary language, maintainers) and prose questions alike. Nondeterministic wording, so only ask things with a stable, unambiguous answer.
+  reply_to (write) — Reply to an existing message in its chat (threaded).
+      message_id: the message being replied to
+      text: reply body
+      returns: the created message view
+  send_message (write) — Send a message from the acting user to a chat.
+      chat_id: destination chat
+      text: message body
+      returns: the created message view
+  add_reaction (write) — Add an emoji reaction from the acting user to a message.
+      message_id: the message to react to
+      emoji: reaction emoji, e.g. ':+1:'
+      returns: the updated message view
+
+WORKSPACE
+You act as You (id u_me).
+
+People:
+  u_me  You @you
+  u_priya_p  Priya Nair @priya_p
+  u_mateo_r  Mateo Ruiz @mateo_r
+  u_sarah_k  Sarah Kim @sarah_k
+  u_jamal_b  Jamal Brown @jamal_b
+
+group frontend-team (c_001) — members: You @you, Priya Nair @priya_p, Mateo Ruiz @mateo_r, Sarah Kim @sarah_k
+  m_001 [Priya Nair @priya_p]: Can someone confirm the license and current maintainers for the GitHub repo loom/widget-lib before we vendor it into our codebase? Priya needs a definitive answer today.  (UNREAD by you)
+  m_002 [Mateo Ruiz @mateo_r]: Is that the same widget-lib we used in the legacy dashboard? There were two similarly named repos.  (reply to m_001)
+  m_004 [Sarah Kim @sarah_k]: Do you mean loom/widget-lib (TypeScript) or loom/widget-lib-js? They have slightly different owners.  (reply to m_001; UNREAD by you)
+  m_007 [Priya Nair @priya_p]: Thanks — if someone can confirm by EOD that'd be great. We're trying to avoid a last-minute license mismatch.  (reply to m_002)
+  m_008 [Sarah Kim @sarah_k]: I can take it after lunch unless @you are able to run a quick check now and post what you find.  (reply to m_001; UNREAD by you)
+
+group sec-ops (c_002) — members: You @you, Mateo Ruiz @mateo_r, Jamal Brown @jamal_b
+  m_003 [Jamal Brown @jamal_b]: If it's MIT we're probably fine to vendor; GPL-3 would be a blocker. Whoever checks, please list the license file path and the org/people listed as maintainers.
+  m_006 [Mateo Ruiz @mateo_r]: Jamal, could you check npm/packument and GH owners for that package? Security wants an explicit maintainer list.  (reply to m_003)
+  m_009 [Jamal Brown @jamal_b]: I'll scan the repo and check contributors + package.json authors. Will report back with links.  (reply to m_006)
+
+dm (dm) (c_003) — members: You @you, Sarah Kim @sarah_k
+  m_005 [Sarah Kim @sarah_k]: Hey — Priya asked the team to confirm loom/widget-lib's license. Can you pull the repo metadata (license, primary language, maintainers) when you have a moment?  (UNREAD by you)
+
+ENTITIES TO DESCRIBE, AND THE MODES AVAILABLE FOR EACH
+  $message_0 = m_001 (in frontend-team from Priya Nair, unread by you: 'Can someone confirm the license and current maintainers for the GitHub repo loom/widget-lib before we vendor it into our codebase? Priya needs a definitive answer today.')
+      mode message_reply_to_text: reads as "the reply to the message about {text}" — the single reply to the one message whose text contains {text}
+      mode message_most_reacted: reads as "the message that has drawn the most reactions" — the message with strictly more distinct reactors than any other in the workspace
+      mode message_newest_by_handle: reads as "the latest thing @{handle} posted" — the most recent message written by the user whose handle is {handle}
+      mode message_by_text: reads as "the message about {text}" — the one message whose text contains {text}
+  $chat_0 = c_001 (group 'frontend-team' — members: You @you, Priya Nair @priya_p, Mateo Ruiz @mateo_r, Sarah Kim @sarah_k)
+      mode chat_containing_text: reads as "the conversation where {text} came up" — the chat containing a message whose text contains {text}
+      mode chat_only_with_unread: reads as "the one conversation you still have not caught up on" — the only chat holding at least one message the acting user has not read
+      mode chat_by_member_count: reads as "the conversation with exactly {count} people in it" — the chat that has exactly {count} members, and is the only chat with that many
+      mode chat_by_name: reads as "the {name} channel" — the chat whose title is exactly {name}
+  $chat_1 = c_002 (group 'sec-ops' — members: You @you, Mateo Ruiz @mateo_r, Jamal Brown @jamal_b)
+      mode chat_containing_text: reads as "the conversation where {text} came up" — the chat containing a message whose text contains {text}
+      mode chat_only_with_unread: reads as "the one conversation you still have not caught up on" — the only chat holding at least one message the acting user has not read
+      mode chat_by_member_count: reads as "the conversation with exactly {count} people in it" — the chat that has exactly {count} members, and is the only chat with that many
+      mode chat_by_name: reads as "the {name} channel" — the chat whose title is exactly {name}
+
+------------------------------------------------------------------------------------------------
+-- REPLY
+------------------------------------------------------------------------------------------------
+{
+  "references": [
+    {
+      "symbol": "$message_0",
+      "mode": "message_by_text"
+    },
+    {
+      "symbol": "$chat_0",
+      "mode": "chat_containing_text"
+    },
+    {
+      "symbol": "$chat_1",
+      "mode": "chat_by_member_count"
+    }
+  ]
+}

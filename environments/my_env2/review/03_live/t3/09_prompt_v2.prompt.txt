@@ -1,0 +1,163 @@
+# Stage 9 — rewrite as prose, ids replaced by descriptions
+
+1 model call(s).
+
+================================================================================================
+== call 1 of 1
+================================================================================================
+
+------------------------------------------------------------------------------------------------
+-- SYSTEM PROMPT
+------------------------------------------------------------------------------------------------
+You rewrite a task so that it names nothing, and asks for exactly the same work.
+
+You are given the workspace, the plan the task encodes, the current task text, and — for every entity involved — a description that is TRUE OF IT AND OF NOTHING ELSE in that workspace. Rewrite the task as coherent connected prose that picks each thing out by description rather than by id.
+
+- Continuous paragraphs. No numbered list, no bullets, no "Step 1:" — if the result still reads as a list of instructions, it is not done.
+- Use the descriptions given. They were checked against the workspace; anything you invent was not, and a reference matching two things makes the task unanswerable.
+- A description INTRODUCES a thing. Use it at the first mention only. Every later mention refers back the way a person would — "that conversation", "the same thread", "there", "them", "it", "the one you just read". Pasting a description a second time is the commonest way this rewrite fails: it reads as find-and-replace rather than as writing, and where a description depends on something the task itself changes, every use after that change is simply FALSE. Any description marked below as one the work invalidates must be used early and never again.
+- Never answer your own reference. No parenthetical, no "i.e.", no appositive that supplies the name or id of something you have just described.
+- Do not add, drop, merge or reorder an action, and never turn a read into a write.
+- Reproduce every repository name and question word for word. The expected answers are keyed to them.
+- It must read like an ordinary request from a colleague: say what you want and where to report back, never why. No mention of steps, tools, plans or rules.
+
+You also rewrite the JUDGE ITEMS. Each tells a grader what a correct answer says and where in the agent's output to look for it. They were written against the PREVIOUS version of this task, so they still speak its language — step numbers, entity ids, names, quoted wording — much of which you are removing. Left alone, they describe a task the agent was never given.
+
+For every item, restate `expected` and `hint` so that a grader reading YOUR text can still check the same thing:
+
+- `expected` — what a correct answer STATES, in substance. Keep every fact in it. Where the previous wording leaned on an id or a step number to say WHICH thing ("the reply to m_004"), say it the way your text says it. Never replace it with a pointer: "the answer to the question above" leaves a grader nothing to compare against.
+- `hint` — where in the agent's output to look, described the way your text describes it.
+
+Do not drop an item, do not merge two, and never change WHAT is required — only how it is said. Copy each `id` exactly.
+
+Respond with ONLY this JSON object:
+{"prompt": "<the rewritten task>",
+ "judge": [{"id": "<copied exactly>", "expected": "...", "hint": "..."}]}
+
+------------------------------------------------------------------------------------------------
+-- USER PROMPT
+------------------------------------------------------------------------------------------------
+ENVIRONMENT
+  chat: Local mock chat app. Read and write tools operate on the rollout's ChatState.
+  deepwiki: Public DeepWiki MCP server: read-only GitHub-repo Q&A. Answers can be nondeterministic; requires the repo to be indexed by DeepWiki.
+  You act as one specific user. The acting user's id. Every write is attributed to this user; reads are scoped to it where noted.
+
+ENTITY TYPES IN THIS TASK
+  user — A person in the workspace. Display names may collide; handles never do.
+      id: string
+      name: string
+      handle: string
+  chat — A conversation the acting user takes part in. `name` is null for a DM.
+      id: string
+      kind: "dm" | "group"
+      name: string | null
+      member_ids: string[] (user ids)
+  message — One posted message. `reply_to` threads it under an earlier message in the same chat.
+      id: string
+      chat_id: string (chat id)
+      sender_id: string (user id)
+      text: string
+      ts: int (logical clock, not wall time)
+      reply_to: string | null (parent message id)
+      reactions: object (emoji -> user_id[])
+      read_by: string[] (user ids)
+
+ACTIONS THIS TASK USES
+  create_chat (write) — Create a new chat; the acting user is always included as a member.
+      member_ids: user ids to include (actor added automatically)
+      name: chat name; if set (or >2 members) the chat is a group, else a dm (optional)
+      returns: {id, kind, name, members}
+  send_message (write) — Send a message from the acting user to a chat.
+      chat_id: destination chat
+      text: message body
+      returns: the created message view
+  add_reaction (write) — Add an emoji reaction from the acting user to a message.
+      message_id: the message to react to
+      emoji: reaction emoji, e.g. ':+1:'
+      returns: the updated message view
+  reply_to (write) — Reply to an existing message in its chat (threaded).
+      message_id: the message being replied to
+      text: reply body
+      returns: the created message view
+
+WORKSPACE
+You act as Avery Chen (id u_me).
+
+People:
+  u_me  Avery Chen @you
+  u_lena  Lena Cho @lena
+  u_rafael  Rafael Gomez @rafael
+  u_maya  Maya Patel @maya
+  u_tom  Tom Briggs @tom
+  u_ben  Ben Lee @ben
+  u_sana  Sana Iqbal @sana
+
+group Product Research (c_001) — members: Avery Chen @you, Lena Cho @lena, Maya Patel @maya, Tom Briggs @tom
+  m_001 [Maya Patel @maya]: Quick check: can we compress the 12 planned usability sessions into two days (6/day)? Our recruiter said they can only guarantee 8 participants right now.  (UNREAD by you)
+  m_002 [Tom Briggs @tom]: If we drop to 8, we'll need to rewrite the script into two shorter blocks; otherwise the analysis gets heavier and risk of fatigue rises.  (reply to m_001; UNREAD by you)
+  m_004 [Lena Cho @lena]: Where are we sourcing participants from? Slack gave low yield last month — should we budget for a panel hire or paid ads?  (reply to m_002; UNREAD by you)
+  m_006 [Maya Patel @maya]: Also, FYI the usability lab's projector is being serviced Friday; we might need to switch rooms.  (UNREAD by you)
+  m_008 [Tom Briggs @tom]: If we change rooms, can we keep the observation mirror? That's critical for a couple of tasks.  (reply to m_006; UNREAD by you)
+  m_011 [Maya Patel @maya]: I can pull from our panel and push Slack again, but we'd still need a small ad boost to hit 12 reliably. Is that acceptable?  (reply to m_004; UNREAD by you)
+  m_013 [Tom Briggs @tom]: Ad boost requires approval and a lead time. Someone needs to confirm whether we lock to 12 or cut to 8 so I can finalize the timeline.  (reply to m_011; UNREAD by you)
+
+group Research Tools (c_002) — members: Avery Chen @you, Rafael Gomez @rafael, Maya Patel @maya
+  m_005 [Rafael Gomez @rafael]: Vendor quote came back: $60 per participant. At 12 that's $720; at 8 it's $480. Thought you'd want the raw numbers for budgeting.
+  m_007 [Avery Chen @you]: Can we reallocate ~$250 from travel to incentives so we can secure 12 sessions if recruitment needs it?
+  m_009 [Rafael Gomez @rafael]: Possible, but I'll need a quick sign-off from Finance. I'll loop them in — copying Maya to confirm panel availability.  (reply to m_007; :+1: x1)
+  m_010 [Maya Patel @maya]: Panel availability looks clear for the second week — I can confirm exact times by EOD.  (reply to m_005)
+  m_012 [Rafael Gomez @rafael]: Finance responded: they'll review the reallocation tomorrow morning.  (reply to m_009)
+
+group Book Club (c_003) — members: Avery Chen @you, Maya Patel @maya, Ben Lee @ben
+  m_003 [Ben Lee @ben]: Anyone up for discussing chapter 4 on Monday? Coffee afterwards?
+
+PLAN THE TASK MUST STILL ENCODE
+step 1 [write] create_chat — Create a new chat; the acting user is always included as a member.
+    member_ids   = u_lena — Lena Cho @lena, u_rafael — Rafael Gomez @rafael
+    name         = 'Usability Recruiting'
+    -> creates something new
+step 2 [write] send_message — Send a message from the acting user to a chat.
+    chat_id      = c_001 — group 'Product Research' — members: Avery Chen @you, Lena Cho @lena, Maya Patel @maya, Tom Briggs @tom
+    text         = 'Quick decision needed: should we lock to 12 sessions if Finance approves reallocating ~$250 for incentives, or cut to 8? I recommend locking to 12—any objections?'
+    -> creates something new
+step 3 [write] send_message — Send a message from the acting user to a chat.
+    chat_id      = the chat step 1 creates
+    text         = 'Finance will review the $250 reallocation tomorrow. Rafael, please confirm when they respond; Lena, can you confirm panel/paying options so we can commit to 12 if approved?'
+    -> creates something new
+step 4 [write] add_reaction — Add an emoji reaction from the acting user to a message.
+    message_id   = the message step 3 creates
+    emoji        = ' :+1:'
+step 5 [write] add_reaction — Add an emoji reaction from the acting user to a message.
+    message_id   = the message step 2 creates
+    emoji        = ' :+1:'
+step 6 [write] reply_to — Reply to an existing message in its chat (threaded).
+    message_id   = the message step 3 creates
+    text         = "Thanks — I'll hold off booking until Finance and Lena confirm."
+    -> creates something new
+
+HOW TO REFER TO EACH THING INSTEAD OF NAMING IT — each ONCE, at its first mention, then refer back
+  u_lena -> whoever wrote the message about Where are we sourcing
+  u_rafael -> whoever wrote the message about Vendor quote came back
+  c_001 -> the one conversation you still have not caught up on
+
+THESE STRINGS MUST NOT APPEAR IN YOUR TEXT
+  Lena Cho, Product Research, Rafael Gomez, add_reaction, ask_question, c_001, c_002, c_003, chat_add_reaction, chat_create_chat, chat_get_user, chat_list_chats, chat_mark_read, chat_read_messages, chat_reply_to, chat_send_message, create_chat, deepwiki_ask_question, deepwiki_read_wiki_contents, deepwiki_read_wiki_structure, get_user, lena, list_chats, m_001, m_002, m_003, m_004, m_005, m_006, m_007, m_008, m_009, m_010, m_011, m_012, m_013, mark_read, rafael, read_messages, read_wiki_contents, read_wiki_structure, reply_to, send_message, u_ben, u_lena, u_maya, u_me, u_rafael, u_sana, u_tom
+
+JUDGE ITEMS — REWRITE EACH ONE'S expected AND hint FOR YOUR TEXT
+  (none — nothing in this task needs a judge, so there is nothing to restate)
+
+CURRENT TASK TEXT (rewrite this)
+1. Call create_chat with member_ids = [u_lena, u_rafael] and name = 'Usability Recruiting'; keep the id returned by this call for use in step 3.
+2. Call send_message to chat_id = c_001 with text "Quick decision needed: should we lock to 12 sessions if Finance approves reallocating ~$250 for incentives, or cut to 8? I recommend locking to 12—any objections?" and keep the id returned by this call for use in step 5.
+3. Call send_message to the chat created in step 1 (use the id returned by step 1) with text "Finance will review the $250 reallocation tomorrow. Rafael, please confirm when they respond; Lena, can you confirm panel/paying options so we can commit to 12 if approved?" and keep the id returned by this call for use in steps 4 and 6.
+4. Call add_reaction with message_id = the id returned by step 3 and emoji = ':+1:'.
+5. Call add_reaction with message_id = the id returned by step 2 and emoji = ':+1:'.
+6. Call reply_to with message_id = the id returned by step 3 and text "Thanks — I'll hold off booking until Finance and Lena confirm.".
+
+------------------------------------------------------------------------------------------------
+-- REPLY
+------------------------------------------------------------------------------------------------
+{
+  "prompt": "Create a new chat that includes you and whoever wrote the message about Vendor quote came back and whoever wrote the message about Where are we sourcing, name the chat 'Usability Recruiting', and retain its id for later. Then send a message to the one conversation you still have not caught up on that says \"Quick decision needed: should we lock to 12 sessions if Finance approves reallocating ~$250 for incentives, or cut to 8? I recommend locking to 12—any objections?\" and keep its id for later. Next send a message to the chat you created that says \"Finance will review the $250 reallocation tomorrow. The first person you added, please confirm when they respond; the second person you added, can you confirm panel/paying options so we can commit to 12 if approved?\" and keep that id for the next actions. React with :+1: (from you) to the message you just sent to the new chat, and also react with :+1: (from you) to the message you sent in the conversation you had not yet caught up on; finally, reply in thread to the message you sent in the new chat with \"Thanks — I'll hold off booking until Finance and the second person you added confirm.\", retaining the reply's id if needed.",
+  "judge": []
+}

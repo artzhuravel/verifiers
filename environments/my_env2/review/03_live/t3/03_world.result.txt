@@ -1,0 +1,31 @@
+Stage 3 result: the authored draft, built into a state.
+`seed.build` validates and never repairs — an undeclared sender, a reply across chats
+or an unbound placeholder rejects the whole draft and costs a correction round.
+
+topic: Scheduling and budget for upcoming usability sessions
+
+You act as Avery Chen (id u_me).
+
+People:
+  u_me  Avery Chen @you
+  u_lena  Lena Cho @lena
+  u_rafael  Rafael Gomez @rafael
+  u_maya  Maya Patel @maya
+  u_tom  Tom Briggs @tom
+
+group Product Research (c_001) — members: Avery Chen @you, Lena Cho @lena, Maya Patel @maya, Tom Briggs @tom
+  m_001 [Maya Patel @maya]: Quick check: can we compress the 12 planned usability sessions into two days (6/day)? Our recruiter said they can only guarantee 8 participants right now.  (UNREAD by you)
+  m_002 [Tom Briggs @tom]: If we drop to 8, we'll need to rewrite the script into two shorter blocks; otherwise the analysis gets heavier and risk of fatigue rises.  (reply to m_001; UNREAD by you)
+  m_003 [Lena Cho @lena]: Where are we sourcing participants from? Slack gave low yield last month — should we budget for a panel hire or paid ads?  (reply to m_002; UNREAD by you)
+  m_007 [Maya Patel @maya]: I can pull from our panel and push Slack again, but we'd still need a small ad boost to hit 12 reliably. Is that acceptable?  (reply to m_003; UNREAD by you)
+  m_008 [Tom Briggs @tom]: Ad boost requires approval and a lead time. Someone needs to confirm whether we lock to 12 or cut to 8 so I can finalize the timeline.  (reply to m_007; UNREAD by you)
+
+group Research Tools (c_002) — members: Avery Chen @you, Rafael Gomez @rafael, Maya Patel @maya
+  m_004 [Rafael Gomez @rafael]: Vendor quote came back: $60 per participant. At 12 that's $720; at 8 it's $480. Thought you'd want the raw numbers for budgeting.
+  m_005 [Avery Chen @you]: Can we reallocate ~$250 from travel to incentives so we can secure 12 sessions if recruitment needs it?
+  m_006 [Rafael Gomez @rafael]: Possible, but I'll need a quick sign-off from Finance. I'll loop them in — copying Maya to confirm panel availability.  (reply to m_005; :+1: x1)
+
+PLACEHOLDERS BOUND
+  $user_0              -> u_lena
+  $user_1              -> u_rafael
+  $chat_0              -> c_001

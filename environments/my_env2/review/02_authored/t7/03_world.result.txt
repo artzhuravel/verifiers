@@ -1,0 +1,44 @@
+Stage 3 result (as shipped, after Stage 5 padding).
+
+topic: Site Redesign project coordination
+
+You act as Sam Lee (id u_me).
+
+People:
+  u_me  Sam Lee @you
+  u_alice_m  Alice Moreno @alice.m
+  u_ben_o  Ben Ortiz @ben.o
+  u_carla_n  Carla Nguyen @carla.n
+  u_dan_k  Dan Kim @dan.k
+  u_evan_p  Evan Park @evan.p
+  u_maya_s  Maya Singh @maya.s
+
+group Site Redesign (c_001) — members: Sam Lee @you, Alice Moreno @alice.m, Carla Nguyen @carla.n, Dan Kim @dan.k
+  m_001 [Alice Moreno @alice.m]: Week 3 milestone: can we lock the hero layout by Friday? I pulled prelim numbers and there's a traffic dip if we push beyond next week.  (:+1: x1)
+  m_002 [Carla Nguyen @carla.n]: I still want to run one more A/B with variant B — content team needs another day to finalize copy.  (reply to m_001)
+  m_003 [Dan Kim @dan.k]: Design flagged an image parity issue on mobile; QA says it affects layout by ~8px. We should decide whether to patch or roll with it.
+  m_006 [Carla Nguyen @carla.n]: Also, is the header font load affecting CLS? I noticed a shift on first paint.  (UNREAD by you)
+  m_007 [Sam Lee @you]: I'll consolidate feedback after Friday's review and send a single action list for engineering.  (:clipboard: x1)
+  m_010 [Alice Moreno @alice.m]: I can take the analytics pull — will have numbers by EOD.
+  m_011 [Carla Nguyen @carla.n]: If we postpone the hero, we risk losing momentum. What's the estimated conversion delta if we delay one week?  (reply to m_001; UNREAD by you)
+  m_013 [Dan Kim @dan.k]: We could set a temporary fix for mobile; if QA signs off it's low risk.  (reply to m_003; UNREAD by you)
+  m_014 [Alice Moreno @alice.m]: Can someone pull analytics for the last 2 weeks? We'll need concrete numbers to decide on the delay.  (UNREAD by you)
+
+dm (dm) (c_002) — members: Sam Lee @you, Ben Ortiz @ben.o
+  m_005 [Ben Ortiz @ben.o]: Quick check: are we green for the press banner tomorrow morning?
+  m_008 [Ben Ortiz @ben.o]: Assets are in the drive under /press/banner_v2 — I'll share access.  (reply to m_005)
+  m_009 [Ben Ortiz @ben.o]: Also: can you publish the updated event page? I don't have deploy permissions for that repo.  (UNREAD by you)
+  m_012 [Sam Lee @you]: I can take the press banner—what assets do you have so I can confirm sizes?  (reply to m_005; :email: x1)
+
+group Lunch Run (c_003) — members: Sam Lee @you, Ben Ortiz @ben.o, Evan Park @evan.p
+  m_004 [Evan Park @evan.p]: Who's in for lunch at 12:30? Vote: tacos or salad.
+
+PLACEHOLDERS BOUND
+  $user_0                -> u_carla_n    (seed)
+  $chat_0                -> c_001        (seed)
+  $chat_1                -> c_002        (seed)
+  $message_0             -> m_009        (seed)
+  $new_chat_0            -> c_004        (rollout)
+  $new_message_0         -> m_015        (rollout)
+  $new_message_1         -> m_016        (rollout)
+  $new_message_2         -> m_017        (rollout)

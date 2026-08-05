@@ -1,0 +1,42 @@
+Stage 5 result. Filler is folded in ONE ENTITY AT A TIME and each addition kept only if
+every reference condition still resolves to exactly its own entity. Rejections are
+recorded, never silently dropped, and Stage 5 cannot fail the task — a world without
+padding is weaker, not broken.
+
+core     : 4 people, 3 chats, 9 messages
+populated: 5 people, 4 chats, 13 messages
+
+REJECTED ADDITIONS
+  message n4: message 'n4' is from 'n1', who is not in 'c2'
+
+THE SEED THAT SHIPS
+You act as You (id u_me).
+
+People:
+  u_me  You @you
+  u_alice  Alice Kim @alice
+  u_ben  Ben Ortiz @ben
+  u_cara  Cara Singh @cara
+  u_dan  Dan Park @dan
+  u_jamielin  Jamie Lin @jamielin
+
+group spark-lib (c_001) — members: You @you, Alice Kim @alice, Ben Ortiz @ben, Cara Singh @cara
+  m_001 [Alice Kim @alice]: Heads-up: running the benchmark on 1.4 shows a ~30% regression in the map-reduce path since the last release. Any guesses what changed?
+  m_003 [Ben Ortiz @ben]: Also, FYI I left some profiling logs in /tmp on my laptop if anyone wants them.  (reply to m_001)
+  m_004 [Cara Singh @cara]: Yikes. I'll start a bisection tomorrow — could be the new serializer we merged last sprint.  (reply to m_001)
+  m_006 [Ben Ortiz @ben]: If Cara can bisect, great. Also — which upstream repo is the vendored data-toolkit at (owner/repo)? I couldn't find it in the docs.  (reply to m_004)
+  m_010 [Alice Kim @alice]: Ben — if you can find the owner/repo we can ask DeepWiki for the license and contributors to confirm the maintainer.  (reply to m_006)
+  m_012 [Cara Singh @cara]: Also cc'ing the new hire in infra — they might know the vendored repo.  (reply to m_006)
+  m_013 [Ben Ortiz @ben]: Agree, bisect sounds right.  (reply to m_004; :+1: x1)
+
+group (dm) (c_002) — members: You @you, Ben Ortiz @ben, Dan Park @dan
+  m_002 [Ben Ortiz @ben]: Quick Q: who is the maintainer of the 'data-toolkit' repo we vendor? I don't have their GitHub handle — can you remind me?  (UNREAD by you)
+  m_008 [Dan Park @dan]: I'm not sure of the exact handle — I thought it was someone in infra. Worth looking up before we ping them.  (reply to m_002; UNREAD by you)
+
+group release-planning (c_003) — members: You @you, Alice Kim @alice, Dan Park @dan
+  m_005 [Dan Park @dan]: We need to loop in the upstream maintainer for licensing questions — does anyone have their contact (GitHub handle or org)?  (UNREAD by you)
+  m_007 [Dan Park @dan]: Thanks — if we confirm license compatibility we can proceed. Also can someone draft the vendor outreach?  (reply to m_005; UNREAD by you)
+  m_009 [Alice Kim @alice]: Dan, quick aside: the vendor meeting got pushed to Thursday. I'll update the calendar.  (reply to m_005; UNREAD by you)
+  m_011 [Alice Kim @alice]: Agree. Holding the release until we confirm licensing would be safer.  (reply to m_005; UNREAD by you)
+
+group (dm) (c_004) — members: You @you, Alice Kim @alice, Jamie Lin @jamielin

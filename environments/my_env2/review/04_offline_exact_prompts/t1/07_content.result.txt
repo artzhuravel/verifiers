@@ -1,0 +1,9 @@
+Stage 7 result. This runs LAST because it is the only stage whose output cannot
+invalidate anything: `signature` excludes text, so the expected state is already fixed.
+
+  $repoName_0
+      canned text for $repoName_0
+  $question_0
+      canned text for $question_0
+  $text_0
+      canned text for $text_0

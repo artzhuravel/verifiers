@@ -1,0 +1,9 @@
+Stage 7 result. This runs LAST because it is the only stage whose output cannot
+invalidate anything: `signature` excludes text, so the expected state is already fixed.
+
+  $repoName_0
+      acme/edge-proxy
+  $text_0
+      On it — running DeepWiki for acme/edge-proxy now. I’ll paste the topic list here and into #docs.
+  $emoji_0
+      :+1:

@@ -1,0 +1,116 @@
+# Stage 4 — choose a reference mode per entity
+
+1 model call(s).
+
+================================================================================================
+== call 1 of 1
+================================================================================================
+
+------------------------------------------------------------------------------------------------
+-- SYSTEM PROMPT
+------------------------------------------------------------------------------------------------
+You decide how a task will refer to things without naming their ids.
+
+You are given a workspace and, for each entity the task is about, the ways it could be picked out by description. Pick the ONE that suits that entity best, and say only which. What goes into it is worked out from the workspace afterwards, so you do not have to supply or check anything.
+
+Judge it on how the finished sentence would read and on how much work it makes the reader do. Describing what someone did, or what a conversation is about, is better than restating a name or a handle — those tell the reader nothing they could not have been handed. Some modes will not fit the entity in front of you at all; say so by choosing a different one.
+
+Respond with ONLY this JSON object, one entry per entity:
+{"references": [{"symbol": "$chat_0", "mode": "<mode id>"}]}
+
+------------------------------------------------------------------------------------------------
+-- USER PROMPT
+------------------------------------------------------------------------------------------------
+ENVIRONMENT
+  chat: Local mock chat app. Read and write tools operate on the rollout's ChatState.
+  deepwiki: Public DeepWiki MCP server: read-only GitHub-repo Q&A. Answers can be nondeterministic; requires the repo to be indexed by DeepWiki.
+  You act as one specific user. The acting user's id. Every write is attributed to this user; reads are scoped to it where noted.
+
+ENTITY TYPES IN THIS TASK
+  user — A person in the workspace. Display names may collide; handles never do.
+      id: string
+      name: string
+      handle: string
+  chat — A conversation the acting user takes part in. `name` is null for a DM.
+      id: string
+      kind: "dm" | "group"
+      name: string | null
+      member_ids: string[] (user ids)
+  message — One posted message. `reply_to` threads it under an earlier message in the same chat.
+      id: string
+      chat_id: string (chat id)
+      sender_id: string (user id)
+      text: string
+      ts: int (logical clock, not wall time)
+      reply_to: string | null (parent message id)
+      reactions: object (emoji -> user_id[])
+      read_by: string[] (user ids)
+
+ACTIONS THIS TASK USES
+  create_chat (write) — Create a new chat; the acting user is always included as a member.
+      member_ids: user ids to include (actor added automatically)
+      name: chat name; if set (or >2 members) the chat is a group, else a dm (optional)
+      returns: {id, kind, name, members}
+  send_message (write) — Send a message from the acting user to a chat.
+      chat_id: destination chat
+      text: message body
+      returns: the created message view
+  add_reaction (write) — Add an emoji reaction from the acting user to a message.
+      message_id: the message to react to
+      emoji: reaction emoji, e.g. ':+1:'
+      returns: the updated message view
+  reply_to (write) — Reply to an existing message in its chat (threaded).
+      message_id: the message being replied to
+      text: reply body
+      returns: the created message view
+
+WORKSPACE
+You act as Avery Chen (id u_me).
+
+People:
+  u_me  Avery Chen @you
+  u_lena  Lena Cho @lena
+  u_rafael  Rafael Gomez @rafael
+  u_maya  Maya Patel @maya
+  u_tom  Tom Briggs @tom
+
+group Product Research (c_001) — members: Avery Chen @you, Lena Cho @lena, Maya Patel @maya, Tom Briggs @tom
+  m_001 [Maya Patel @maya]: Quick check: can we compress the 12 planned usability sessions into two days (6/day)? Our recruiter said they can only guarantee 8 participants right now.  (UNREAD by you)
+  m_002 [Tom Briggs @tom]: If we drop to 8, we'll need to rewrite the script into two shorter blocks; otherwise the analysis gets heavier and risk of fatigue rises.  (reply to m_001; UNREAD by you)
+  m_003 [Lena Cho @lena]: Where are we sourcing participants from? Slack gave low yield last month — should we budget for a panel hire or paid ads?  (reply to m_002; UNREAD by you)
+  m_007 [Maya Patel @maya]: I can pull from our panel and push Slack again, but we'd still need a small ad boost to hit 12 reliably. Is that acceptable?  (reply to m_003; UNREAD by you)
+  m_008 [Tom Briggs @tom]: Ad boost requires approval and a lead time. Someone needs to confirm whether we lock to 12 or cut to 8 so I can finalize the timeline.  (reply to m_007; UNREAD by you)
+
+group Research Tools (c_002) — members: Avery Chen @you, Rafael Gomez @rafael, Maya Patel @maya
+  m_004 [Rafael Gomez @rafael]: Vendor quote came back: $60 per participant. At 12 that's $720; at 8 it's $480. Thought you'd want the raw numbers for budgeting.
+  m_005 [Avery Chen @you]: Can we reallocate ~$250 from travel to incentives so we can secure 12 sessions if recruitment needs it?
+  m_006 [Rafael Gomez @rafael]: Possible, but I'll need a quick sign-off from Finance. I'll loop them in — copying Maya to confirm panel availability.  (reply to m_005; :+1: x1)
+
+ENTITIES TO DESCRIBE, AND THE MODES AVAILABLE FOR EACH
+  $user_0 = u_lena (Lena Cho @lena)
+      mode user_authored_text: reads as "whoever wrote the message about {text}" — the user who wrote the one message whose text contains {text}
+      mode user_most_messages: reads as "the person who has posted the most across all your chats" — the user who has written more messages than any other across the workspace (strictly more, so there is no tie)
+      mode user_by_display_name: reads as "the person called {name}" — the user whose display name is exactly {name}, and who is the only such user
+      mode user_by_handle: reads as "the person whose handle is @{handle}" — the user whose handle is exactly {handle}
+  $user_1 = u_rafael (Rafael Gomez @rafael)
+      mode user_authored_text: reads as "whoever wrote the message about {text}" — the user who wrote the one message whose text contains {text}
+      mode user_most_messages: reads as "the person who has posted the most across all your chats" — the user who has written more messages than any other across the workspace (strictly more, so there is no tie)
+      mode user_by_display_name: reads as "the person called {name}" — the user whose display name is exactly {name}, and who is the only such user
+      mode user_by_handle: reads as "the person whose handle is @{handle}" — the user whose handle is exactly {handle}
+  $chat_0 = c_001 (group 'Product Research' — members: Avery Chen @you, Lena Cho @lena, Maya Patel @maya, Tom Briggs @tom)
+      mode chat_containing_text: reads as "the conversation where {text} came up" — the chat containing a message whose text contains {text}
+      mode chat_only_with_unread: reads as "the one conversation you still have not caught up on" — the only chat holding at least one message the acting user has not read
+      mode chat_by_member_count: reads as "the conversation with exactly {count} people in it" — the chat that has exactly {count} members, and is the only chat with that many
+      mode chat_by_name: reads as "the {name} channel" — the chat whose title is exactly {name}
+
+------------------------------------------------------------------------------------------------
+-- REPLY
+------------------------------------------------------------------------------------------------
+{
+  "references": [
+    {
+      "symbol": "$chat_0",
+      "mode": "chat_only_with_unread"
+    }
+  ]
+}

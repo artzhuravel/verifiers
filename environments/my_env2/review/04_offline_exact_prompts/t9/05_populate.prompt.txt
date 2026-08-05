@@ -1,0 +1,131 @@
+# Stage 5 — pad the world with filler
+
+1 model call(s).
+
+================================================================================================
+== call 1 of 1
+================================================================================================
+
+------------------------------------------------------------------------------------------------
+-- SYSTEM PROMPT
+------------------------------------------------------------------------------------------------
+You pad out a workspace so it looks lived-in.
+
+You are given a workspace that was built around one specific task. It is too tidy: everything in it is there for a reason, which is itself a giveaway. Add ordinary, unrelated traffic — a few more colleagues, another conversation or two, and messages that have nothing to do with anything.
+
+Put most of the new messages in the conversations that already exist, from the people already in them. A separate room full of strangers hides nothing; unrelated chatter alongside the real thing does.
+
+Three hard rules:
+- Do NOT touch or restate what is already there. You are only adding.
+- Refer to existing people, conversations and messages by the SHORT KEY shown on the left of each line (`u2`, `c1`, `m4`) — never by a name or by anything else. New entries you add get their own new keys.
+- Each CONDITION listed below must still pick out exactly the entity it picks out now. If adding a person whose handle collides, or a message repeating a distinctive phrase, would make a condition match two things, do not add it. Anything that breaks a condition is discarded, so being careless here just wastes your work.
+
+Give messages `order` values spread across the existing range so the new history interleaves with the old rather than piling up after it. A reply must have a higher `order` than the message it replies to.
+
+Every entry you return is a NEW one and needs a key nothing else uses — start them all with "n". Do not return an entry for anything already in the workspace; it is already there, and repeating it is the one thing that makes this call useless.
+
+Respond with ONLY this JSON object:
+{"new_users": [{"ref": "n1", "name": "...", "handle": "..."}],
+ "new_chats": [{"ref": "n2", "name": "...", "members": ["u1", "n1"]}],
+ "new_messages": [{"ref": "n3", "chat": "c1", "sender": "u2", "text": "...", "order": 4,
+                   "reply_to": null, "read_by_actor": true, "reactors": []}]}
+
+------------------------------------------------------------------------------------------------
+-- USER PROMPT
+------------------------------------------------------------------------------------------------
+ENVIRONMENT
+  chat: Local mock chat app. Read and write tools operate on the rollout's ChatState.
+  deepwiki: Public DeepWiki MCP server: read-only GitHub-repo Q&A. Answers can be nondeterministic; requires the repo to be indexed by DeepWiki.
+  You act as one specific user. The acting user's id. Every write is attributed to this user; reads are scoped to it where noted.
+
+ENTITY TYPES IN THIS TASK
+  user — A person in the workspace. Display names may collide; handles never do.
+      id: string
+      name: string
+      handle: string
+  message — One posted message. `reply_to` threads it under an earlier message in the same chat.
+      id: string
+      chat_id: string (chat id)
+      sender_id: string (user id)
+      text: string
+      ts: int (logical clock, not wall time)
+      reply_to: string | null (parent message id)
+      reactions: object (emoji -> user_id[])
+      read_by: string[] (user ids)
+  chat — A conversation the acting user takes part in. `name` is null for a DM.
+      id: string
+      kind: "dm" | "group"
+      name: string | null
+      member_ids: string[] (user ids)
+
+ACTIONS THIS TASK USES
+  get_user (read) — Look up a user by id.
+      user_id: user to look up
+      returns: {id, name, handle} or {"error": "no such user"}
+  read_wiki_contents (read) — View DeepWiki documentation for a GitHub repository.
+      repoName: GitHub repo in owner/repo form
+      returns: the repo's wiki DOCUMENTATION PROSE. It states what the project is for, how a subsystem works, what a concept means. It does NOT state licence, stars, maintainers or primary language, so a question about those has no obtainable answer here.
+  reply_to (write) — Reply to an existing message in its chat (threaded).
+      message_id: the message being replied to
+      text: reply body
+      returns: the created message view
+  send_message (write) — Send a message from the acting user to a chat.
+      chat_id: destination chat
+      text: message body
+      returns: the created message view
+  list_chats (read) — List the chats the acting user is a member of.
+      returns: array of {id, kind, name, members} for chats where actor is in member_ids
+
+WORKSPACE SO FAR
+You are You @you, and a member of every chat.
+
+People (refer to them by the key on the left):
+  u0     Person 0 @person0
+  x0     Extra 0 @extra0
+  x1     Extra 1 @extra1
+  x2     Extra 2 @extra2
+
+Chat c0     room-0 — members: u0, x0
+  m0     order 1   [u0]: note 0 concerns widget 0 and nothing else  (UNREAD by you)
+  p0     order 2   [u0]: padding 0 mentions gadget 0 in passing  (UNREAD by you)
+  p1     order 3   [x0]: padding 1 mentions gadget 1 in passing  (UNREAD by you)
+  p2     order 4   [u0]: padding 2 mentions gadget 2 in passing  (UNREAD by you)
+  p3     order 5   [x0]: padding 3 mentions gadget 3 in passing  (UNREAD by you)
+
+CONDITIONS
+  the user who wrote the one message whose text contains concerns widget 0 and  -> must keep matching exactly one user
+  the one message whose text contains concerns widget 0 and  -> must keep matching exactly one message
+  the chat containing a message whose text contains concerns widget 0 and  -> must keep matching exactly one chat
+
+------------------------------------------------------------------------------------------------
+-- REPLY
+------------------------------------------------------------------------------------------------
+{
+  "new_users": [
+    {
+      "ref": "n1",
+      "name": "Filler One",
+      "handle": "filler1"
+    }
+  ],
+  "new_chats": [
+    {
+      "ref": "n2",
+      "name": "watercooler",
+      "members": [
+        "u0",
+        "n1"
+      ]
+    }
+  ],
+  "new_messages": [
+    {
+      "ref": "n3",
+      "chat": "n2",
+      "sender": "n1",
+      "order": 99,
+      "text": "unrelated chatter about the coffee machine",
+      "read_by_actor": true
+    }
+  ]
+}

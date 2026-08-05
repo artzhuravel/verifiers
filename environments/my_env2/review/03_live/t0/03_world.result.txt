@@ -1,0 +1,32 @@
+Stage 3 result: the authored draft, built into a state.
+`seed.build` validates and never repairs — an undeclared sender, a reply across chats
+or an unbound placeholder rejects the whole draft and costs a correction round.
+
+topic: Deciding whether to use signalapp/libsignal-client for our encryption layer
+
+You act as You (id u_me).
+
+People:
+  u_me  You @you
+  u_maya  Maya Patel @maya
+  u_ben  Ben Ortiz @ben
+  u_zoe  Zoe Lin @zoe
+  u_raj  Raj Singh @raj
+
+group infra (c_001) — members: You @you, Maya Patel @maya, Ben Ortiz @ben, Zoe Lin @zoe
+  m_001 [Maya Patel @maya]: Can someone confirm whether signalapp/libsignal-client has any official Rust bindings and what license it's released under? We need to know if we can embed it for the encryption layer.  (UNREAD by you)
+  m_002 [Ben Ortiz @ben]: I haven't looked at that repo recently. If it's under a restrictive licence it could be a problem — I can check later today.  (reply to m_001; UNREAD by you; :+1: x1)
+  m_003 [Zoe Lin @zoe]: If there's an official Rust crate maintained by signalapp that'd be ideal; otherwise we'll probably need to wrap the C API ourselves.  (reply to m_001; UNREAD by you)
+  m_006 [Ben Ortiz @ben]: I'll dig through the repo later and post the license and bindings status here.  (reply to m_001; UNREAD by you; :+1: x1)
+  m_008 [Maya Patel @maya]: Also check whether there are prebuilt binaries available or only source — that will affect our CI approach.  (reply to m_001; UNREAD by you)
+  m_010 [Zoe Lin @zoe]: Thanks — ping me once you have the findings and I'll help assess compatibility with our CI.  (reply to m_006; UNREAD by you)
+
+group eng-team (c_002) — members: You @you, Maya Patel @maya, Ben Ortiz @ben, Raj Singh @raj
+  m_004 [Raj Singh @raj]: FYI: I suggest we standardize on signalapp/libsignal-client for the encryption layer unless someone has a better repo.
+  m_005 [You @you]: On it — I can run a quick repo check. If anyone posts the exact repo link I'll use that as the target.  (reply to m_004)
+  m_007 [Maya Patel @maya]: Please prioritize license and whether there's a maintained Rust binding/crate — that's the blocker for embedding.  (reply to m_004; UNREAD by you)
+  m_009 [Ben Ortiz @ben]: If you want, I can run the licensing check too — two sets of eyes sounds good.  (reply to m_005; UNREAD by you)
+
+PLACEHOLDERS BOUND
+  $chat_0              -> c_002
+  $message_0           -> m_001

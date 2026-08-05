@@ -1,0 +1,46 @@
+Stage 3 result (as shipped, after Stage 5 padding).
+
+topic: Product launch planning and migration scheduling
+
+You act as Sam Park (id u_me).
+
+People:
+  u_me  Sam Park @you
+  u_alice  Alice Rivera @alice
+  u_ben  Ben Turner @ben
+  u_cara  Cara Malik @cara
+  u_diego  Diego Ramos @diego
+  u_evan  Evan Stone @evan
+
+group launch-planning (c_001) — members: Sam Park @you, Alice Rivera @alice, Cara Malik @cara, Diego Ramos @diego
+  m_001 [Alice Rivera @alice]: Draft timeline: feature freeze Aug 10, beta Aug 24, public Aug 31. Thoughts?  (UNREAD by you; :thinking: x1)
+  m_002 [Cara Malik @cara]: Heads-up: I'll be OOO Friday but will join the async notes thread.  (UNREAD by you)
+  m_003 [Cara Malik @cara]: Freeze is tight; could we shift beta to Aug 31? That gives QA more runway.  (reply to m_001; UNREAD by you)
+  m_004 [Alice Rivera @alice]: Also, can someone confirm the vendor deliverable dates? I have a call Wed.
+  m_005 [Diego Ramos @diego]: If we shift beta, it will clash with marketing deadlines. I suggest we keep the current dates and add contingency work.  (reply to m_001; UNREAD by you; :+1: x1)
+  m_009 [Alice Rivera @alice]: Marketing would rather we don't move beta. Diego, can you draft a short risk list we can show them?  (reply to m_005; UNREAD by you; :+1: x1)
+  m_010 [Cara Malik @cara]: Random note: the conference hotel blocks filled up fast. Book if you need to.
+  m_011 [Sam Park @you]: I can take the risk list and coordinate with Legal once Diego posts it.  (reply to m_009)
+
+dm (dm) (c_002) — members: Sam Park @you, Ben Turner @ben
+  m_006 [Ben Turner @ben]: Quick Q: can you push the DB migration to next week? I'm tied up with client fixes on Mon/Tue.
+  m_007 [Ben Turner @ben]: P.S. if you want, I can pair on the migration review Thursday evening.
+  m_008 [Ben Turner @ben]: Also, I'll need a review on the migration PR by Tuesday so we don't block deployment.  (reply to m_006; UNREAD by you)
+  m_013 [Sam Park @you]: I saw your note; I can postpone the migration to next Thursday. I'll also update the rollback plan and ping you for a review.  (reply to m_008)
+
+group reading-club (c_003) — members: Sam Park @you, Alice Rivera @alice, Evan Stone @evan
+  m_012 [Alice Rivera @alice]: Welcome to the group! Coffee run tomorrow?
+
+PLACEHOLDERS BOUND
+  $user_0                -> u_alice      (seed)
+  $user_1                -> u_ben        (seed)
+  $user_2                -> u_cara       (seed)
+  $user_3                -> u_diego      (seed)
+  $chat_0                -> c_002        (seed)
+  $message_0             -> m_005        (seed)
+  $message_1             -> m_008        (seed)
+  $new_chat_0            -> c_004        (rollout)
+  $new_chat_1            -> c_005        (rollout)
+  $new_message_0         -> m_014        (rollout)
+  $new_message_1         -> m_015        (rollout)
+  $new_message_2         -> m_016        (rollout)

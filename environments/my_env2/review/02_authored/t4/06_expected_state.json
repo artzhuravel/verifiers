@@ -1,0 +1,232 @@
+{
+  "me": "u_me",
+  "users": {
+    "u_me": {
+      "id": "u_me",
+      "name": "Sam Ortiz",
+      "handle": "you"
+    },
+    "u_alice_m": {
+      "id": "u_alice_m",
+      "name": "Alice Morgan",
+      "handle": "alice_m"
+    },
+    "u_ben_c": {
+      "id": "u_ben_c",
+      "name": "Ben Cho",
+      "handle": "ben_c"
+    },
+    "u_claire_n": {
+      "id": "u_claire_n",
+      "name": "Claire Nguyen",
+      "handle": "claire_n"
+    },
+    "u_dpark": {
+      "id": "u_dpark",
+      "name": "David Park",
+      "handle": "dpark"
+    },
+    "u_eve_t": {
+      "id": "u_eve_t",
+      "name": "Eve Tran",
+      "handle": "eve_t"
+    },
+    "u_frank_l": {
+      "id": "u_frank_l",
+      "name": "Frank Li",
+      "handle": "frank_l"
+    }
+  },
+  "chats": {
+    "c_001": {
+      "id": "c_001",
+      "kind": "group",
+      "name": "infra-team",
+      "member_ids": [
+        "u_me",
+        "u_alice_m",
+        "u_ben_c",
+        "u_claire_n"
+      ]
+    },
+    "c_002": {
+      "id": "c_002",
+      "kind": "dm",
+      "name": null,
+      "member_ids": [
+        "u_me",
+        "u_dpark"
+      ]
+    }
+  },
+  "messages": [
+    {
+      "id": "m_001",
+      "chat_id": "c_001",
+      "sender_id": "u_alice_m",
+      "text": "Security flagged dependency 'belmont/cache' — can someone prepare a short repo summary (license, primary language, active maintainers/contact) and post it here by EOD?",
+      "ts": 1,
+      "reply_to": null,
+      "reactions": {},
+      "read_by": [
+        "u_alice_m"
+      ]
+    },
+    {
+      "id": "m_002",
+      "chat_id": "c_001",
+      "sender_id": "u_ben_c",
+      "text": "I can take this. Confirm the repo is belmont/cache — and do they want the specific tag (v1.4.1) checked?",
+      "ts": 2,
+      "reply_to": "m_001",
+      "reactions": {},
+      "read_by": [
+        "u_ben_c"
+      ]
+    },
+    {
+      "id": "m_003",
+      "chat_id": "c_001",
+      "sender_id": "u_claire_n",
+      "text": "Ticket calls out v1.4.1. Short summary only: license, main language, and any active maintainers/contact points.",
+      "ts": 3,
+      "reply_to": "m_001",
+      "reactions": {},
+      "read_by": [
+        "u_claire_n"
+      ]
+    },
+    {
+      "id": "m_004",
+      "chat_id": "c_001",
+      "sender_id": "u_alice_m",
+      "text": "Yes, v1.4.1. Ben — if you start, I'll collate everything and send it to Security.",
+      "ts": 4,
+      "reply_to": "m_001",
+      "reactions": {},
+      "read_by": [
+        "u_alice_m"
+      ]
+    },
+    {
+      "id": "m_005",
+      "chat_id": "c_002",
+      "sender_id": "u_dpark",
+      "text": "Hey Sam — Security pinged me about belmont/cache as well. Can you run a quick repo scan and send back a short summary when you have it?",
+      "ts": 5,
+      "reply_to": null,
+      "reactions": {},
+      "read_by": [
+        "u_dpark",
+        "u_me"
+      ]
+    },
+    {
+      "id": "m_006",
+      "chat_id": "c_001",
+      "sender_id": "u_ben_c",
+      "text": "I'll check DeepWiki and GitHub. If anyone has the canonical repo URL or owner name, drop it here.",
+      "ts": 6,
+      "reply_to": "m_001",
+      "reactions": {},
+      "read_by": [
+        "u_ben_c"
+      ]
+    },
+    {
+      "id": "m_007",
+      "chat_id": "c_001",
+      "sender_id": "u_claire_n",
+      "text": "From memory it was MIT, but that could have changed — I'll wait for Ben's check before we finalize.",
+      "ts": 7,
+      "reply_to": "m_001",
+      "reactions": {
+        ":+1:": [
+          "u_ben_c"
+        ]
+      },
+      "read_by": [
+        "u_claire_n"
+      ]
+    },
+    {
+      "id": "m_008",
+      "chat_id": "c_002",
+      "sender_id": "u_dpark",
+      "text": "Thanks — I need it before the 3pm triage. Ping me when it's ready.",
+      "ts": 8,
+      "reply_to": "m_005",
+      "reactions": {},
+      "read_by": [
+        "u_dpark",
+        "u_me"
+      ]
+    },
+    {
+      "id": "m_009",
+      "chat_id": "c_001",
+      "sender_id": "u_me",
+      "text": "$text_0",
+      "ts": 9,
+      "reply_to": "m_001",
+      "reactions": {},
+      "read_by": [
+        "u_me"
+      ]
+    },
+    {
+      "id": "m_010",
+      "chat_id": "c_001",
+      "sender_id": "u_me",
+      "text": "$text_1",
+      "ts": 10,
+      "reply_to": "m_009",
+      "reactions": {
+        "$emoji_0": [
+          "u_me"
+        ]
+      },
+      "read_by": [
+        "u_me"
+      ]
+    },
+    {
+      "id": "m_011",
+      "chat_id": "c_001",
+      "sender_id": "u_me",
+      "text": "$carried_c1a0_text",
+      "ts": 11,
+      "reply_to": null,
+      "reactions": {},
+      "read_by": [
+        "u_me"
+      ]
+    },
+    {
+      "id": "m_012",
+      "chat_id": "c_001",
+      "sender_id": "u_me",
+      "text": "$text_2",
+      "ts": 12,
+      "reply_to": "m_001",
+      "reactions": {},
+      "read_by": [
+        "u_me"
+      ]
+    },
+    {
+      "id": "m_013",
+      "chat_id": "c_002",
+      "sender_id": "u_me",
+      "text": "$carried_c1a2_text",
+      "ts": 13,
+      "reply_to": null,
+      "reactions": {},
+      "read_by": [
+        "u_me"
+      ]
+    }
+  ],
+  "next_message_id": 14,
+  "next_chat_id": 3
+}

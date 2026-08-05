@@ -1,0 +1,29 @@
+Stage 4. Each seed entity gets ONE way of being described instead of named.
+The model picks only WHICH mode; the adapter derives the params from the world and
+proves resolve(state, mode, params) == [that entity]. A mode that cannot be made to fit
+is skipped and the next tried, so the stage is total — an entity with no working
+reference raises, because v2 strips ids out and the task would be unanswerable.
+
+  $user_0  ->  u_person0
+      the entity      Person 0 @person0
+      mode chosen     user_authored_text  (model proposed None; it did not fit, this is the fallback)
+      params derived  {"text": "padding 0 mentions gadget"}
+      reads as        "whoever wrote the message about padding 0 mentions gadget"
+      predicate       the user who wrote the one message whose text contains padding 0 mentions gadget
+      PROOF           resolve() -> ['u_person0']   unique, and it is the target
+
+  $user_1  ->  u_person1
+      the entity      Person 1 @person1
+      mode chosen     user_authored_text  (model proposed None; it did not fit, this is the fallback)
+      params derived  {"text": "padding 1 mentions gadget"}
+      reads as        "whoever wrote the message about padding 1 mentions gadget"
+      predicate       the user who wrote the one message whose text contains padding 1 mentions gadget
+      PROOF           resolve() -> ['u_person1']   unique, and it is the target
+
+  $chat_0  ->  c_001
+      the entity      group 'room-0' — members: You @you, Person 0 @person0, Person 1 @person1
+      mode chosen     chat_containing_text  (model proposed None; it did not fit, this is the fallback)
+      params derived  {"text": "padding 0 mentions gadget"}
+      reads as        "the conversation where padding 0 mentions gadget came up"
+      predicate       the chat containing a message whose text contains padding 0 mentions gadget
+      PROOF           resolve() -> ['c_001']   unique, and it is the target

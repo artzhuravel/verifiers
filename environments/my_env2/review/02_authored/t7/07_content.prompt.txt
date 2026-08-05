@@ -1,0 +1,9 @@
+# Stage 7 — write the free text
+
+NO PROMPT EXISTS FOR THIS TASK, and no model call was made.
+
+`author_content` returns `{}` immediately when a sequence has no `content` slots.
+Every text param in this sequence is a CARRY — its value is whatever an earlier
+step returned, supplied by the agent at rollout time — so there was nothing for an
+author to invent. Six of this pipeline's ten stages call a model; for this task it
+is five.

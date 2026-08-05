@@ -1,0 +1,268 @@
+{
+  "me": "u_me",
+  "users": {
+    "u_me": {
+      "id": "u_me",
+      "name": "Sam Ortega",
+      "handle": "you"
+    },
+    "u_mpatel": {
+      "id": "u_mpatel",
+      "name": "Maya Patel",
+      "handle": "mpatel"
+    },
+    "u_trivera": {
+      "id": "u_trivera",
+      "name": "Tom Rivera",
+      "handle": "trivera"
+    },
+    "u_lwong": {
+      "id": "u_lwong",
+      "name": "Lina Wong",
+      "handle": "lwong"
+    },
+    "u_abrooks": {
+      "id": "u_abrooks",
+      "name": "Aaron Brooks",
+      "handle": "abrooks"
+    },
+    "u_dramos": {
+      "id": "u_dramos",
+      "name": "Diego Ramos",
+      "handle": "dramos"
+    }
+  },
+  "chats": {
+    "c_001": {
+      "id": "c_001",
+      "kind": "group",
+      "name": "infra",
+      "member_ids": [
+        "u_me",
+        "u_mpatel",
+        "u_trivera",
+        "u_abrooks"
+      ]
+    },
+    "c_002": {
+      "id": "c_002",
+      "kind": "group",
+      "name": "docs",
+      "member_ids": [
+        "u_me",
+        "u_mpatel",
+        "u_lwong"
+      ]
+    },
+    "c_003": {
+      "id": "c_003",
+      "kind": "group",
+      "name": "random",
+      "member_ids": [
+        "u_me",
+        "u_mpatel",
+        "u_dramos"
+      ]
+    }
+  },
+  "messages": [
+    {
+      "id": "m_001",
+      "chat_id": "c_001",
+      "sender_id": "u_trivera",
+      "text": "Can someone run DeepWiki to list the documentation topics for acme/edge-proxy? We're deciding if it's covered well enough for the migration.",
+      "ts": 1,
+      "reply_to": null,
+      "reactions": {},
+      "read_by": [
+        "u_trivera"
+      ]
+    },
+    {
+      "id": "m_002",
+      "chat_id": "c_002",
+      "sender_id": "u_lwong",
+      "text": "Heads-up: I also want the doc-topic list for acme/monitoring and acme/observability when someone has bandwidth.",
+      "ts": 2,
+      "reply_to": null,
+      "reactions": {},
+      "read_by": [
+        "u_lwong"
+      ]
+    },
+    {
+      "id": "m_003",
+      "chat_id": "c_001",
+      "sender_id": "u_mpatel",
+      "text": "Anyone up for grabbing lunch after standup? There's a new taco place on 5th.",
+      "ts": 3,
+      "reply_to": null,
+      "reactions": {},
+      "read_by": [
+        "u_mpatel",
+        "u_me"
+      ]
+    },
+    {
+      "id": "m_004",
+      "chat_id": "c_003",
+      "sender_id": "u_dramos",
+      "text": "Hey Maya, are you free for a quick sync about the onboarding doc?",
+      "ts": 4,
+      "reply_to": null,
+      "reactions": {},
+      "read_by": [
+        "u_dramos",
+        "u_me"
+      ]
+    },
+    {
+      "id": "m_005",
+      "chat_id": "c_001",
+      "sender_id": "u_mpatel",
+      "text": "I can do edge-proxy but might need the exact repo path — is it acme/edge-proxy or acme/edge-proxy-server?",
+      "ts": 5,
+      "reply_to": "m_001",
+      "reactions": {},
+      "read_by": [
+        "u_mpatel",
+        "u_me"
+      ]
+    },
+    {
+      "id": "m_006",
+      "chat_id": "c_002",
+      "sender_id": "u_lwong",
+      "text": "Also, does anyone have the latest timeline for the observability docs?",
+      "ts": 6,
+      "reply_to": null,
+      "reactions": {},
+      "read_by": [
+        "u_lwong",
+        "u_me"
+      ]
+    },
+    {
+      "id": "m_007",
+      "chat_id": "c_001",
+      "sender_id": "u_abrooks",
+      "text": "I think it's acme/edge-proxy (that's the name the infra docs reference). Either way, a DeepWiki topic list would settle it.",
+      "ts": 7,
+      "reply_to": "m_005",
+      "reactions": {
+        ":+1:": [
+          "u_mpatel"
+        ]
+      },
+      "read_by": [
+        "u_abrooks",
+        "u_me"
+      ]
+    },
+    {
+      "id": "m_008",
+      "chat_id": "c_001",
+      "sender_id": "u_trivera",
+      "text": "I've queued a topic check for acme/edge-proxy and will paste the list here soon.",
+      "ts": 8,
+      "reply_to": "m_001",
+      "reactions": {},
+      "read_by": [
+        "u_trivera",
+        "u_me"
+      ]
+    },
+    {
+      "id": "m_009",
+      "chat_id": "c_002",
+      "sender_id": "u_lwong",
+      "text": "If you run DeepWiki for acme/edge-proxy, can you paste topics into #docs? It'll speed my review.",
+      "ts": 9,
+      "reply_to": null,
+      "reactions": {},
+      "read_by": [
+        "u_lwong"
+      ]
+    },
+    {
+      "id": "m_010",
+      "chat_id": "c_001",
+      "sender_id": "u_abrooks",
+      "text": "Ooh, tacos sound great — count me in. What time?",
+      "ts": 10,
+      "reply_to": "m_003",
+      "reactions": {},
+      "read_by": [
+        "u_abrooks",
+        "u_me"
+      ]
+    },
+    {
+      "id": "m_011",
+      "chat_id": "c_001",
+      "sender_id": "u_trivera",
+      "text": "Maya, can you return the topic list and which areas are covered? We're short on time.",
+      "ts": 11,
+      "reply_to": "m_001",
+      "reactions": {},
+      "read_by": [
+        "u_trivera"
+      ]
+    },
+    {
+      "id": "m_012",
+      "chat_id": "c_002",
+      "sender_id": "u_mpatel",
+      "text": "I'll paste anything I run into #docs as requested.",
+      "ts": 12,
+      "reply_to": "m_009",
+      "reactions": {},
+      "read_by": [
+        "u_mpatel",
+        "u_me"
+      ]
+    },
+    {
+      "id": "m_013",
+      "chat_id": "c_001",
+      "sender_id": "u_me",
+      "text": "$text_0",
+      "ts": 13,
+      "reply_to": "m_001",
+      "reactions": {},
+      "read_by": [
+        "u_me"
+      ]
+    },
+    {
+      "id": "m_014",
+      "chat_id": "c_002",
+      "sender_id": "u_me",
+      "text": "$carried_c0a1_text",
+      "ts": 14,
+      "reply_to": "m_002",
+      "reactions": {
+        "$emoji_0": [
+          "u_me"
+        ]
+      },
+      "read_by": [
+        "u_me"
+      ]
+    },
+    {
+      "id": "m_015",
+      "chat_id": "c_001",
+      "sender_id": "u_me",
+      "text": "$carried_c1a1_text",
+      "ts": 15,
+      "reply_to": "m_001",
+      "reactions": {},
+      "read_by": [
+        "u_me"
+      ]
+    }
+  ],
+  "next_message_id": 16,
+  "next_chat_id": 4
+}

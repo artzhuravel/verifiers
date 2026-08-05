@@ -1,0 +1,41 @@
+Stage 5 result. Filler is folded in ONE ENTITY AT A TIME and each addition kept only if
+every reference condition still resolves to exactly its own entity. Rejections are
+recorded, never silently dropped, and Stage 5 cannot fail the task — a world without
+padding is weaker, not broken.
+
+core     : 4 people, 2 chats, 8 messages
+populated: 6 people, 3 chats, 13 messages
+
+REJECTED ADDITIONS
+  (none)
+
+THE SEED THAT SHIPS
+You act as Avery Chen (id u_me).
+
+People:
+  u_me  Avery Chen @you
+  u_lena  Lena Cho @lena
+  u_rafael  Rafael Gomez @rafael
+  u_maya  Maya Patel @maya
+  u_tom  Tom Briggs @tom
+  u_ben  Ben Lee @ben
+  u_sana  Sana Iqbal @sana
+
+group Product Research (c_001) — members: Avery Chen @you, Lena Cho @lena, Maya Patel @maya, Tom Briggs @tom
+  m_001 [Maya Patel @maya]: Quick check: can we compress the 12 planned usability sessions into two days (6/day)? Our recruiter said they can only guarantee 8 participants right now.  (UNREAD by you)
+  m_002 [Tom Briggs @tom]: If we drop to 8, we'll need to rewrite the script into two shorter blocks; otherwise the analysis gets heavier and risk of fatigue rises.  (reply to m_001; UNREAD by you)
+  m_004 [Lena Cho @lena]: Where are we sourcing participants from? Slack gave low yield last month — should we budget for a panel hire or paid ads?  (reply to m_002; UNREAD by you)
+  m_006 [Maya Patel @maya]: Also, FYI the usability lab's projector is being serviced Friday; we might need to switch rooms.  (UNREAD by you)
+  m_008 [Tom Briggs @tom]: If we change rooms, can we keep the observation mirror? That's critical for a couple of tasks.  (reply to m_006; UNREAD by you)
+  m_011 [Maya Patel @maya]: I can pull from our panel and push Slack again, but we'd still need a small ad boost to hit 12 reliably. Is that acceptable?  (reply to m_004; UNREAD by you)
+  m_013 [Tom Briggs @tom]: Ad boost requires approval and a lead time. Someone needs to confirm whether we lock to 12 or cut to 8 so I can finalize the timeline.  (reply to m_011; UNREAD by you)
+
+group Research Tools (c_002) — members: Avery Chen @you, Rafael Gomez @rafael, Maya Patel @maya
+  m_005 [Rafael Gomez @rafael]: Vendor quote came back: $60 per participant. At 12 that's $720; at 8 it's $480. Thought you'd want the raw numbers for budgeting.
+  m_007 [Avery Chen @you]: Can we reallocate ~$250 from travel to incentives so we can secure 12 sessions if recruitment needs it?
+  m_009 [Rafael Gomez @rafael]: Possible, but I'll need a quick sign-off from Finance. I'll loop them in — copying Maya to confirm panel availability.  (reply to m_007; :+1: x1)
+  m_010 [Maya Patel @maya]: Panel availability looks clear for the second week — I can confirm exact times by EOD.  (reply to m_005)
+  m_012 [Rafael Gomez @rafael]: Finance responded: they'll review the reallocation tomorrow morning.  (reply to m_009)
+
+group Book Club (c_003) — members: Avery Chen @you, Maya Patel @maya, Ben Lee @ben
+  m_003 [Ben Lee @ben]: Anyone up for discussing chapter 4 on Monday? Coffee afterwards?

@@ -25,7 +25,13 @@ from pathlib import Path
 from my_env2.adapter import ChatAdapter
 from my_env2.authoring import assign_references, author_content, author_world, populate
 from my_env2.llm import Author
-from my_env2.prompts import author_v1, author_v2, author_v3, describe_symbols
+from my_env2.prompts import (
+    LEVELS,
+    author_v1,
+    describe_symbols,
+    rewrite_prompt,
+    stale_references,
+)
 from my_env2.render import concrete_steps
 from my_env2.replay import ReplayError, expected_facts, replay
 from my_env2.seed import DraftError, build
@@ -62,7 +68,10 @@ class TaskRecord:
     seed: dict
     expected: dict
     prompts: dict[str, str]
-    judge: list[dict]
+    judge: dict[str, list[dict]]
+    """Level -> the judge specification restated for that level's prompt. Keyed, not a single
+    list, because an item written against v1 names steps and ids the higher rungs remove — a
+    grader handed the v1 item while reading a v4 rollout is checking a task nobody was given."""
     steps: list[dict]
     manifest: list[dict]
     slots: list[dict]
@@ -154,16 +163,32 @@ def build_task(
         replayed.observed,
         context,
     )
-    v2, v2_complaints = author_v2(
-        author, spec, sequence, adapter, seed, binding, references, plan, v1, context
-    )
-    v3, v3_complaints = author_v3(
-        author, spec, sequence, adapter, seed, binding, references, plan, v2, context
-    )
+
+    # A description proved unique against the seed can still depend on something the task's own
+    # steps destroy — the measured case is a chat described as the only one with anything unread,
+    # in a task that marks it read. The rewrite stages are told which, so they introduce such a
+    # thing before the work that breaks it instead of naming it that way again afterwards.
+    stale = stale_references(adapter, replayed.expected, binding, references)
 
     warnings = [f"stage 5 dropped: {reason}" for reason in rejected]
-    warnings += [f"v2: {complaint}" for complaint in v2_complaints]
-    warnings += [f"v3: {complaint}" for complaint in v3_complaints]
+    if stale:
+        warnings.append(
+            "the task's own work invalidates: "
+            + ", ".join(f"{s} ({references[s]['phrase']!r})" for s in sorted(stale))
+        )
+
+    # Each rung rewrites the rung below — its text AND its judge specification, because an item
+    # written against v1 names steps and ids that the rung above has removed.
+    prompts = {"1": v1}
+    judges = {"1": judge}
+    for level in LEVELS[1:]:
+        previous = LEVELS[LEVELS.index(level) - 1]
+        text, restated, complaints = rewrite_prompt(
+            author, level, spec, sequence, adapter, seed, binding, references, plan,
+            prompts[previous], judges[previous], stale, context,
+        )
+        prompts[level], judges[level] = text, restated
+        warnings += [f"v{level}: {complaint}" for complaint in complaints]
     # Authored content quoting a phrase a reference depends on is not fatal — references are
     # resolved against the seed, and the agent reads before it writes — but it means the
     # description stops being unique partway through the rollout, so it is worth recording.
@@ -180,8 +205,8 @@ def build_task(
         topic=populated.topic,
         seed=seed.model_dump(),
         expected=replayed.expected.model_dump(),
-        prompts={"1": v1, "2": v2, "3": v3},
-        judge=judge,
+        prompts=prompts,
+        judge=judges,
         steps=[asdict(step) for step in sequence.steps],
         manifest=[asdict(entry) for entry in sequence.manifest],
         slots=[asdict(slot) for slot in sequence.slots],
@@ -228,7 +253,8 @@ def main() -> None:
             continue
         rows.append(asdict(record))
         print(
-            f"idx {idx}: {record.shape['steps']} steps, {len(record.judge)} judge item(s), "
+            f"idx {idx}: {record.shape['steps']} steps, "
+            f"{len(record.judge['1'])} judge item(s), "
             f"{len(record.references)} reference(s), "
             f"prompts {'/'.join(str(len(p)) for p in record.prompts.values())} chars"
             + (f", {len(record.warnings)} warning(s)" if record.warnings else "")

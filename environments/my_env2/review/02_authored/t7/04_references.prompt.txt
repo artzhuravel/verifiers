@@ -1,0 +1,148 @@
+# Stage 4 — choose a reference mode per entity
+
+NOTE ON FIDELITY — read this before trusting the WORKSPACE block below.
+
+This stage ran against the CORE world, before Stage 5 padded it, and only the padded world is
+shipped in the task record. The prompt below is therefore rebuilt in the right shape, with the
+right blocks in the right order, but the workspace inside it is the LATER one: it contains
+filler that was not present when the model actually saw this. The instructions, the block
+structure and the derived lines are real; the world is a stand-in.
+
+
+------------------------------------------------------------------------------------------------
+-- SYSTEM PROMPT
+------------------------------------------------------------------------------------------------
+You decide how a task will refer to things without naming their ids.
+
+You are given a workspace and, for each entity the task is about, the ways it could be picked out by description. Pick the ONE that suits that entity best, and say only which. What goes into it is worked out from the workspace afterwards, so you do not have to supply or check anything.
+
+Judge it on how the finished sentence would read and on how much work it makes the reader do. Describing what someone did, or what a conversation is about, is better than restating a name or a handle — those tell the reader nothing they could not have been handed. Some modes will not fit the entity in front of you at all; say so by choosing a different one.
+
+Respond with ONLY this JSON object, one entry per entity:
+{"references": [{"symbol": "$chat_0", "mode": "<mode id>"}]}
+
+------------------------------------------------------------------------------------------------
+-- USER PROMPT
+------------------------------------------------------------------------------------------------
+ENVIRONMENT
+  chat: Local mock chat app. Read and write tools operate on the rollout's ChatState.
+  deepwiki: Public DeepWiki MCP server: read-only GitHub-repo Q&A. Answers can be nondeterministic; requires the repo to be indexed by DeepWiki.
+  You act as one specific user. The acting user's id. Every write is attributed to this user; reads are scoped to it where noted.
+
+ENTITY TYPES IN THIS TASK
+  chat — A conversation the acting user takes part in. `name` is null for a DM.
+      id: string
+      kind: "dm" | "group"
+      name: string | null
+      member_ids: string[] (user ids)
+  user — A person in the workspace. Display names may collide; handles never do.
+      id: string
+      name: string
+      handle: string
+  message — One posted message. `reply_to` threads it under an earlier message in the same chat.
+      id: string
+      chat_id: string (chat id)
+      sender_id: string (user id)
+      text: string
+      ts: int (logical clock, not wall time)
+      reply_to: string | null (parent message id)
+      reactions: object (emoji -> user_id[])
+      read_by: string[] (user ids)
+
+ACTIONS THIS TASK USES
+  list_chats (read) — List the chats the acting user is a member of.
+      returns: array of {id, kind, name, members} for chats where actor is in member_ids
+  read_messages (read) — Read the most recent messages in a chat, oldest to newest.
+      chat_id: chat to read
+      limit: max messages, most recent (optional)
+      returns: array of message views {id, chat_id, from, sender_id, text, ts, reply_to, reactions, read_by}
+  create_chat (write) — Create a new chat; the acting user is always included as a member.
+      member_ids: user ids to include (actor added automatically)
+      name: chat name; if set (or >2 members) the chat is a group, else a dm (optional)
+      returns: {id, kind, name, members}
+  send_message (write) — Send a message from the acting user to a chat.
+      chat_id: destination chat
+      text: message body
+      returns: the created message view
+  reply_to (write) — Reply to an existing message in its chat (threaded).
+      message_id: the message being replied to
+      text: reply body
+      returns: the created message view
+
+WORKSPACE
+You act as Sam Lee (id u_me).
+
+People:
+  u_me  Sam Lee @you
+  u_alice_m  Alice Moreno @alice.m
+  u_ben_o  Ben Ortiz @ben.o
+  u_carla_n  Carla Nguyen @carla.n
+  u_dan_k  Dan Kim @dan.k
+  u_evan_p  Evan Park @evan.p
+  u_maya_s  Maya Singh @maya.s
+
+group Site Redesign (c_001) — members: Sam Lee @you, Alice Moreno @alice.m, Carla Nguyen @carla.n, Dan Kim @dan.k
+  m_001 [Alice Moreno @alice.m]: Week 3 milestone: can we lock the hero layout by Friday? I pulled prelim numbers and there's a traffic dip if we push beyond next week.  (:+1: x1)
+  m_002 [Carla Nguyen @carla.n]: I still want to run one more A/B with variant B — content team needs another day to finalize copy.  (reply to m_001)
+  m_003 [Dan Kim @dan.k]: Design flagged an image parity issue on mobile; QA says it affects layout by ~8px. We should decide whether to patch or roll with it.
+  m_006 [Carla Nguyen @carla.n]: Also, is the header font load affecting CLS? I noticed a shift on first paint.  (UNREAD by you)
+  m_007 [Sam Lee @you]: I'll consolidate feedback after Friday's review and send a single action list for engineering.  (:clipboard: x1)
+  m_010 [Alice Moreno @alice.m]: I can take the analytics pull — will have numbers by EOD.
+  m_011 [Carla Nguyen @carla.n]: If we postpone the hero, we risk losing momentum. What's the estimated conversion delta if we delay one week?  (reply to m_001; UNREAD by you)
+  m_013 [Dan Kim @dan.k]: We could set a temporary fix for mobile; if QA signs off it's low risk.  (reply to m_003; UNREAD by you)
+  m_014 [Alice Moreno @alice.m]: Can someone pull analytics for the last 2 weeks? We'll need concrete numbers to decide on the delay.  (UNREAD by you)
+
+dm (dm) (c_002) — members: Sam Lee @you, Ben Ortiz @ben.o
+  m_005 [Ben Ortiz @ben.o]: Quick check: are we green for the press banner tomorrow morning?
+  m_008 [Ben Ortiz @ben.o]: Assets are in the drive under /press/banner_v2 — I'll share access.  (reply to m_005)
+  m_009 [Ben Ortiz @ben.o]: Also: can you publish the updated event page? I don't have deploy permissions for that repo.  (UNREAD by you)
+  m_012 [Sam Lee @you]: I can take the press banner—what assets do you have so I can confirm sizes?  (reply to m_005; :email: x1)
+
+group Lunch Run (c_003) — members: Sam Lee @you, Ben Ortiz @ben.o, Evan Park @evan.p
+  m_004 [Evan Park @evan.p]: Who's in for lunch at 12:30? Vote: tacos or salad.
+
+ENTITIES TO DESCRIBE, AND THE MODES AVAILABLE FOR EACH
+  $chat_0 = c_001 (group 'Site Redesign' — members: Sam Lee @you, Alice Moreno @alice.m, Carla Nguyen @carla.n, Dan Kim @dan.k)
+      mode chat_containing_text: reads as "the conversation where {text} came up" — the chat containing a message whose text contains {text}
+      mode chat_only_with_unread: reads as "the one conversation you still have not caught up on" — the only chat holding at least one message the acting user has not read
+      mode chat_by_member_count: reads as "the conversation with exactly {count} people in it" — the chat that has exactly {count} members, and is the only chat with that many
+      mode chat_by_name: reads as "the {name} channel" — the chat whose title is exactly {name}
+  $user_0 = u_carla_n (Carla Nguyen @carla.n)
+      mode user_authored_text: reads as "whoever wrote the message about {text}" — the user who wrote the one message whose text contains {text}
+      mode user_most_messages: reads as "the person who has posted the most across all your chats" — the user who has written more messages than any other across the workspace (strictly more, so there is no tie)
+      mode user_by_display_name: reads as "the person called {name}" — the user whose display name is exactly {name}, and who is the only such user
+      mode user_by_handle: reads as "the person whose handle is @{handle}" — the user whose handle is exactly {handle}
+  $chat_1 = c_002 (dm (unnamed dm) — members: Sam Lee @you, Ben Ortiz @ben.o)
+      mode chat_containing_text: reads as "the conversation where {text} came up" — the chat containing a message whose text contains {text}
+      mode chat_only_with_unread: reads as "the one conversation you still have not caught up on" — the only chat holding at least one message the acting user has not read
+      mode chat_by_member_count: reads as "the conversation with exactly {count} people in it" — the chat that has exactly {count} members, and is the only chat with that many
+      mode chat_by_name: reads as "the {name} channel" — the chat whose title is exactly {name}
+  $message_0 = m_009 (in c_002 from Ben Ortiz, unread by you: "Also: can you publish the updated event page? I don't have deploy permissions for that repo.")
+      mode message_reply_to_text: reads as "the reply to the message about {text}" — the single reply to the one message whose text contains {text}
+      mode message_most_reacted: reads as "the message that has drawn the most reactions" — the message with strictly more distinct reactors than any other in the workspace
+      mode message_newest_by_handle: reads as "the latest thing @{handle} posted" — the most recent message written by the user whose handle is {handle}
+      mode message_by_text: reads as "the message about {text}" — the one message whose text contains {text}
+
+------------------------------------------------------------------------------------------------
+-- WHAT THE MODEL RETURNED (the shipped artifact)
+------------------------------------------------------------------------------------------------
+{
+  "references": [
+    {
+      "symbol": "$chat_0",
+      "mode": "chat_by_name"
+    },
+    {
+      "symbol": "$user_0",
+      "mode": "user_authored_text"
+    },
+    {
+      "symbol": "$chat_1",
+      "mode": "chat_containing_text"
+    },
+    {
+      "symbol": "$message_0",
+      "mode": "message_by_text"
+    }
+  ]
+}

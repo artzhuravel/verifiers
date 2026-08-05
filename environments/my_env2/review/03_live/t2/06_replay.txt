@@ -1,0 +1,58 @@
+Stage 6. Bind every placeholder, execute the sequence once against the seed.
+This produces `expected` — the deterministic reward's comparison target — and it is the
+pipeline's validity gate: a step that errors, a write that changed nothing, or a read
+that came back empty drops the task rather than shipping a hole in its own scoring.
+
+Free text is NOT resolved here. Replay writes the placeholder itself into message
+bodies, because `signature` excludes text — which is what lets Stage 7 decide what the
+messages say afterwards without moving a single fact in `expected`.
+
+BINDING (symbol -> real id)
+  $user_0              u_mg_singh   (seed)
+  $user_1              u_crivera    (seed)
+  $user_2              u_jpark      (seed)
+  $user_3              u_amirq      (seed)
+  $chat_0              c_001        (seed)
+  $message_0           m_005        (seed)
+  $message_1           m_011        (seed)
+  $new_chat_0          c_005        (rollout)
+  $new_chat_1          c_006        (rollout)
+  $new_message_0       m_019        (rollout)
+  $new_message_1       m_020        (rollout)
+  $new_message_2       m_021        (rollout)
+
+STEP BY STEP
+  step  1 list_chats           [read]
+        args      {}
+        adds      nothing — a read has no state effect, which is why it needs a judge item to be scorable at all
+        returned  [{"id": "c_001", "kind": "group", "name": "launch-team", "members": ["u_me", "u_mg_singh", "u_crivera"]}, {"id": "c_002", "kind": "dm", "name": "c_002", "members": ["u_me", "u_jpark"]}, {"id": "c_003", "kind": "group", "name": "design-queue", "members": ["u_me", "u_amirq", "u_mg_singh"]}, {"id": "c_004", "kind": "group", "name": "coffee-corner", "members": ["u_me", "u_mg_singh", "u_spatel"]}]
+  step  2 create_chat          [write]
+        args      {"member_ids": ["u_mg_singh", "u_crivera"], "name": "$name_0"}
+        adds      ["('new_chat', ('u_crivera', 'u_me', 'u_mg_singh'), 1)"]
+  step  3 create_chat          [write]
+        args      {"member_ids": ["u_jpark", "u_amirq"], "name": "$name_1"}
+        adds      ["('new_chat', ('u_amirq', 'u_jpark', 'u_me'), 1)"]
+  step  4 send_message         [write]
+        args      {"chat_id": "c_001", "text": "$carried_c0a1_text"}
+        adds      ["('new_msg', 'c_001', 'u_me', None, 1)"]
+  step  5 reply_to             [write]
+        args      {"message_id": "m_005", "text": "$carried_c1a1_text"}
+        adds      ["('new_msg', 'c_001', 'u_me', 'm_005', 1)"]
+  step  6 reply_to             [write]
+        args      {"message_id": "m_011", "text": "$carried_c0a2_text"}
+        adds      ["('new_msg', 'c_003', 'u_me', 'm_011', 1)"]
+
+PER-TURN DIFFS (recorded, deliberately not scored — they say which turn a failed rollout stopped matching at)
+  turn 0: ["('new_chat', ('u_amirq', 'u_jpark', 'u_me'), 1)", "('new_chat', ('u_crivera', 'u_me', 'u_mg_singh'), 1)"]
+  turn 1: ["('new_msg', 'c_001', 'u_me', 'm_005', 1)", "('new_msg', 'c_001', 'u_me', None, 1)"]
+  turn 2: ["('new_msg', 'c_003', 'u_me', 'm_011', 1)"]
+
+no-op writes : none
+empty reads  : none
+
+WHAT THE DETERMINISTIC REWARD WILL LOOK FOR (expected minus seed, over `signature`)
+  ('new_chat', ('u_amirq', 'u_jpark', 'u_me'), 1)
+  ('new_chat', ('u_crivera', 'u_me', 'u_mg_singh'), 1)
+  ('new_msg', 'c_001', 'u_me', 'm_005', 1)
+  ('new_msg', 'c_001', 'u_me', None, 1)
+  ('new_msg', 'c_003', 'u_me', 'm_011', 1)

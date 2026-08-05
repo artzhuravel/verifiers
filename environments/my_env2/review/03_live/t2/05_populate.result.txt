@@ -1,0 +1,47 @@
+Stage 5 result. Filler is folded in ONE ENTITY AT A TIME and each addition kept only if
+every reference condition still resolves to exactly its own entity. Rejections are
+recorded, never silently dropped, and Stage 5 cannot fail the task — a world without
+padding is weaker, not broken.
+
+core     : 4 people, 3 chats, 9 messages
+populated: 5 people, 4 chats, 18 messages
+
+REJECTED ADDITIONS
+  (none)
+
+THE SEED THAT SHIPS
+You act as Alex Morgan (id u_me).
+
+People:
+  u_me  Alex Morgan @you
+  u_mg_singh  Maya Singh @mg_singh
+  u_crivera  Carlos Rivera @crivera
+  u_jpark  Jen Park @jpark
+  u_amirq  Amir Qureshi @amirq
+  u_spatel  Samir Patel @spatel
+
+group launch-team (c_001) — members: Alex Morgan @you, Maya Singh @mg_singh, Carlos Rivera @crivera
+  m_001 [Maya Singh @mg_singh]: We need to finalize the beta list by Friday. Current candidate count: 42. Thoughts on prioritization?  (UNREAD by you)
+  m_003 [Alex Morgan @you]: I can run the segmentation this afternoon and share a prioritized list.  (reply to m_001)
+  m_004 [Maya Singh @mg_singh]: Also, can we add a quick note about international locales?  (reply to m_001; UNREAD by you)
+  m_005 [Carlos Rivera @crivera]: I'm worried about capacity for tier B; we should cap at 30 unless ops can extend.  (UNREAD by you)
+  m_006 [Carlos Rivera @crivera]: Also, FYI I put a note in the project board about potential capacity spikes.  (reply to m_003; UNREAD by you)
+  m_008 [Carlos Rivera @crivera]: If ops can extend they'll need a list of proposed users per tier.  (reply to m_005; UNREAD by you)
+  m_010 [Maya Singh @mg_singh]: Good catch, Carlos. I'll draft the list template.  (reply to m_006; UNREAD by you)
+  m_017 [Carlos Rivera @crivera]: Thanks — segmentation would help. Also looping ops in case we need capacity.  (reply to m_003; UNREAD by you)
+
+dm (dm) (c_002) — members: Alex Morgan @you, Jen Park @jpark
+  m_007 [Jen Park @jpark]: Do you have the final assets from design?  (UNREAD by you)
+  m_009 [Alex Morgan @you]: Not yet; Amir said he'd push icons by EOD.  (reply to m_007)
+  m_012 [Jen Park @jpark]: Design pushed a small update — I'll resend the asset links once exported.  (reply to m_007; UNREAD by you)
+  m_014 [Jen Park @jpark]: Quick Q: do you want PNGs or SVGs for the icons?  (reply to m_012; UNREAD by you)
+
+group design-queue (c_003) — members: Alex Morgan @you, Amir Qureshi @amirq, Maya Singh @mg_singh
+  m_011 [Amir Qureshi @amirq]: Pushed the revised hero banner to /design-assets/banner_v3 — feedback welcome.  (UNREAD by you)
+  m_013 [Maya Singh @mg_singh]: Nice. The CTA needs stronger contrast though.  (reply to m_011; UNREAD by you)
+  m_015 [Alex Morgan @you]: I'll coordinate a quick accessibility pass and return notes by noon.  (reply to m_011)
+  m_016 [Amir Qureshi @amirq]: I'm happy to review contrast changes after your pass.  (reply to m_011; UNREAD by you)
+  m_018 [Maya Singh @mg_singh]: Thanks — can you note exact color values in the doc?  (reply to m_016; UNREAD by you)
+
+group coffee-corner (c_004) — members: Alex Morgan @you, Maya Singh @mg_singh, Samir Patel @spatel
+  m_002 [Samir Patel @spatel]: Hey — thought it would be nice to have a casual chat for breaks and random links.

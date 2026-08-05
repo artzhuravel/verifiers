@@ -1,0 +1,140 @@
+# Stage 8 — v1 prompt and the judge specification
+
+This is EXACTLY the prompt the authoring model received. Every input to it is stored
+in the task record, so it is a reconstruction only in the sense that it was rebuilt rather
+than logged.
+
+------------------------------------------------------------------------------------------------
+-- SYSTEM PROMPT
+------------------------------------------------------------------------------------------------
+You turn a plan into a task, written as an explicit numbered sequence.
+
+You are given a workspace, and the exact actions an agent should perform in it with every detail already decided. Write the request the agent will receive.
+
+- One numbered step per action, in the given order — but write SENTENCES. The plan you are given is a machine listing; do not reproduce its layout, its bracketed tags, its parameter lines or its "returns" notes. Those are notes to you. Ask for the thing, using the ids shown.
+- Every step is work that must happen, including any marked as an aside. The plan is the complete and exact set of actions: never ask for anything it does not contain, and never leave one out. An unplanned message is an unexpected change to the workspace, and a missing one costs the agent credit for obeying you.
+- Where a step's text must CARRY what an earlier step returned, say so plainly: the agent has to look that up and say it in the message. Ask for the information, not for a transcript — a person asks a colleague to pass on what a thread said, never to paste the raw tool output. Never guess the value yourself.
+- Where a step looks something up and no later step posts what it found, ask the agent to report that back to you in its reply.
+
+You also write the JUDGE SPECIFICATION. You are given the items that need checking, each with where its answer must appear. For each one return:
+- expected: THE ANSWER ITSELF, in a sentence. Two ways to get this wrong, and both make the item useless. Do not write "the text returned by step N" or "the answer to the question above" — a grader given that has nothing to compare against. And do not paste the returned value back verbatim — say what a correct answer STATES, in your own words, so that a grader can recognise one that is worded differently. Where the item shows what the step actually returned, draw the facts out of it ("names all three of X, Y and Z"); where the answer comes from outside the workspace, give it as best you know it.
+- hint: where in the agent's output a grader should look for it.
+
+Respond with ONLY this JSON object:
+{"prompt": "<the task text>",
+ "judge": [{"id": "<item id, copied exactly>", "expected": "...", "hint": "..."}]}
+
+------------------------------------------------------------------------------------------------
+-- USER PROMPT
+------------------------------------------------------------------------------------------------
+ENVIRONMENT
+  chat: Local mock chat app. Read and write tools operate on the rollout's ChatState.
+  deepwiki: Public DeepWiki MCP server: read-only GitHub-repo Q&A. Answers can be nondeterministic; requires the repo to be indexed by DeepWiki.
+  You act as one specific user. The acting user's id. Every write is attributed to this user; reads are scoped to it where noted.
+
+ENTITY TYPES IN THIS TASK
+  message — One posted message. `reply_to` threads it under an earlier message in the same chat.
+      id: string
+      chat_id: string (chat id)
+      sender_id: string (user id)
+      text: string
+      ts: int (logical clock, not wall time)
+      reply_to: string | null (parent message id)
+      reactions: object (emoji -> user_id[])
+      read_by: string[] (user ids)
+  chat — A conversation the acting user takes part in. `name` is null for a DM.
+      id: string
+      kind: "dm" | "group"
+      name: string | null
+      member_ids: string[] (user ids)
+
+ACTIONS THIS TASK USES
+  ask_question (read) — Ask an AI-grounded question about a GitHub repository.
+      repoName: GitHub repo in owner/repo form (or a list, max 10)
+      question: the question to ask
+      returns: a free-text answer to any question about the repo — metadata (licence, primary language, maintainers) and prose questions alike. Nondeterministic wording, so only ask things with a stable, unambiguous answer.
+  reply_to (write) — Reply to an existing message in its chat (threaded).
+      message_id: the message being replied to
+      text: reply body
+      returns: the created message view
+  send_message (write) — Send a message from the acting user to a chat.
+      chat_id: destination chat
+      text: message body
+      returns: the created message view
+  add_reaction (write) — Add an emoji reaction from the acting user to a message.
+      message_id: the message to react to
+      emoji: reaction emoji, e.g. ':+1:'
+      returns: the updated message view
+
+WORKSPACE
+You act as Sam Li (id u_me).
+
+People:
+  u_me  Sam Li @you
+  u_alice  Alice Nguyen @alice
+  u_benc  Ben Carter @benc
+  u_carla  Carla Ruiz @carla
+  u_devpatel  Dev Patel @devpatel
+  u_evankim  Evan Kim @evankim
+  u_priya  Priya Shah @priya
+
+group backend-sprint (c_001) — members: Sam Li @you, Alice Nguyen @alice, Ben Carter @benc, Carla Ruiz @carla, Dev Patel @devpatel
+  m_001 [Alice Nguyen @alice]: We need to audit the payment integration before the sprint review. Which GitHub repo tracks the payment service code?
+  m_002 [Ben Carter @benc]: Is it owner/payments-service or owner/billing? I can't remember which repo contains the connector. Anyone confirm?  (reply to m_001; UNREAD by you)
+  m_003 [Alice Nguyen @alice]: Lunch run in 20 — @u2 you in?
+  m_004 [Carla Ruiz @carla]: I think payments-service was archived last month. The billing repo might have the connector. Can someone check the repo metadata—license and primary language?  (reply to m_002; UNREAD by you)
+  m_005 [Dev Patel @devpatel]: Heads-up: I'll be OOO Friday — might be slow on billing threads this week.
+  m_006 [Dev Patel @devpatel]: If billing has the connector, we need to know maintainers to CC. I can look later unless someone already knows.  (reply to m_002)
+  m_007 [Ben Carter @benc]: Posted a stub issue with the repo links. Will ping infra when I have grep results.  (reply to m_002)
+  m_009 [Alice Nguyen @alice]: Legal needs licence details, and infra wants the list of maintainers. If DeepWiki can summarize, that'd be great.  (reply to m_004)
+  m_012 [Ben Carter @benc]: I can try to run a quick grep after lunch. Meanwhile, could someone run a repo metadata check? DeepWiki might have it indexed.  (reply to m_006; UNREAD by you)
+
+dm (dm) (c_002) — members: Sam Li @you, Carla Ruiz @carla
+  m_008 [Carla Ruiz @carla]: Quick Q: can you ping DeepWiki about owner/billing to get the license and main language? Legal wants license before Monday.  (UNREAD by you)
+  m_010 [Carla Ruiz @carla]: Thanks — I'll forward whatever you get to Legal so they have it before Monday.  (reply to m_008; UNREAD by you)
+  m_011 [Carla Ruiz @carla]: If you can, include a link or the repo name in the reply so I can forward to legal.  (reply to m_008; UNREAD by you)
+
+PLAN (perform in this order)
+step 1 [read] ask_question — Ask an AI-grounded question about a GitHub repository.
+    repoName     = 'stripe/stripe-go'
+    question     = "What's the repository's license and primary programming language?"
+    -> returns a free-text answer to any question about the repo — metadata (licence, primary language, maintainers) and prose questions alike. Nondeterministic wording, so only ask things with a stable, unambiguous answer. (not known until the agent runs it)
+step 2 [write] reply_to — Reply to an existing message in its chat (threaded).
+    message_id   = m_002 — in backend-sprint from Ben Carter, replying to m_001, unread by you: "Is it owner/payments-service or owner/billing? I can't remember which repo contains the connector. Anyone confirm?"
+    text         = "On it — I'm checking stripe/stripe-go on DeepWiki for the repo license and primary language; will post results here."
+    -> creates something new
+step 3 [write] send_message — Send a message from the acting user to a chat.
+    chat_id      = c_002 — dm (unnamed dm) — members: Sam Li @you, Carla Ruiz @carla
+    text         = "Per your request, I asked DeepWiki about stripe/stripe-go (repo: stripe/stripe-go). I'll send license and language as soon as I get it so you can forward to Legal."
+    -> creates something new
+step 4 [write] reply_to — Reply to an existing message in its chat (threaded).
+    message_id   = m_002 — in backend-sprint from Ben Carter, replying to m_001, unread by you: "Is it owner/payments-service or owner/billing? I can't remember which repo contains the connector. Anyone confirm?"
+    text         <- must carry what step 1 returned
+    -> creates something new
+step 5 [write] reply_to — Reply to an existing message in its chat (threaded).
+    message_id   = the message step 3 creates
+    text         = "Got it — I'll forward the license and language to Legal once the DeepWiki answer comes back."
+    -> creates something new
+step 6 [write] add_reaction — Add an emoji reaction from the acting user to a message.
+    message_id   = the message step 4 creates
+    emoji        = ':+1:'
+
+ITEMS THAT NEED CHECKING
+  carry:c0a1:text
+      the text of step 4 must carry what step 1 returned
+      delivered in: the message step 4 posts
+      step 1 (ask_question) returns a free-text answer to any question about the repo — metadata (licence, primary language, maintainers) and prose questions alike. Nondeterministic wording, so only ask things with a stable, unambiguous answer.
+
+------------------------------------------------------------------------------------------------
+-- WHAT THE MODEL RETURNED (the shipped artifact)
+------------------------------------------------------------------------------------------------
+{
+  "prompt": "1. Run an ask_question on DeepWiki for repoName='stripe/stripe-go' with the question: \"What's the repository's license and primary programming language?\" and keep the returned answer available for the next steps. 2. Reply to message m_002 in chat c_001 with the text: \"On it — I'm checking stripe/stripe-go on DeepWiki for the repo license and primary language; will post results here.\" 3. Send a DM in chat c_002 (to Carla) with the text: \"Per your request, I asked DeepWiki about stripe/stripe-go (repo: stripe/stripe-go). I'll send license and language as soon as I get it so you can forward to Legal.\" 4. Reply to message m_002 in chat c_001 with a message that states, in a concise sentence, the repository license and the primary programming language returned by the DeepWiki query you ran in step 1 (for example: \"stripe/stripe-go is licensed under <LICENSE> and is primarily written in <LANGUAGE>.\"); do not paste the full DeepWiki output but restate the license and language in your own words. 5. Reply to the message you sent in step 3 with the text: \"Got it — I'll forward the license and language to Legal once the DeepWiki answer comes back.\" 6. Add the ':+1:' reaction to the message you posted in step 4.",
+  "judge": [
+    {
+      "id": "carry:c0a1:text",
+      "expected": "A concise sentence stating that stripe/stripe-go is licensed under the MIT License and that its primary programming language is Go.",
+      "hint": "Check the reply to m_002 that the agent posts in step 4; the sentence there should state the repo license and the primary programming language."
+    }
+  ]
+}

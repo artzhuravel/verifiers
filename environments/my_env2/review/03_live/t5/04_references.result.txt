@@ -1,0 +1,21 @@
+Stage 4. Each seed entity gets ONE way of being described instead of named.
+The model picks only WHICH mode; the adapter derives the params from the world and
+proves resolve(state, mode, params) == [that entity]. A mode that cannot be made to fit
+is skipped and the next tried, so the stage is total — an entity with no working
+reference raises, because v2 strips ids out and the task would be unanswerable.
+
+  $message_0  ->  m_001
+      the entity      in infra from Tom Rivera, unread by you: "Can someone run DeepWiki to list the documentation topics for acme/edge-proxy? We're deciding if it's covered well enough for the migration."
+      mode chosen     message_by_text  (the model's pick)
+      params derived  {"text": "someone run DeepWiki to"}
+      reads as        "the message about someone run DeepWiki to"
+      predicate       the one message whose text contains someone run DeepWiki to
+      PROOF           resolve() -> ['m_001']   unique, and it is the target
+
+  $message_1  ->  m_002
+      the entity      in docs from Lina Wong, unread by you: 'Heads-up: I also want the doc-topic list for acme/monitoring and acme/observability when someone has bandwidth.'
+      mode chosen     message_by_text  (the model's pick)
+      params derived  {"text": "doc-topic list for acme/monitoring"}
+      reads as        "the message about doc-topic list for acme/monitoring"
+      predicate       the one message whose text contains doc-topic list for acme/monitoring
+      PROOF           resolve() -> ['m_002']   unique, and it is the target

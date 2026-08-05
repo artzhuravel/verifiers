@@ -1,0 +1,161 @@
+# Stage 9 — rewrite as prose, ids replaced by descriptions
+
+1 model call(s).
+
+================================================================================================
+== call 1 of 1
+================================================================================================
+
+------------------------------------------------------------------------------------------------
+-- SYSTEM PROMPT
+------------------------------------------------------------------------------------------------
+You rewrite a task so that it names nothing, and asks for exactly the same work.
+
+You are given the workspace, the plan the task encodes, the current task text, and — for every entity involved — a description that is TRUE OF IT AND OF NOTHING ELSE in that workspace. Rewrite the task as coherent connected prose that picks each thing out by description rather than by id.
+
+- Continuous paragraphs. No numbered list, no bullets, no "Step 1:" — if the result still reads as a list of instructions, it is not done.
+- Use the descriptions given. They were checked against the workspace; anything you invent was not, and a reference matching two things makes the task unanswerable.
+- A description INTRODUCES a thing. Use it at the first mention only. Every later mention refers back the way a person would — "that conversation", "the same thread", "there", "them", "it", "the one you just read". Pasting a description a second time is the commonest way this rewrite fails: it reads as find-and-replace rather than as writing, and where a description depends on something the task itself changes, every use after that change is simply FALSE. Any description marked below as one the work invalidates must be used early and never again.
+- Never answer your own reference. No parenthetical, no "i.e.", no appositive that supplies the name or id of something you have just described.
+- Do not add, drop, merge or reorder an action, and never turn a read into a write.
+- Reproduce every repository name and question word for word. The expected answers are keyed to them.
+- It must read like an ordinary request from a colleague: say what you want and where to report back, never why. No mention of steps, tools, plans or rules.
+
+You also rewrite the JUDGE ITEMS. Each tells a grader what a correct answer says and where in the agent's output to look for it. They were written against the PREVIOUS version of this task, so they still speak its language — step numbers, entity ids, names, quoted wording — much of which you are removing. Left alone, they describe a task the agent was never given.
+
+For every item, restate `expected` and `hint` so that a grader reading YOUR text can still check the same thing:
+
+- `expected` — what a correct answer STATES, in substance. Keep every fact in it. Where the previous wording leaned on an id or a step number to say WHICH thing ("the reply to m_004"), say it the way your text says it. Never replace it with a pointer: "the answer to the question above" leaves a grader nothing to compare against.
+- `hint` — where in the agent's output to look, described the way your text describes it.
+
+Do not drop an item, do not merge two, and never change WHAT is required — only how it is said. Copy each `id` exactly.
+
+Respond with ONLY this JSON object:
+{"prompt": "<the rewritten task>",
+ "judge": [{"id": "<copied exactly>", "expected": "...", "hint": "..."}]}
+
+------------------------------------------------------------------------------------------------
+-- USER PROMPT
+------------------------------------------------------------------------------------------------
+ENVIRONMENT
+  chat: Local mock chat app. Read and write tools operate on the rollout's ChatState.
+  deepwiki: Public DeepWiki MCP server: read-only GitHub-repo Q&A. Answers can be nondeterministic; requires the repo to be indexed by DeepWiki.
+  You act as one specific user. The acting user's id. Every write is attributed to this user; reads are scoped to it where noted.
+
+ENTITY TYPES IN THIS TASK
+  message — One posted message. `reply_to` threads it under an earlier message in the same chat.
+      id: string
+      chat_id: string (chat id)
+      sender_id: string (user id)
+      text: string
+      ts: int (logical clock, not wall time)
+      reply_to: string | null (parent message id)
+      reactions: object (emoji -> user_id[])
+      read_by: string[] (user ids)
+
+ACTIONS THIS TASK USES
+  read_wiki_structure (read) — List the DeepWiki documentation topics for a GitHub repository.
+      repoName: GitHub repo in owner/repo form
+      returns: only the LIST OF DOCUMENTATION TOPIC TITLES. It can answer which areas the documentation covers, and nothing about repo metadata or the content of any page.
+  list_chats (read) — List the chats the acting user is a member of.
+      returns: array of {id, kind, name, members} for chats where actor is in member_ids
+  reply_to (write) — Reply to an existing message in its chat (threaded).
+      message_id: the message being replied to
+      text: reply body
+      returns: the created message view
+  add_reaction (write) — Add an emoji reaction from the acting user to a message.
+      message_id: the message to react to
+      emoji: reaction emoji, e.g. ':+1:'
+      returns: the updated message view
+
+WORKSPACE
+You act as Sam Ortega (id u_me).
+
+People:
+  u_me  Sam Ortega @you
+  u_mpatel  Maya Patel @mpatel
+  u_trivera  Tom Rivera @trivera
+  u_lwong  Lina Wong @lwong
+  u_abrooks  Aaron Brooks @abrooks
+  u_dramos  Diego Ramos @dramos
+
+group infra (c_001) — members: Sam Ortega @you, Maya Patel @mpatel, Tom Rivera @trivera, Aaron Brooks @abrooks
+  m_001 [Tom Rivera @trivera]: Can someone run DeepWiki to list the documentation topics for acme/edge-proxy? We're deciding if it's covered well enough for the migration.  (UNREAD by you)
+  m_003 [Maya Patel @mpatel]: Anyone up for grabbing lunch after standup? There's a new taco place on 5th.
+  m_005 [Maya Patel @mpatel]: I can do edge-proxy but might need the exact repo path — is it acme/edge-proxy or acme/edge-proxy-server?  (reply to m_001)
+  m_007 [Aaron Brooks @abrooks]: I think it's acme/edge-proxy (that's the name the infra docs reference). Either way, a DeepWiki topic list would settle it.  (reply to m_005; :+1: x1)
+  m_008 [Tom Rivera @trivera]: I've queued a topic check for acme/edge-proxy and will paste the list here soon.  (reply to m_001)
+  m_010 [Aaron Brooks @abrooks]: Ooh, tacos sound great — count me in. What time?  (reply to m_003)
+  m_011 [Tom Rivera @trivera]: Maya, can you return the topic list and which areas are covered? We're short on time.  (reply to m_001; UNREAD by you)
+
+group docs (c_002) — members: Sam Ortega @you, Maya Patel @mpatel, Lina Wong @lwong
+  m_002 [Lina Wong @lwong]: Heads-up: I also want the doc-topic list for acme/monitoring and acme/observability when someone has bandwidth.  (UNREAD by you)
+  m_006 [Lina Wong @lwong]: Also, does anyone have the latest timeline for the observability docs?
+  m_009 [Lina Wong @lwong]: If you run DeepWiki for acme/edge-proxy, can you paste topics into #docs? It'll speed my review.  (UNREAD by you)
+  m_012 [Maya Patel @mpatel]: I'll paste anything I run into #docs as requested.  (reply to m_009)
+
+group random (c_003) — members: Sam Ortega @you, Maya Patel @mpatel, Diego Ramos @dramos
+  m_004 [Diego Ramos @dramos]: Hey Maya, are you free for a quick sync about the onboarding doc?
+
+PLAN THE TASK MUST STILL ENCODE
+step 1 [read] read_wiki_structure — List the DeepWiki documentation topics for a GitHub repository.
+    repoName     = 'acme/edge-proxy'
+    -> returns only the LIST OF DOCUMENTATION TOPIC TITLES. It can answer which areas the documentation covers, and nothing about repo metadata or the content of any page. (not known until the agent runs it)
+step 2 [read] list_chats — List the chats the acting user is a member of.
+    -> returns: [{"id": "c_001", "kind": "group", "name": "infra", "members": ["u_me", "u_mpatel", "u_trivera", "u_abrooks"]}, {"id": "c_002", "kind": "group", "name": "docs", "members": ["u_me", "u_mpatel", "u_lwong"]}, {"id": "c_003", "kind": "group", "name": "random", "members": ["u_me", "u_mpatel", "u_dramos"]}]
+step 3 [write] reply_to — Reply to an existing message in its chat (threaded).
+    message_id   = m_001 — in infra from Tom Rivera, unread by you: "Can someone run DeepWiki to list the documentation topics for acme/edge-proxy? We're deciding if it's covered well enough for the migration."
+    text         = 'On it — running DeepWiki for acme/edge-proxy now. I’ll paste the topic list here and into #docs.'
+    -> creates something new
+step 4 [write] reply_to — Reply to an existing message in its chat (threaded).
+    message_id   = m_002 — in docs from Lina Wong, unread by you: 'Heads-up: I also want the doc-topic list for acme/monitoring and acme/observability when someone has bandwidth.'
+    text         <- must carry what step 2 and step 1 returned
+    -> creates something new
+step 5 [write] add_reaction — Add an emoji reaction from the acting user to a message.
+    message_id   = the message step 4 creates
+    emoji        = ':+1:'
+step 6 [write] reply_to — Reply to an existing message in its chat (threaded).
+    message_id   = m_001 — in infra from Tom Rivera, unread by you: "Can someone run DeepWiki to list the documentation topics for acme/edge-proxy? We're deciding if it's covered well enough for the migration."
+    text         <- must carry what step 2 returned
+    -> creates something new
+
+HOW TO REFER TO EACH THING INSTEAD OF NAMING IT — each ONCE, at its first mention, then refer back
+  m_001 -> the message about someone run DeepWiki to
+  m_002 -> the message about doc-topic list for acme/monitoring
+
+THESE STRINGS MUST NOT APPEAR IN YOUR TEXT
+  add_reaction, ask_question, c_001, c_002, c_003, chat_add_reaction, chat_create_chat, chat_get_user, chat_list_chats, chat_mark_read, chat_read_messages, chat_reply_to, chat_send_message, create_chat, deepwiki_ask_question, deepwiki_read_wiki_contents, deepwiki_read_wiki_structure, get_user, list_chats, m_001, m_002, m_003, m_004, m_005, m_006, m_007, m_008, m_009, m_010, m_011, m_012, mark_read, read_messages, read_wiki_contents, read_wiki_structure, reply_to, send_message, u_abrooks, u_dramos, u_lwong, u_me, u_mpatel, u_trivera
+
+JUDGE ITEMS — REWRITE EACH ONE'S expected AND hint FOR YOUR TEXT
+  carry:c0a1:text
+      requirement (FIXED, do not change): the text of step 4 must carry what step 2 and step 1 returned
+      must be delivered in (FIXED): the message step 4 posts
+      expected — RESTATE FOR YOUR TEXT: The reply to m_002 states the three chats returned by list_chats with their ids, kinds, names, and member lists (infra c_001 with members u_me, u_mpatel, u_trivera, u_abrooks; docs c_002 with members u_me, u_mpatel, u_lwong; random c_003 with members u_me, u_mpatel, u_dramos) and it also includes the DeepWiki documentation topic titles returned for acme/edge-proxy.
+      hint     — RESTATE FOR YOUR TEXT: Look in the reply message posted to m_002 (the message created in step 4).
+  carry:c1a1:text
+      requirement (FIXED, do not change): the text of step 6 must carry what step 2 returned
+      must be delivered in (FIXED): the message step 6 posts
+      expected — RESTATE FOR YOUR TEXT: The reply to m_001 includes the full list_chats result showing the three chats with their ids, kinds, names, and member lists (infra c_001 with members u_me, u_mpatel, u_trivera, u_abrooks; docs c_002 with members u_me, u_mpatel, u_lwong; random c_003 with members u_me, u_mpatel, u_dramos).
+      hint     — RESTATE FOR YOUR TEXT: Look in the reply message posted to m_001 created in step 6.
+
+CURRENT TASK TEXT (rewrite this)
+1. Run read_wiki_structure with repoName 'acme/edge-proxy' and record the returned list of DeepWiki documentation topic titles for acme/edge-proxy for use in step 4.  2. Run list_chats to list the chats the acting user (u_me) is a member of and record the returned array of chat objects (id, kind, name, members) for use in steps 4 and 6.  3. Reply to message m_001 in chat c_001 with the text: 'On it — running DeepWiki for acme/edge-proxy now. I’ll paste the topic list here and into #docs.'  4. Reply to message m_002 in chat c_002 with a message that includes (a) the full list_chats result you obtained in step 2 (each chat's id, kind, name, and members) and (b) the list of DeepWiki documentation topic titles you obtained in step 1, and post that combined information as the reply body.  5. Add the ':+1:' reaction to the message you created in step 4.  6. Reply to message m_001 in chat c_001 with a message that includes the full list_chats result you obtained in step 2 (each chat's id, kind, name, and members) in the reply body.
+
+------------------------------------------------------------------------------------------------
+-- REPLY
+------------------------------------------------------------------------------------------------
+{
+  "prompt": "You are Sam Ortega acting in the chat workspace. First, run DeepWiki for the repository acme/edge-proxy to obtain the list of documentation topic titles for that repo. Also list the chats that the acting user is a member of; that listing will return the array of group chats the user belongs to (the three groups are the one named \"infra\" whose members are Sam Ortega, Maya Patel, Tom Rivera, and Aaron Brooks; the one named \"docs\" whose members are Sam Ortega, Maya Patel, and Lina Wong; and the one named \"random\" whose members are Sam Ortega, Maya Patel, and Diego Ramos). After you have both results, reply in-thread to the message about someone run DeepWiki to with the exact text: 'On it — running DeepWiki for acme/edge-proxy now. I’ll paste the topic list here and into #docs.' Next, reply in-thread to the message about doc-topic list for acme/monitoring with a message whose body includes both the full chat-listing result you obtained (showing each chat's id, kind, name, and member list) and the list of DeepWiki documentation topic titles you obtained for acme/edge-proxy. After posting that reply to the message about doc-topic list for acme/monitoring, add the ':+1:' reaction to the reply you just created. Finally, post another reply in-thread to the message about someone run DeepWiki to that includes the full chat-listing result you obtained (each chat's id, kind, name, and members) in the reply body.",
+  "judge": [
+    {
+      "id": "carry:c0a1:text",
+      "expected": "The reply posted to the message about doc-topic list for acme/monitoring contains the three group chats returned by the chat-listing action with their ids, kinds, names, and member lists (the group named \"infra\" with members Sam Ortega, Maya Patel, Tom Rivera, and Aaron Brooks; the group named \"docs\" with members Sam Ortega, Maya Patel, and Lina Wong; the group named \"random\" with members Sam Ortega, Maya Patel, and Diego Ramos) and it also includes the DeepWiki documentation topic titles returned for acme/edge-proxy.",
+      "hint": "Look in the reply message you posted to the message about doc-topic list for acme/monitoring (the message created when you carried the combined information)."
+    },
+    {
+      "id": "carry:c1a1:text",
+      "expected": "The reply posted to the message about someone run DeepWiki to includes the full chat-listing result showing the three chats with their ids, kinds, names, and member lists (the group named \"infra\" with members Sam Ortega, Maya Patel, Tom Rivera, and Aaron Brooks; the group named \"docs\" with members Sam Ortega, Maya Patel, and Lina Wong; the group named \"random\" with members Sam Ortega, Maya Patel, and Diego Ramos).",
+      "hint": "Look in the reply message you posted to the message about someone run DeepWiki to that you created at the end of the task."
+    }
+  ]
+}

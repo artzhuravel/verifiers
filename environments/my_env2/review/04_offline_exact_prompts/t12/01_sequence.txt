@@ -1,0 +1,109 @@
+SEQUENCE idx 12  (task id t12)
+
+Stage 1 output. No world exists yet: every entity is a typed placeholder, and the
+world is authored afterwards to satisfy what is written here.
+
+WHAT OF THIS THE AUTHORING MODEL ACTUALLY SEES
+Only two of the blocks below are prompt content; each is tagged. The rest is written
+for you. The full Stage 3 user message is, in order:
+
+    ENVIRONMENT / ENTITY TYPES IN THIS TASK / ACTIONS THIS TASK USES   <- 02_shared_context.txt
+    PLAN THE AGENT WILL BE ASKED TO CARRY OUT                          <- the tagged block below
+    PLACEHOLDERS THAT MUST ALREADY EXIST                               <- the tagged block below
+    BIND EXACTLY THESE, ONE EACH, AND NOTHING ELSE                     <- one line, not shown here
+
+plus a system prompt. For the real thing, byte for byte, read 03_world.prompt.txt.
+
+SHAPE (measured off the emitted steps, not read back from the config)
+[REVIEW ONLY — this block is written for a human and is never sent to any model]
+  threads                    3
+  turns                      4
+  steps                      7
+  links_per_thread           [3, 2, 1]
+  longest_chain              3
+  longest_chain_per_thread   [3, 2, 1]
+  cross_thread_edges         1
+  object_edges               1
+  value_edges                2
+  fan_in                     {"1": 3}
+  fan_out                    {"1": 1, "2": 1}
+  external_steps             2
+  write_steps                5
+  distractors                1
+  actions                    {"add_reaction": 1, "create_chat": 1, "mark_read": 1, "read_wiki_contents": 1, "read_wiki_structure": 1, "send_message": 2}
+
+THE CLOCK — three threads advancing in parallel; a thread may skip a turn to wait
+for another thread to produce something it can consume
+[REVIEW ONLY — this block is written for a human and is never sent to any model]
+turn  thread 0                          thread 1                          thread 2                          
+   0  1. create_chat                    2. read_wiki_contents             3. read_wiki_structure
+   1  4. send_message                   ·  (skipped)                      —
+   2  5. add_reaction                   ·  (skipped)                      —
+   3  —                                 6. send_message; 7. mark_read (aside)—
+
+THE PLAN, AS THE AUTHORING MODEL SEES IT
+[SENT — this block appears VERBATIM in the Stage 3 prompt, under the header named below]
+header in the prompt: "PLAN THE AGENT WILL BE ASKED TO CARRY OUT"
+step 1 [write] create_chat — Create a new chat; the acting user is always included as a member.
+    member_ids   = $user_0 (an existing user)
+    -> creates $new_chat_0
+step 2 [read] read_wiki_contents — View DeepWiki documentation for a GitHub repository.
+    repoName     = $repoName_0 (free text: GitHub repo in owner/repo form)
+    -> returns $info_0: the repo's wiki DOCUMENTATION PROSE. It states what the project is for, how a subsystem works, what a concept means. It does NOT state licence, stars, maintainers or primary language, so a question about those has no obtainable answer here.
+step 3 [read] read_wiki_structure — List the DeepWiki documentation topics for a GitHub repository.
+    repoName     = $repoName_1 (free text: GitHub repo in owner/repo form)
+    -> returns $info_1: only the LIST OF DOCUMENTATION TOPIC TITLES. It can answer which areas the documentation covers, and nothing about repo metadata or the content of any page.
+step 4 [write] send_message — Send a message from the acting user to a chat.
+    chat_id      = $chat_0 (an existing chat)
+    text         <- must carry what step 2 returned
+    -> creates $new_message_0
+step 5 [write] add_reaction — Add an emoji reaction from the acting user to a message.
+    message_id   = $new_message_0 (the message step 4 creates)
+    emoji        = $emoji_0 (free text: reaction emoji, e.g. ':+1:')
+step 6 [write] send_message — Send a message from the acting user to a chat.
+    chat_id      = $chat_1 (an existing chat)
+    text         <- must carry what step 2 returned
+    -> creates $new_message_1
+step 7 [write, an aside] mark_read — Mark every message in a chat as read by the acting user.
+    chat_id      = $chat_2 (an existing chat)
+
+DEPENDENCY EDGES — the reason this is a chain and not a list
+[REVIEW ONLY — this block is written for a human and is never sent to any model]
+The model is never handed this table. It learns the edges only from lines inside the
+plan block above — `text <- must carry what step N returned` for a value edge, and
+`= $new_x_0 (the x step N creates)` for an object edge.
+  step 2 (read_wiki_contents)  ->  step 4 (send_message).text [cross-thread]
+        VALUE  (what a read returned — only the judge can see it)
+  step 4 (send_message)  ->  step 5 (add_reaction).message_id
+        OBJECT (an entity id — the state diff can see it)
+  step 2 (read_wiki_contents)  ->  step 6 (send_message).text
+        VALUE  (what a read returned — only the judge can see it)
+
+PLACEHOLDERS THAT MUST ALREADY EXIST
+[SENT — this block appears VERBATIM in the Stage 3 prompt, under the header named below]
+header in the prompt: "PLACEHOLDERS THAT MUST ALREADY EXIST" (Stage 3 only)
+A REQUIRED line is what stops a step being a no-op.
+  $user_0 — a user
+      step 1 uses it as create_chat.member_ids (Create a new chat; the acting user is always included as a member.)
+  $chat_0 — a chat
+      step 4 uses it as send_message.chat_id (Send a message from the acting user to a chat.)
+  $chat_1 — a chat
+      step 6 uses it as send_message.chat_id (Send a message from the acting user to a chat.)
+  $chat_2 — a chat
+      step 7 uses it as mark_read.chat_id (Mark every message in a chat as read by the acting user.)
+      REQUIRED: the chat holds at least one message the acting user has not read — on a fully-read or empty chat this action changes nothing.
+
+SLOTS THE AUTHORING PASSES MUST FILL
+[REVIEW ONLY — this block is written for a human and is never sent to any model]
+Not sent as a block. `sequence.slots` is what Stage 7 turns into its own
+PLACEHOLDERS TO FILL list, and what Stage 8 derives the judge items from.
+  step  2 repoName     [content]
+        GitHub repo in owner/repo form
+  step  3 repoName     [content]
+        GitHub repo in owner/repo form
+  step  4 text         [carry] <- from step(s) 2
+        message body
+  step  5 emoji        [content]
+        reaction emoji, e.g. ':+1:'
+  step  6 text         [carry] <- from step(s) 2
+        message body

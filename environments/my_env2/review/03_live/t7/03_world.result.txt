@@ -1,0 +1,35 @@
+Stage 3 result: the authored draft, built into a state.
+`seed.build` validates and never repairs — an undeclared sender, a reply across chats
+or an unbound placeholder rejects the whole draft and costs a correction round.
+
+topic: Launch-week feature-flag flip & canary monitoring
+
+You act as Ari Novak (id u_me).
+
+People:
+  u_me  Ari Novak @you
+  u_samir  Samir Patel @samir
+  u_leah  Leah Kim @leah
+  u_maria  Maria Gomez @maria
+  u_tom  Tom Wright @tom
+
+group Launch Planning (c_001) — members: Ari Novak @you, Samir Patel @samir, Leah Kim @leah, Maria Gomez @maria
+  m_001 [Samir Patel @samir]: We need to pick the time window for the feature-flag flip — options: 22:00 or 02:00. Thoughts?  (UNREAD by you)
+  m_002 [Leah Kim @leah]: 02:00 is safer for international traffic. Also: flag the CS team in advance.  (reply to m_001; UNREAD by you)
+  m_003 [Maria Gomez @maria]: If we flip at 02:00 I'll be on call — can someone draft a clear rollback plan with triggers?  (reply to m_001; UNREAD by you; :+1: x1)
+  m_007 [Ari Novak @you]: Can we confirm the rollback trigger conditions before we pick the time?
+  m_008 [Leah Kim @leah]: We haven't defined exact thresholds yet — Leah to draft? Also who will own the rollback?  (reply to m_007; UNREAD by you)
+
+dm (dm) (c_002) — members: Ari Novak @you, Samir Patel @samir
+  m_004 [Samir Patel @samir]: Quick DM: do you have the list of services affected by the rollout?
+  m_009 [Ari Novak @you]: I'll pull the affected-service list and post it to Ops Room once I have it.  (reply to m_004)
+
+group Ops Room (c_003) — members: Ari Novak @you, Maria Gomez @maria, Tom Wright @tom
+  m_005 [Tom Wright @tom]: Alert: the canary shows increased latencies since 23:10. Switching back might be necessary.  (UNREAD by you; ⚠️ x1)
+  m_006 [Maria Gomez @maria]: Acknowledged. Can you pull p50/p95 and error rate for the last hour so we can decide?  (reply to m_005; UNREAD by you)
+
+PLACEHOLDERS BOUND
+  $user_0              -> u_maria
+  $chat_0              -> c_001
+  $chat_1              -> c_003
+  $message_0           -> m_005

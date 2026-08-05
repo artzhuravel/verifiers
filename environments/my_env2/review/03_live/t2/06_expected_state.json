@@ -1,0 +1,353 @@
+{
+  "me": "u_me",
+  "users": {
+    "u_me": {
+      "id": "u_me",
+      "name": "Alex Morgan",
+      "handle": "you"
+    },
+    "u_mg_singh": {
+      "id": "u_mg_singh",
+      "name": "Maya Singh",
+      "handle": "mg_singh"
+    },
+    "u_crivera": {
+      "id": "u_crivera",
+      "name": "Carlos Rivera",
+      "handle": "crivera"
+    },
+    "u_jpark": {
+      "id": "u_jpark",
+      "name": "Jen Park",
+      "handle": "jpark"
+    },
+    "u_amirq": {
+      "id": "u_amirq",
+      "name": "Amir Qureshi",
+      "handle": "amirq"
+    },
+    "u_spatel": {
+      "id": "u_spatel",
+      "name": "Samir Patel",
+      "handle": "spatel"
+    }
+  },
+  "chats": {
+    "c_001": {
+      "id": "c_001",
+      "kind": "group",
+      "name": "launch-team",
+      "member_ids": [
+        "u_me",
+        "u_mg_singh",
+        "u_crivera"
+      ]
+    },
+    "c_002": {
+      "id": "c_002",
+      "kind": "dm",
+      "name": null,
+      "member_ids": [
+        "u_me",
+        "u_jpark"
+      ]
+    },
+    "c_003": {
+      "id": "c_003",
+      "kind": "group",
+      "name": "design-queue",
+      "member_ids": [
+        "u_me",
+        "u_amirq",
+        "u_mg_singh"
+      ]
+    },
+    "c_004": {
+      "id": "c_004",
+      "kind": "group",
+      "name": "coffee-corner",
+      "member_ids": [
+        "u_me",
+        "u_mg_singh",
+        "u_spatel"
+      ]
+    },
+    "c_005": {
+      "id": "c_005",
+      "kind": "group",
+      "name": "$name_0",
+      "member_ids": [
+        "u_me",
+        "u_mg_singh",
+        "u_crivera"
+      ]
+    },
+    "c_006": {
+      "id": "c_006",
+      "kind": "group",
+      "name": "$name_1",
+      "member_ids": [
+        "u_me",
+        "u_jpark",
+        "u_amirq"
+      ]
+    }
+  },
+  "messages": [
+    {
+      "id": "m_001",
+      "chat_id": "c_001",
+      "sender_id": "u_mg_singh",
+      "text": "We need to finalize the beta list by Friday. Current candidate count: 42. Thoughts on prioritization?",
+      "ts": 1,
+      "reply_to": null,
+      "reactions": {},
+      "read_by": [
+        "u_mg_singh"
+      ]
+    },
+    {
+      "id": "m_002",
+      "chat_id": "c_004",
+      "sender_id": "u_spatel",
+      "text": "Hey — thought it would be nice to have a casual chat for breaks and random links.",
+      "ts": 2,
+      "reply_to": null,
+      "reactions": {},
+      "read_by": [
+        "u_spatel",
+        "u_me"
+      ]
+    },
+    {
+      "id": "m_003",
+      "chat_id": "c_001",
+      "sender_id": "u_me",
+      "text": "I can run the segmentation this afternoon and share a prioritized list.",
+      "ts": 3,
+      "reply_to": "m_001",
+      "reactions": {},
+      "read_by": [
+        "u_me"
+      ]
+    },
+    {
+      "id": "m_004",
+      "chat_id": "c_001",
+      "sender_id": "u_mg_singh",
+      "text": "Also, can we add a quick note about international locales?",
+      "ts": 4,
+      "reply_to": "m_001",
+      "reactions": {},
+      "read_by": [
+        "u_mg_singh"
+      ]
+    },
+    {
+      "id": "m_005",
+      "chat_id": "c_001",
+      "sender_id": "u_crivera",
+      "text": "I'm worried about capacity for tier B; we should cap at 30 unless ops can extend.",
+      "ts": 5,
+      "reply_to": null,
+      "reactions": {},
+      "read_by": [
+        "u_crivera"
+      ]
+    },
+    {
+      "id": "m_006",
+      "chat_id": "c_001",
+      "sender_id": "u_crivera",
+      "text": "Also, FYI I put a note in the project board about potential capacity spikes.",
+      "ts": 6,
+      "reply_to": "m_003",
+      "reactions": {},
+      "read_by": [
+        "u_crivera"
+      ]
+    },
+    {
+      "id": "m_007",
+      "chat_id": "c_002",
+      "sender_id": "u_jpark",
+      "text": "Do you have the final assets from design?",
+      "ts": 7,
+      "reply_to": null,
+      "reactions": {},
+      "read_by": [
+        "u_jpark"
+      ]
+    },
+    {
+      "id": "m_008",
+      "chat_id": "c_001",
+      "sender_id": "u_crivera",
+      "text": "If ops can extend they'll need a list of proposed users per tier.",
+      "ts": 8,
+      "reply_to": "m_005",
+      "reactions": {},
+      "read_by": [
+        "u_crivera"
+      ]
+    },
+    {
+      "id": "m_009",
+      "chat_id": "c_002",
+      "sender_id": "u_me",
+      "text": "Not yet; Amir said he'd push icons by EOD.",
+      "ts": 9,
+      "reply_to": "m_007",
+      "reactions": {},
+      "read_by": [
+        "u_me"
+      ]
+    },
+    {
+      "id": "m_010",
+      "chat_id": "c_001",
+      "sender_id": "u_mg_singh",
+      "text": "Good catch, Carlos. I'll draft the list template.",
+      "ts": 10,
+      "reply_to": "m_006",
+      "reactions": {},
+      "read_by": [
+        "u_mg_singh"
+      ]
+    },
+    {
+      "id": "m_011",
+      "chat_id": "c_003",
+      "sender_id": "u_amirq",
+      "text": "Pushed the revised hero banner to /design-assets/banner_v3 — feedback welcome.",
+      "ts": 11,
+      "reply_to": null,
+      "reactions": {},
+      "read_by": [
+        "u_amirq"
+      ]
+    },
+    {
+      "id": "m_012",
+      "chat_id": "c_002",
+      "sender_id": "u_jpark",
+      "text": "Design pushed a small update — I'll resend the asset links once exported.",
+      "ts": 12,
+      "reply_to": "m_007",
+      "reactions": {},
+      "read_by": [
+        "u_jpark"
+      ]
+    },
+    {
+      "id": "m_013",
+      "chat_id": "c_003",
+      "sender_id": "u_mg_singh",
+      "text": "Nice. The CTA needs stronger contrast though.",
+      "ts": 13,
+      "reply_to": "m_011",
+      "reactions": {},
+      "read_by": [
+        "u_mg_singh"
+      ]
+    },
+    {
+      "id": "m_014",
+      "chat_id": "c_002",
+      "sender_id": "u_jpark",
+      "text": "Quick Q: do you want PNGs or SVGs for the icons?",
+      "ts": 14,
+      "reply_to": "m_012",
+      "reactions": {},
+      "read_by": [
+        "u_jpark"
+      ]
+    },
+    {
+      "id": "m_015",
+      "chat_id": "c_003",
+      "sender_id": "u_me",
+      "text": "I'll coordinate a quick accessibility pass and return notes by noon.",
+      "ts": 15,
+      "reply_to": "m_011",
+      "reactions": {},
+      "read_by": [
+        "u_me"
+      ]
+    },
+    {
+      "id": "m_016",
+      "chat_id": "c_003",
+      "sender_id": "u_amirq",
+      "text": "I'm happy to review contrast changes after your pass.",
+      "ts": 16,
+      "reply_to": "m_011",
+      "reactions": {},
+      "read_by": [
+        "u_amirq"
+      ]
+    },
+    {
+      "id": "m_017",
+      "chat_id": "c_001",
+      "sender_id": "u_crivera",
+      "text": "Thanks — segmentation would help. Also looping ops in case we need capacity.",
+      "ts": 17,
+      "reply_to": "m_003",
+      "reactions": {},
+      "read_by": [
+        "u_crivera"
+      ]
+    },
+    {
+      "id": "m_018",
+      "chat_id": "c_003",
+      "sender_id": "u_mg_singh",
+      "text": "Thanks — can you note exact color values in the doc?",
+      "ts": 18,
+      "reply_to": "m_016",
+      "reactions": {},
+      "read_by": [
+        "u_mg_singh"
+      ]
+    },
+    {
+      "id": "m_019",
+      "chat_id": "c_001",
+      "sender_id": "u_me",
+      "text": "$carried_c0a1_text",
+      "ts": 19,
+      "reply_to": null,
+      "reactions": {},
+      "read_by": [
+        "u_me"
+      ]
+    },
+    {
+      "id": "m_020",
+      "chat_id": "c_001",
+      "sender_id": "u_me",
+      "text": "$carried_c1a1_text",
+      "ts": 20,
+      "reply_to": "m_005",
+      "reactions": {},
+      "read_by": [
+        "u_me"
+      ]
+    },
+    {
+      "id": "m_021",
+      "chat_id": "c_003",
+      "sender_id": "u_me",
+      "text": "$carried_c0a2_text",
+      "ts": 21,
+      "reply_to": "m_011",
+      "reactions": {},
+      "read_by": [
+        "u_me"
+      ]
+    }
+  ],
+  "next_message_id": 22,
+  "next_chat_id": 7
+}

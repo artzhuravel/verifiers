@@ -1,0 +1,42 @@
+Stage 3 result (as shipped, after Stage 5 padding).
+
+topic: Scheduling the new S3->warehouse ingest and schema sign-off
+
+You act as You (id u_me).
+
+People:
+  u_me  You @you
+  u_lina  Lina Park @lina
+  u_ravi  Ravi Patel @ravi
+  u_mae  Mae Chen @mae
+  u_owen  Owen Brooks @owen
+  u_alex  Alex Kim @alex
+
+group ingest-pipeline (c_001) — members: You @you, Lina Park @lina, Mae Chen @mae, Owen Brooks @owen
+  m_001 [Lina Park @lina]: We're planning to run the new S3->warehouse ingest nightly at 02:00 UTC. Is everyone okay with that?  (UNREAD by you; :+1: x1)
+  m_002 [Mae Chen @mae]: 02:00 is fine in principle, but we should offset from other heavy jobs. Can we move to 03:30 to avoid overlap with the backup window?  (reply to m_001; UNREAD by you)
+  m_003 [Owen Brooks @owen]: Also flagging that the retention policy convo from last sprint might bump the on-disk usage — we should include that in the estimate.
+  m_004 [Owen Brooks @owen]: I prefer 02:00 to keep it earlier; 03:30 will push downstream jobs later and might break SLAs.  (reply to m_001; :-1: x1)
+  m_007 [Mae Chen @mae]: Totally — also, can we table the docs export until after the ingest decision? It affects downstream storage.  (reply to m_004; UNREAD by you)
+  m_009 [Lina Park @lina]: We need to decide by EOD so we can schedule the deploy. @mae can you bring hourly load numbers and peak overlap?  (reply to m_002; UNREAD by you)
+  m_012 [Mae Chen @mae]: I'll pull the hourly metrics and post them in this thread in about an hour — will include overlap with backups.  (reply to m_009)
+  m_014 [Mae Chen @mae]: If we move forward at 02:00 we should also coordinate with ops to throttle noncritical retries during the window.  (reply to m_009; UNREAD by you)
+
+dm (dm) (c_002) — members: You @you, Ravi Patel @ravi
+  m_006 [Ravi Patel @ravi]: Hey — did you get the final schema for customer records? I attached a draft in the repo.  (UNREAD by you)
+  m_010 [Ravi Patel @ravi]: Quick follow-up: I pushed another commit to the draft that relaxes the phone field to optional — see the diff.  (reply to m_006; UNREAD by you)
+  m_011 [Ravi Patel @ravi]: Also, one quick question: should the 'phone' field be optional in the schema? The draft marks it required.  (reply to m_006; UNREAD by you)
+  m_013 [Ravi Patel @ravi]: I'm heading to lunch in 10; if you need the draft merged before then, ping me here.  (UNREAD by you)
+
+group design-ideas (c_003) — members: You @you, Lina Park @lina, Alex Kim @alex
+  m_005 [Alex Kim @alex]: Figured I'd start a thread for brainstorming features — short bikeshed welcome.
+  m_008 [Lina Park @lina]: Love this — can we include a quick sketch section so folks can drop PNGs?  (reply to m_005)
+
+PLACEHOLDERS BOUND
+  $user_0                -> u_lina       (seed)
+  $user_1                -> u_ravi       (seed)
+  $chat_0                -> c_001        (seed)
+  $new_chat_0            -> c_004        (rollout)
+  $new_message_0         -> m_015        (rollout)
+  $new_message_1         -> m_016        (rollout)
+  $new_message_2         -> m_017        (rollout)

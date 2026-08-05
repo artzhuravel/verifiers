@@ -1,0 +1,209 @@
+# Stage 9 — rewrite as prose, ids replaced by descriptions
+
+1 model call(s).
+
+================================================================================================
+== call 1 of 1
+================================================================================================
+
+------------------------------------------------------------------------------------------------
+-- SYSTEM PROMPT
+------------------------------------------------------------------------------------------------
+You rewrite a task so that it names nothing, and asks for exactly the same work.
+
+You are given the workspace, the plan the task encodes, the current task text, and — for every entity involved — a description that is TRUE OF IT AND OF NOTHING ELSE in that workspace. Rewrite the task as coherent connected prose that picks each thing out by description rather than by id.
+
+- Continuous paragraphs. No numbered list, no bullets, no "Step 1:" — if the result still reads as a list of instructions, it is not done.
+- Use the descriptions given. They were checked against the workspace; anything you invent was not, and a reference matching two things makes the task unanswerable.
+- A description INTRODUCES a thing. Use it at the first mention only. Every later mention refers back the way a person would — "that conversation", "the same thread", "there", "them", "it", "the one you just read". Pasting a description a second time is the commonest way this rewrite fails: it reads as find-and-replace rather than as writing, and where a description depends on something the task itself changes, every use after that change is simply FALSE. Any description marked below as one the work invalidates must be used early and never again.
+- Never answer your own reference. No parenthetical, no "i.e.", no appositive that supplies the name or id of something you have just described.
+- Do not add, drop, merge or reorder an action, and never turn a read into a write.
+- Reproduce every repository name and question word for word. The expected answers are keyed to them.
+- It must read like an ordinary request from a colleague: say what you want and where to report back, never why. No mention of steps, tools, plans or rules.
+
+You also rewrite the JUDGE ITEMS. Each tells a grader what a correct answer says and where in the agent's output to look for it. They were written against the PREVIOUS version of this task, so they still speak its language — step numbers, entity ids, names, quoted wording — much of which you are removing. Left alone, they describe a task the agent was never given.
+
+For every item, restate `expected` and `hint` so that a grader reading YOUR text can still check the same thing:
+
+- `expected` — what a correct answer STATES, in substance. Keep every fact in it. Where the previous wording leaned on an id or a step number to say WHICH thing ("the reply to m_004"), say it the way your text says it. Never replace it with a pointer: "the answer to the question above" leaves a grader nothing to compare against.
+- `hint` — where in the agent's output to look, described the way your text describes it.
+
+Do not drop an item, do not merge two, and never change WHAT is required — only how it is said. Copy each `id` exactly.
+
+Respond with ONLY this JSON object:
+{"prompt": "<the rewritten task>",
+ "judge": [{"id": "<copied exactly>", "expected": "...", "hint": "..."}]}
+
+------------------------------------------------------------------------------------------------
+-- USER PROMPT
+------------------------------------------------------------------------------------------------
+ENVIRONMENT
+  chat: Local mock chat app. Read and write tools operate on the rollout's ChatState.
+  deepwiki: Public DeepWiki MCP server: read-only GitHub-repo Q&A. Answers can be nondeterministic; requires the repo to be indexed by DeepWiki.
+  You act as one specific user. The acting user's id. Every write is attributed to this user; reads are scoped to it where noted.
+
+ENTITY TYPES IN THIS TASK
+  chat — A conversation the acting user takes part in. `name` is null for a DM.
+      id: string
+      kind: "dm" | "group"
+      name: string | null
+      member_ids: string[] (user ids)
+  user — A person in the workspace. Display names may collide; handles never do.
+      id: string
+      name: string
+      handle: string
+  message — One posted message. `reply_to` threads it under an earlier message in the same chat.
+      id: string
+      chat_id: string (chat id)
+      sender_id: string (user id)
+      text: string
+      ts: int (logical clock, not wall time)
+      reply_to: string | null (parent message id)
+      reactions: object (emoji -> user_id[])
+      read_by: string[] (user ids)
+
+ACTIONS THIS TASK USES
+  list_chats (read) — List the chats the acting user is a member of.
+      returns: array of {id, kind, name, members} for chats where actor is in member_ids
+  read_messages (read) — Read the most recent messages in a chat, oldest to newest.
+      chat_id: chat to read
+      limit: max messages, most recent (optional)
+      returns: array of message views {id, chat_id, from, sender_id, text, ts, reply_to, reactions, read_by}
+  create_chat (write) — Create a new chat; the acting user is always included as a member.
+      member_ids: user ids to include (actor added automatically)
+      name: chat name; if set (or >2 members) the chat is a group, else a dm (optional)
+      returns: {id, kind, name, members}
+  send_message (write) — Send a message from the acting user to a chat.
+      chat_id: destination chat
+      text: message body
+      returns: the created message view
+  reply_to (write) — Reply to an existing message in its chat (threaded).
+      message_id: the message being replied to
+      text: reply body
+      returns: the created message view
+
+WORKSPACE
+You act as Ari Novak (id u_me).
+
+People:
+  u_me  Ari Novak @you
+  u_samir  Samir Patel @samir
+  u_leah  Leah Kim @leah
+  u_maria  Maria Gomez @maria
+  u_tom  Tom Wright @tom
+  u_jia  Jia Chen @jia
+  u_brett  Brett Lane @brett
+
+group Launch Planning (c_001) — members: Ari Novak @you, Samir Patel @samir, Leah Kim @leah, Maria Gomez @maria
+  m_001 [Samir Patel @samir]: We need to pick the time window for the feature-flag flip — options: 22:00 or 02:00. Thoughts?  (UNREAD by you)
+  m_002 [Leah Kim @leah]: 02:00 is safer for international traffic. Also: flag the CS team in advance.  (reply to m_001; UNREAD by you)
+  m_003 [Maria Gomez @maria]: If we flip at 02:00 I'll be on call — can someone draft a clear rollback plan with triggers?  (reply to m_001; UNREAD by you; :+1: x1)
+  m_006 [Samir Patel @samir]: Also, FYI, the external stakeholders asked for a one-pager by tomorrow.  (reply to m_001; UNREAD by you)
+  m_008 [Samir Patel @samir]: Also note marketing asked for a slide deck with timeline — can someone own that?  (UNREAD by you)
+  m_010 [Leah Kim @leah]: I can draft the rollback triggers doc — will share a link by EOD.  (reply to m_003; UNREAD by you)
+  m_012 [Ari Novak @you]: Can we confirm the rollback trigger conditions before we pick the time?
+  m_014 [Leah Kim @leah]: We haven't defined exact thresholds yet — Leah to draft? Also who will own the rollback?  (reply to m_012; UNREAD by you)
+
+dm (dm) (c_002) — members: Ari Novak @you, Samir Patel @samir
+  m_005 [Samir Patel @samir]: Quick DM: do you have the list of services affected by the rollout?
+  m_011 [Samir Patel @samir]: Forgot to mention: the payment service isn't in that list — it's critical.  (reply to m_005; UNREAD by you)
+  m_016 [Ari Novak @you]: I'll pull the affected-service list and post it to Ops Room once I have it.  (reply to m_005)
+
+group Ops Room (c_003) — members: Ari Novak @you, Maria Gomez @maria, Tom Wright @tom
+  m_007 [Tom Wright @tom]: Alert: the canary shows increased latencies since 23:10. Switching back might be necessary.  (UNREAD by you; ⚠️ x1)
+  m_009 [Maria Gomez @maria]: Acknowledged. Can you pull p50/p95 and error rate for the last hour so we can decide?  (reply to m_007; UNREAD by you)
+  m_013 [Tom Wright @tom]: Uploaded graphs to the dashboard: look at canary-1, canary-2. p95 jumped 40%.  (reply to m_009; UNREAD by you)
+  m_015 [Maria Gomez @maria]: On it — will take a look after the standup.  (reply to m_013)
+
+group Watercooler (c_004) — members: Ari Novak @you, Samir Patel @samir, Jia Chen @jia
+  m_004 [Jia Chen @jia]: Morning! Saw the Launch Planning thread — good luck today.  (UNREAD by you)
+
+PLAN THE TASK MUST STILL ENCODE
+step 1 [read] list_chats — List the chats the acting user is a member of.
+    -> returns: [{"id": "c_001", "kind": "group", "name": "Launch Planning", "members": ["u_me", "u_samir", "u_leah", "u_maria"]}, {"id": "c_002", "kind": "dm", "name": "c_002", "members": ["u_me", "u_samir"]}, {"id": "c_003", "kind": "group", "name": "Ops Room", "members": ["u_me", "u_maria", "u_tom"]}, {"id": "c_004", "kind": "group", "name": "Watercooler", "members": ["u_me", "u_samir", "u_jia"]}]
+step 2 [read] read_messages — Read the most recent messages in a chat, oldest to newest.
+    chat_id      = c_001 — group 'Launch Planning' — members: Ari Novak @you, Samir Patel @samir, Leah Kim @leah, Maria Gomez @maria
+    -> returns: [{"id": "m_001", "chat_id": "c_001", "from": "Samir Patel", "sender_id": "u_samir", "text": "We need to pick the time window for the feature-flag flip — options: 22:00 or 02:00. Thoughts?", "ts": 1, "reply_to": null, "reactions": {}, "read_by": ["u_samir"]}, {"id": "m_002", "chat_id": "c_001", "from": "Leah Kim", "sender_id": "u_leah", "text": "02:00 is safer for international traffic. Also: flag the CS team in advance.", "ts": 2, "reply_to": "m_001", "reactions": {}, "read_by": ["u_leah"]}, {"id": "m_003", "chat_id": "c_001", "from": "Maria Gomez", "sender_id": "u_maria", "text": "If we flip at 02:00 I'll be on call — can someone draft a clear rollback plan with triggers?", "ts": 3, "reply_to": "m_001", "reactions": {":+1:": ["u_leah"]}, "read_by": ["u_maria"]}, {"id": "m_006", "chat_id": "c_001", "from": "Samir Patel", "sender_id": "u_samir", "text": "Also, FYI, the external stakeholde …(truncated)
+step 3 [write] create_chat — Create a new chat; the acting user is always included as a member.
+    member_ids   = u_maria — Maria Gomez @maria
+    -> creates something new
+step 4 [write] send_message — Send a message from the acting user to a chat.
+    chat_id      = c_001 — group 'Launch Planning' — members: Ari Novak @you, Samir Patel @samir, Leah Kim @leah, Maria Gomez @maria
+    text         <- must carry what step 1 returned
+    -> creates something new
+step 5 [write] send_message — Send a message from the acting user to a chat.
+    chat_id      = c_003 — group 'Ops Room' — members: Ari Novak @you, Maria Gomez @maria, Tom Wright @tom
+    text         <- must carry what step 1 returned
+    -> creates something new
+step 6 [write] reply_to — Reply to an existing message in its chat (threaded).
+    message_id   = m_007 — in Ops Room from Tom Wright, unread by you: 'Alert: the canary shows increased latencies since 23:10. Switching back might be necessary.'
+    text         <- must carry what step 1 returned
+    -> creates something new
+
+HOW TO REFER TO EACH THING INSTEAD OF NAMING IT — each ONCE, at its first mention, then refer back
+  c_001 -> the Launch Planning channel
+  u_maria -> whoever wrote the message about 02:00 I'll be on
+  c_003 -> the Ops Room channel
+  m_007 -> the message about canary shows increased latencies
+
+THESE STRINGS MUST NOT APPEAR IN YOUR TEXT
+  Maria Gomez, add_reaction, ask_question, c_001, c_002, c_003, c_004, chat_add_reaction, chat_create_chat, chat_get_user, chat_list_chats, chat_mark_read, chat_read_messages, chat_reply_to, chat_send_message, create_chat, deepwiki_ask_question, deepwiki_read_wiki_contents, deepwiki_read_wiki_structure, get_user, list_chats, m_001, m_002, m_003, m_004, m_005, m_006, m_007, m_008, m_009, m_010, m_011, m_012, m_013, m_014, m_015, m_016, maria, mark_read, read_messages, read_wiki_contents, read_wiki_structure, reply_to, send_message, u_brett, u_jia, u_leah, u_maria, u_me, u_samir, u_tom
+
+JUDGE ITEMS — REWRITE EACH ONE'S expected AND hint FOR YOUR TEXT
+  report:c1a0
+      requirement (FIXED, do not change): step 2 looks something up and no later step posts what it found, so the agent must report it back in its own reply
+      must be delivered in (FIXED): the agent's final reply
+      expected — RESTATE FOR YOUR TEXT: A concise summary stating the recent messages read from the Launch Planning chat: m_001 from Samir asking to pick the time window (22:00 or 02:00); m_002 from Leah saying 02:00 is safer for international traffic and to flag the CS team; m_003 from Maria asking someone to draft a clear rollback plan with triggers; and m_006 from Samir noting external stakeholders asked for a one-pager.
+      hint     — RESTATE FOR YOUR TEXT: Look in the agent's final reply where it summarizes or lists the messages returned by reading chat c_001 (Launch Planning).
+  carry:c0a1:text
+      requirement (FIXED, do not change): the text of step 4 must carry what step 1 returned
+      must be delivered in (FIXED): the message step 4 posts
+      expected — RESTATE FOR YOUR TEXT: The message posted to c_001 (Launch Planning) includes the full list of chats returned by step 1, naming each chat id and name: c_001 "Launch Planning" (group), c_002 (dm), c_003 "Ops Room" (group), and c_004 "Watercooler" (group).
+      hint     — RESTATE FOR YOUR TEXT: Find this in the text of the message the agent sent to chat c_001 in step 4.
+  carry:c1a1:text
+      requirement (FIXED, do not change): the text of step 5 must carry what step 1 returned
+      must be delivered in (FIXED): the message step 5 posts
+      expected — RESTATE FOR YOUR TEXT: The message posted to c_003 (Ops Room) includes the full list of chats returned by step 1, naming each chat id and name: c_001 "Launch Planning" (group), c_002 (dm), c_003 "Ops Room" (group), and c_004 "Watercooler" (group).
+      hint     — RESTATE FOR YOUR TEXT: Find this in the text of the message the agent sent to chat c_003 in step 5.
+  carry:c0a2:text
+      requirement (FIXED, do not change): the text of step 6 must carry what step 1 returned
+      must be delivered in (FIXED): the message step 6 posts
+      expected — RESTATE FOR YOUR TEXT: The threaded reply to m_007 in Ops Room includes the full list of chats returned by step 1, naming each chat id and name: c_001 "Launch Planning" (group), c_002 (dm), c_003 "Ops Room" (group), and c_004 "Watercooler" (group).
+      hint     — RESTATE FOR YOUR TEXT: Find this in the text of the reply the agent posted to message m_007 in step 6.
+
+CURRENT TASK TEXT (rewrite this)
+1. Call list_chats and return the list of chats the acting user (u_me) is a member of; record that result for use in later steps.  
+2. Read the most recent messages in chat c_001 (Launch Planning) and include those message views in your final reply so I can see what was returned.  
+3. Create a new chat that includes member u_maria (Maria Gomez) in addition to the acting user.  
+4. Send a message to chat c_001 (Launch Planning) whose text includes (carries) the list of chats returned by step 1.  
+5. Send a message to chat c_003 (Ops Room) whose text includes (carries) the list of chats returned by step 1.  
+6. Reply to message m_007 in Ops Room with a threaded reply whose text includes (carries) the list of chats returned by step 1.
+
+------------------------------------------------------------------------------------------------
+-- REPLY
+------------------------------------------------------------------------------------------------
+{
+  "prompt": "Please retrieve the full list of chats that the acting user is a member of, then read the most recent messages in the Launch Planning channel and include those message views in your final reply so I can see what was returned. Create a new chat that includes whoever wrote the message about 02:00 I'll be on alongside the acting user. Post a message in that channel whose text contains the complete list of chats you retrieved, showing for each chat its id, its displayed name if any, and whether it is a group or a dm. Post the same complete list in a message to the Ops Room channel; in that same channel post a threaded reply to the message about canary shows increased latencies that also contains the complete list of chats you retrieved. Report back the Launch Planning message views you read and confirm the chat creation and the three outgoing posts in your final reply.",
+  "judge": [
+    {
+      "id": "report:c1a0",
+      "expected": "A concise summary stating the recent messages read from the Launch Planning channel: the initial message asking to pick the time window (22:00 or 02:00); a reply saying 02:00 is safer for international traffic and to flag the CS team; a reply from whoever wrote the message about 02:00 I'll be on asking someone to draft a clear rollback plan with triggers; and a reply noting that external stakeholders asked for a one-pager.",
+      "hint": "Look in the agent's final reply where it summarizes or lists the messages returned by reading the Launch Planning channel."
+    },
+    {
+      "id": "carry:c0a1:text",
+      "expected": "The message posted to the Launch Planning channel includes the complete list of chats the agent retrieved, with each chat shown by its id, its displayed name (if any), and whether it is a group or a dm — specifically the Launch Planning channel (group), the dm chat, the Ops Room channel (group), and the Watercooler channel (group).",
+      "hint": "Find this in the text of the message the agent sent to the Launch Planning channel."
+    },
+    {
+      "id": "carry:c1a1:text",
+      "expected": "The message posted to the Ops Room channel includes the complete list of chats the agent retrieved, with each chat shown by its id, its displayed name (if any), and whether it is a group or a dm — specifically the Launch Planning channel (group), the dm chat, the Ops Room channel (group), and the Watercooler channel (group).",
+      "hint": "Find this in the text of the message the agent sent to the Ops Room channel."
+    },
+    {
+      "id": "carry:c0a2:text",
+      "expected": "The threaded reply posted in response to the message about canary shows increased latencies includes the complete list of chats the agent retrieved, with each chat shown by its id, its displayed name (if any), and whether it is a group or a dm — specifically the Launch Planning channel (group), the dm chat, the Ops Room channel (group), and the Watercooler channel (group).",
+      "hint": "Find this in the text of the threaded reply the agent posted to the message about canary shows increased latencies in the Ops Room channel."
+    }
+  ]
+}

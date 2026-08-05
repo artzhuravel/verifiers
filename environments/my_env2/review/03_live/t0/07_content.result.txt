@@ -1,0 +1,15 @@
+Stage 7 result. This runs LAST because it is the only stage whose output cannot
+invalidate anything: `signature` excludes text, so the expected state is already fixed.
+
+  $repoName_0
+      signalapp/libsignal-client
+  $question_0
+      What license is this repository released under, and does signalapp provide any official Rust bindings or Rust crate for it?
+  $text_0
+      On it — I'm running a quick repo check for license and any official Rust bindings and will post the findings here shortly.
+  $text_1
+      I'm checking signalapp/libsignal-client for license and any official Rust bindings and will post the results in the infra thread; Ben, can you double-check the license when I share it?
+  $text_2
+      Done — I posted the license and Rust bindings info in the infra thread (reply to Maya). Please review and comment.
+  $emoji_0
+      :+1:

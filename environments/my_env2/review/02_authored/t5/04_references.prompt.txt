@@ -1,0 +1,115 @@
+# Stage 4 — choose a reference mode per entity
+
+NOTE ON FIDELITY — read this before trusting the WORKSPACE block below.
+
+This stage ran against the CORE world, before Stage 5 padded it, and only the padded world is
+shipped in the task record. The prompt below is therefore rebuilt in the right shape, with the
+right blocks in the right order, but the workspace inside it is the LATER one: it contains
+filler that was not present when the model actually saw this. The instructions, the block
+structure and the derived lines are real; the world is a stand-in.
+
+
+------------------------------------------------------------------------------------------------
+-- SYSTEM PROMPT
+------------------------------------------------------------------------------------------------
+You decide how a task will refer to things without naming their ids.
+
+You are given a workspace and, for each entity the task is about, the ways it could be picked out by description. Pick the ONE that suits that entity best, and say only which. What goes into it is worked out from the workspace afterwards, so you do not have to supply or check anything.
+
+Judge it on how the finished sentence would read and on how much work it makes the reader do. Describing what someone did, or what a conversation is about, is better than restating a name or a handle — those tell the reader nothing they could not have been handed. Some modes will not fit the entity in front of you at all; say so by choosing a different one.
+
+Respond with ONLY this JSON object, one entry per entity:
+{"references": [{"symbol": "$chat_0", "mode": "<mode id>"}]}
+
+------------------------------------------------------------------------------------------------
+-- USER PROMPT
+------------------------------------------------------------------------------------------------
+ENVIRONMENT
+  chat: Local mock chat app. Read and write tools operate on the rollout's ChatState.
+  deepwiki: Public DeepWiki MCP server: read-only GitHub-repo Q&A. Answers can be nondeterministic; requires the repo to be indexed by DeepWiki.
+  You act as one specific user. The acting user's id. Every write is attributed to this user; reads are scoped to it where noted.
+
+ENTITY TYPES IN THIS TASK
+  message — One posted message. `reply_to` threads it under an earlier message in the same chat.
+      id: string
+      chat_id: string (chat id)
+      sender_id: string (user id)
+      text: string
+      ts: int (logical clock, not wall time)
+      reply_to: string | null (parent message id)
+      reactions: object (emoji -> user_id[])
+      read_by: string[] (user ids)
+
+ACTIONS THIS TASK USES
+  read_wiki_structure (read) — List the DeepWiki documentation topics for a GitHub repository.
+      repoName: GitHub repo in owner/repo form
+      returns: only the LIST OF DOCUMENTATION TOPIC TITLES. It can answer which areas the documentation covers, and nothing about repo metadata or the content of any page.
+  list_chats (read) — List the chats the acting user is a member of.
+      returns: array of {id, kind, name, members} for chats where actor is in member_ids
+  reply_to (write) — Reply to an existing message in its chat (threaded).
+      message_id: the message being replied to
+      text: reply body
+      returns: the created message view
+  add_reaction (write) — Add an emoji reaction from the acting user to a message.
+      message_id: the message to react to
+      emoji: reaction emoji, e.g. ':+1:'
+      returns: the updated message view
+
+WORKSPACE
+You act as Sam Torres (id u_me).
+
+People:
+  u_me  Sam Torres @you
+  u_alicec  Alice Chen @alicec
+  u_beno  Ben Olad @beno
+  u_cruiz  Carla Ruiz @cruiz
+  u_dpark  Daniel Park @dpark
+  u_ekim  Eve Kim @ekim
+
+group platform-infra (c_001) — members: Sam Torres @you, Alice Chen @alicec, Ben Olad @beno, Carla Ruiz @cruiz
+  m_001 [Alice Chen @alicec]: We need to update acme/platform docs before the runtime upgrade next week. Can someone list the repo's documentation topics so we can triage gaps?  (:+1: x1)
+  m_002 [Ben Olad @beno]: I can run a quick listing later today — can you confirm the repo name (owner/repo)?  (reply to m_001; UNREAD by you)
+  m_004 [Carla Ruiz @cruiz]: Also, I spotted a couple of outdated arrows in the infra diagram; I'll annotate them in the source.  (reply to m_001)
+  m_006 [Alice Chen @alicec]: Thanks — adding a note to check owner fields and access controls while you're auditing the diagrams.  (reply to m_002)
+  m_009 [Alice Chen @alicec]: Also remember to pull the change-log for runtime compatibility notes before we finalize updates.  (reply to m_001; UNREAD by you)
+  m_010 [Carla Ruiz @cruiz]: I'll audit the diagrams this afternoon. Ben, ping me here when you paste the topics.  (reply to m_001)
+  m_012 [Alice Chen @alicec]: Repo owner is 'acme', name 'platform'. Ben, if you can run DeepWiki against 'acme/platform' that would be great.  (reply to m_002; UNREAD by you)
+
+group doc-review (c_002) — members: Sam Torres @you, Ben Olad @beno, Daniel Park @dpark
+  m_003 [Daniel Park @dpark]: Doc-review at 3pm today. Agenda: priority topics from platform repo + onboarding doc.  (:bell: x1)
+  m_005 [Ben Olad @beno]: Added a checklist to the meeting doc. Carla, can you validate diagram versions before we publish?  (reply to m_003)
+  m_008 [Ben Olad @beno]: If someone can paste the DeepWiki topic list for acme/platform here, I'll slot items into the agenda and flag owners.  (reply to m_003; UNREAD by you)
+  m_011 [Daniel Park @dpark]: Can someone also bring up the new contributor checklist so we can align it with the agenda?  (reply to m_008)
+  m_013 [Daniel Park @dpark]: I'll draft slides after lunch and share a quick outline here for feedback.  (reply to m_005; UNREAD by you)
+  m_014 [Daniel Park @dpark]: Noted — I'll be in the 3pm slot. Ben, any ETA on when you'll run the listing?  (reply to m_008; UNREAD by you)
+
+group coffee-break (c_003) — members: Sam Torres @you, Alice Chen @alicec, Eve Kim @ekim
+  m_007 [Eve Kim @ekim]: Hi! I'm new to the infra team — happy to help with docs or diagram checks wherever useful.
+
+ENTITIES TO DESCRIBE, AND THE MODES AVAILABLE FOR EACH
+  $message_0 = m_002 (in platform-infra from Ben Olad, replying to m_001, unread by you: 'I can run a quick listing later today — can you confirm the repo name (owner/repo)?')
+      mode message_reply_to_text: reads as "the reply to the message about {text}" — the single reply to the one message whose text contains {text}
+      mode message_most_reacted: reads as "the message that has drawn the most reactions" — the message with strictly more distinct reactors than any other in the workspace
+      mode message_newest_by_handle: reads as "the latest thing @{handle} posted" — the most recent message written by the user whose handle is {handle}
+      mode message_by_text: reads as "the message about {text}" — the one message whose text contains {text}
+  $message_1 = m_008 (in doc-review from Ben Olad, replying to m_003, unread by you: "If someone can paste the DeepWiki topic list for acme/platform here, I'll slot items into the agenda and flag owners.")
+      mode message_reply_to_text: reads as "the reply to the message about {text}" — the single reply to the one message whose text contains {text}
+      mode message_most_reacted: reads as "the message that has drawn the most reactions" — the message with strictly more distinct reactors than any other in the workspace
+      mode message_newest_by_handle: reads as "the latest thing @{handle} posted" — the most recent message written by the user whose handle is {handle}
+      mode message_by_text: reads as "the message about {text}" — the one message whose text contains {text}
+
+------------------------------------------------------------------------------------------------
+-- WHAT THE MODEL RETURNED (the shipped artifact)
+------------------------------------------------------------------------------------------------
+{
+  "references": [
+    {
+      "symbol": "$message_0",
+      "mode": "message_reply_to_text"
+    },
+    {
+      "symbol": "$message_1",
+      "mode": "message_reply_to_text"
+    }
+  ]
+}

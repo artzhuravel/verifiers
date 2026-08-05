@@ -1,0 +1,29 @@
+Stage 4. Each seed entity gets ONE way of being described instead of named.
+The model picks only WHICH mode; the adapter derives the params from the world and
+proves resolve(state, mode, params) == [that entity]. A mode that cannot be made to fit
+is skipped and the next tried, so the stage is total — an entity with no working
+reference raises, because v2 strips ids out and the task would be unanswerable.
+
+  $chat_0  ->  c_001
+      the entity      group 'product-team' — members: You @you, Maya Singh @maya_r, Luis Hernández @luis_h, Priya Kapoor @priya_k, Ben Zhao @ben_z
+      mode chosen     chat_by_name  (the model's pick)
+      params derived  {"name": "product-team"}
+      reads as        "the product-team channel"
+      predicate       the chat whose title is exactly product-team
+      PROOF           resolve() -> ['c_001']   unique, and it is the target
+
+  $message_0  ->  m_003
+      the entity      in c_002 from Maya Singh, unread by you: "Can you paste the full list of our current chats (names and members)? I'm updating the onboarding doc and want the exact strings."
+      mode chosen     message_by_text  (the model's pick)
+      params derived  {"text": "paste the full list"}
+      reads as        "the message about paste the full list"
+      predicate       the one message whose text contains paste the full list
+      PROOF           resolve() -> ['m_003']   unique, and it is the target
+
+  $message_1  ->  m_005
+      the entity      in product-team from Priya Kapoor, unread by you: "Could someone check acme/cli-helper on DeepWiki and paste what it says about the license and main language? We'll include that in notes."
+      mode chosen     message_by_text  (the model's pick)
+      params derived  {"text": "Could someone check acme/cli-helper"}
+      reads as        "the message about Could someone check acme/cli-helper"
+      predicate       the one message whose text contains Could someone check acme/cli-helper
+      PROOF           resolve() -> ['m_005']   unique, and it is the target

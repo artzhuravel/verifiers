@@ -1,0 +1,37 @@
+Stage 4. Each seed entity gets ONE way of being described instead of named.
+The model picks only WHICH mode; the adapter derives the params from the world and
+proves resolve(state, mode, params) == [that entity]. A mode that cannot be made to fit
+is skipped and the next tried, so the stage is total — an entity with no working
+reference raises, because v2 strips ids out and the task would be unanswerable.
+
+  $user_0  ->  u_ben
+      the entity      Benjamin Ortiz @ben
+      mode chosen     user_authored_text  (the model's pick)
+      params derived  {"text": "someone confirm my GitHub"}
+      reads as        "whoever wrote the message about someone confirm my GitHub"
+      predicate       the user who wrote the one message whose text contains someone confirm my GitHub
+      PROOF           resolve() -> ['u_ben']   unique, and it is the target
+
+  $message_0  ->  m_002
+      the entity      in backend-team from Benjamin Ortiz, replying to m_001, unread by you: "I can check this, but can someone confirm my GitHub handle? I use a couple of variants ('benort' vs company handle)."
+      mode chosen     message_by_text  (model proposed 'message_reply_to_text'; it did not fit, this is the fallback)
+      params derived  {"text": "someone confirm my GitHub"}
+      reads as        "the message about someone confirm my GitHub"
+      predicate       the one message whose text contains someone confirm my GitHub
+      PROOF           resolve() -> ['m_002']   unique, and it is the target
+
+  $message_1  ->  m_007
+      the entity      in c_002 from Carla Ruiz, unread by you: "Hey — can you look up Ben's GitHub ID? I need to @-mention him in the repo issue about the security advisory."
+      mode chosen     message_by_text  (the model's pick)
+      params derived  {"text": "@-mention him in the"}
+      reads as        "the message about @-mention him in the"
+      predicate       the one message whose text contains @-mention him in the
+      PROOF           resolve() -> ['m_007']   unique, and it is the target
+
+  $chat_0  ->  c_001
+      the entity      group 'backend-team' — members: Sam Ortega @you, Alice Monroe @alice, Benjamin Ortiz @ben, Carla Ruiz @carla, Daniel Park @dan
+      mode chosen     chat_containing_text  (the model's pick)
+      params derived  {"text": "before we cut the"}
+      reads as        "the conversation where before we cut the came up"
+      predicate       the chat containing a message whose text contains before we cut the
+      PROOF           resolve() -> ['c_001']   unique, and it is the target

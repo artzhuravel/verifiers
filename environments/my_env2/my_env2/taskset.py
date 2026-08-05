@@ -25,6 +25,20 @@ from my_env2.verify import state_diff as compare_states
 _ADAPTER = ChatAdapter()  # stateless; reused for verification
 
 
+def _judge_for(row: dict, level: str) -> list[dict]:
+    """This level's judge items.
+
+    A task file written before the items were restated per level carries one flat list, authored
+    against level 1. Serving it at a higher level is not wrong — the requirement is the same — but
+    its `hint` will name steps and ids the prompt no longer contains, so it is used and the
+    mismatch is left visible rather than silently corrected.
+    """
+    judge = row.get("judge") or []
+    if isinstance(judge, dict):
+        return judge.get(level) or judge.get("1") or []
+    return judge
+
+
 class ChatTaskConfig(vf.TaskConfig):
     tools: vf.ToolsetConfig = vf.ToolsetConfig()
     web: WebToolsetConfig = WebToolsetConfig(url=DEEPWIKI_URL)
@@ -45,7 +59,9 @@ class AuthoredTaskData(vf.TaskData):
     """The workspace after a faithful run — the deterministic reward's comparison target."""
     judge: list[dict] = []
     """[{id, requirement, expected, hint}] — information that had to reach a message or the
-    final reply, which no state comparison can see."""
+    final reply, which no state comparison can see. Already narrowed to the served level: the
+    items are restated at every rung, so the wrong level's items name steps and ids that this
+    level's prompt does not contain."""
 
 
 class AuthoredTask(vf.Task[AuthoredTaskData, ChatState, ChatTaskConfig]):
@@ -82,15 +98,17 @@ class ChatConfig(vf.TasksetConfig):
     """Rows written by `python -m my_env2.pipeline`."""
     level: int = 3
     """Which prompt to serve: 1 explicit and numbered, 2 prose with described references,
-    3 goal-level. Same seed, same expected state, same judge items at every level."""
+    3 goal-level, 4 folded — the message a colleague would have typed. Same seed and same expected
+    state at every level; the judge items say the same thing but are restated per level, since the
+    higher rungs remove the steps and ids the lower ones lean on."""
     limit: int | None = None
 
 
 class ChatTaskset(vf.Taskset[AuthoredTask, ChatConfig]):
     def load(self) -> list[AuthoredTask]:
         config = self.config
-        if config.level not in (1, 2, 3):
-            raise ValueError(f"level must be 1, 2 or 3, got {config.level}")
+        if config.level not in (1, 2, 3, 4):
+            raise ValueError(f"level must be 1, 2, 3 or 4, got {config.level}")
         path = Path(config.dataset)
         if not path.exists():
             raise FileNotFoundError(
@@ -99,14 +117,21 @@ class ChatTaskset(vf.Taskset[AuthoredTask, ChatConfig]):
         rows = [
             json.loads(line) for line in path.read_text().splitlines() if line.strip()
         ]
+        level = str(config.level)
+        missing = [row["idx"] for row in rows[: config.limit] if level not in row["prompts"]]
+        if missing:
+            raise ValueError(
+                f"{path} has no level-{level} prompt for task(s) {missing} — it was written before "
+                f"level {level} existed. Re-run `python -m my_env2.pipeline` to author it."
+            )
         return [
             AuthoredTask(
                 AuthoredTaskData(
                     idx=row["idx"],
-                    prompt=row["prompts"][str(config.level)],
+                    prompt=row["prompts"][level],
                     seed=ChatState.model_validate(row["seed"]),
                     expected=ChatState.model_validate(row["expected"]),
-                    judge=row.get("judge", []),
+                    judge=_judge_for(row, level),
                 ),
                 config.task,
             )

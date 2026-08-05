@@ -1,0 +1,37 @@
+Stage 4. Each seed entity gets ONE way of being described instead of named.
+The model picks only WHICH mode; the adapter derives the params from the world and
+proves resolve(state, mode, params) == [that entity]. A mode that cannot be made to fit
+is skipped and the next tried, so the stage is total — an entity with no working
+reference raises, because v2 strips ids out and the task would be unanswerable.
+
+  $chat_0  ->  c_001
+      the entity      group 'Launch Planning' — members: Ari Novak @you, Samir Patel @samir, Leah Kim @leah, Maria Gomez @maria
+      mode chosen     chat_by_name  (the model's pick)
+      params derived  {"name": "Launch Planning"}
+      reads as        "the Launch Planning channel"
+      predicate       the chat whose title is exactly Launch Planning
+      PROOF           resolve() -> ['c_001']   unique, and it is the target
+
+  $user_0  ->  u_maria
+      the entity      Maria Gomez @maria
+      mode chosen     user_authored_text  (the model's pick)
+      params derived  {"text": "02:00 I'll be on"}
+      reads as        "whoever wrote the message about 02:00 I'll be on"
+      predicate       the user who wrote the one message whose text contains 02:00 I'll be on
+      PROOF           resolve() -> ['u_maria']   unique, and it is the target
+
+  $chat_1  ->  c_003
+      the entity      group 'Ops Room' — members: Ari Novak @you, Maria Gomez @maria, Tom Wright @tom
+      mode chosen     chat_by_name  (the model's pick)
+      params derived  {"name": "Ops Room"}
+      reads as        "the Ops Room channel"
+      predicate       the chat whose title is exactly Ops Room
+      PROOF           resolve() -> ['c_003']   unique, and it is the target
+
+  $message_0  ->  m_005
+      the entity      in Ops Room from Tom Wright, unread by you: 'Alert: the canary shows increased latencies since 23:10. Switching back might be necessary.'
+      mode chosen     message_by_text  (the model's pick)
+      params derived  {"text": "canary shows increased latencies"}
+      reads as        "the message about canary shows increased latencies"
+      predicate       the one message whose text contains canary shows increased latencies
+      PROOF           resolve() -> ['m_005']   unique, and it is the target

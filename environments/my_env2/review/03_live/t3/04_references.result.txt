@@ -1,0 +1,29 @@
+Stage 4. Each seed entity gets ONE way of being described instead of named.
+The model picks only WHICH mode; the adapter derives the params from the world and
+proves resolve(state, mode, params) == [that entity]. A mode that cannot be made to fit
+is skipped and the next tried, so the stage is total — an entity with no working
+reference raises, because v2 strips ids out and the task would be unanswerable.
+
+  $user_0  ->  u_lena
+      the entity      Lena Cho @lena
+      mode chosen     user_authored_text  (model proposed None; it did not fit, this is the fallback)
+      params derived  {"text": "Where are we sourcing"}
+      reads as        "whoever wrote the message about Where are we sourcing"
+      predicate       the user who wrote the one message whose text contains Where are we sourcing
+      PROOF           resolve() -> ['u_lena']   unique, and it is the target
+
+  $user_1  ->  u_rafael
+      the entity      Rafael Gomez @rafael
+      mode chosen     user_authored_text  (model proposed None; it did not fit, this is the fallback)
+      params derived  {"text": "Vendor quote came back"}
+      reads as        "whoever wrote the message about Vendor quote came back"
+      predicate       the user who wrote the one message whose text contains Vendor quote came back
+      PROOF           resolve() -> ['u_rafael']   unique, and it is the target
+
+  $chat_0  ->  c_001
+      the entity      group 'Product Research' — members: Avery Chen @you, Lena Cho @lena, Maya Patel @maya, Tom Briggs @tom
+      mode chosen     chat_only_with_unread  (the model's pick)
+      params derived  {}
+      reads as        "the one conversation you still have not caught up on"
+      predicate       the only chat holding at least one message the acting user has not read
+      PROOF           resolve() -> ['c_001']   unique, and it is the target
